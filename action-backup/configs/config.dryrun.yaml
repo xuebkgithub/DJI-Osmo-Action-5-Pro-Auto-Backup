@@ -1,0 +1,56 @@
+# 实机 dry-run 配置。与 production 相同，仅 mode 不同。
+mode: "dry-run"               # 实机首轮验证：只扫描、规划，不写 NAS
+
+server:
+  listen: "0.0.0.0:8080"
+  auth:
+    enabled: false              # dry-run 只读接口；切换 production 前必须开启并用 action-backup passwd 设置口令
+    username: "admin"
+    password_hash: ""
+    session_ttl_hours: 24
+    login_rate_limit_per_min: 5
+
+device:
+  vendor_id: "0506"
+  product_id: "8002"
+  auto_detect: true
+  auto_backup: true
+  mount_root: "/run/action-backup/source"
+  readonly: true
+
+backup:
+  include_internal: true
+  include_sdcard: true
+  source_directory: "DCIM"
+  file_extensions:
+    - ".mp4"
+  ignore_patterns:
+    - "._*"
+    - ".DS_Store"
+    - ".Spotlight-V100"
+    - ".fseventsd"
+    - ".Trashes"
+    - "System Volume Information"
+  worker_count: 1
+  buffer_size_mb: 4
+  retry_count: 3
+  checkpoint_interval_sec: 5
+  checkpoint_bytes_mb: 64
+  verify_mode: "basic"
+  delete_source: false
+
+storage:
+  type: "cifs"                  # cifs | premounted | local
+  share: "//192.168.1.100/VideoBackup"
+  mount_point: "/mnt/action-backup-nas"
+  smb_version: "auto"           # auto = 协商 2.1 到 3.1.1；或固定 "3.1.1"
+  credentials_file: "/etc/action-backup/smb.credentials"
+  destination_root: "DJI-Action5Pro"
+  destination_layout: "{volume_type}/{relative_path}"
+
+database:
+  path: "/var/lib/action-backup/backup.db"
+
+logging:
+  level: "info"
+  format: "json"

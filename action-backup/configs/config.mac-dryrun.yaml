@@ -1,0 +1,39 @@
+# mac 上接真相机的 dry-run：真实 USB / diskutil 发现，只扫描和规划，零写入。
+# NAS 用 Finder 挂载到 /Volumes/VideoBackup；未挂载时计划仍会生成，但 target_checked 为 false。
+mode: "dry-run"
+
+server:
+  listen: "127.0.0.1:8080"
+  auth:
+    enabled: false
+
+device:
+  vendor_id: "0506"
+  product_id: "8002"
+  auto_detect: true
+  auto_backup: true               # 相机就绪后自动生成计划
+  readonly: true
+
+backup:
+  include_internal: true
+  include_sdcard: true
+  source_directory: "DCIM"
+  file_extensions: [".mp4"]
+  worker_count: 1
+  buffer_size_mb: 4
+  verify_mode: "basic"
+  delete_source: false
+
+storage:
+  type: "premounted"
+  mount_point: "/Volumes/VideoBackup"
+  share: "//192.168.1.100/VideoBackup"
+  destination_root: "DJI-Action5Pro"
+  destination_layout: "{volume_type}/{relative_path}"
+
+database:
+  path: "./dev/backup-mac-dryrun.db"
+
+logging:
+  level: "debug"
+  format: "text"

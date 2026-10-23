@@ -1,0 +1,25 @@
+[Unit]
+Description=DJI Action Backup Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=actionbackup
+Group=actionbackup
+ExecStart=/opt/action-backup/action-backup --config /etc/action-backup/config.yaml
+WorkingDirectory=/var/lib/action-backup
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/action-backup
+ReadWritePaths=/run/action-backup
+ReadWritePaths=/mnt/action-backup-nas
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

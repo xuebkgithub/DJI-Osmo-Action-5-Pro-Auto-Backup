@@ -1,0 +1,5 @@
+# DJI Osmo Action 5 Pro (VID 0506, PID 8002)
+# 1. 阻止桌面自动挂载器以读写方式挂载相机卷；挂载由 action-backup 的 root helper 只读完成。
+# 2. 服务自身通过 netlink 监听 uevent，不依赖本规则触发。
+SUBSYSTEM=="block", ENV{ID_VENDOR_ID}=="0506", ENV{ID_MODEL_ID}=="8002", ENV{UDISKS_IGNORE}="1", ENV{UDISKS_AUTO}="0"
+SUBSYSTEM=="usb", ATTR{idVendor}=="0506", ATTR{idProduct}=="8002", TAG+="action-backup"

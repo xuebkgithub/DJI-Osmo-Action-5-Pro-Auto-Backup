@@ -1,0 +1,15 @@
+version: "2"
+linters:
+  default: standard
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*database/sql.Tx).Rollback
+        - (*database/sql.Rows).Close
+        - (io.ReadCloser).Close
+        - (net.Listener).Close
+        - (*os.File).Close
+        - (*database/sql.DB).Close
+formatters:
+  enable:
+    - gofmt

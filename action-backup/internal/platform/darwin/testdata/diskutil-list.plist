@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AllDisks</key>
+	<array>
+		<string>disk4</string>
+		<string>disk5</string>
+	</array>
+	<key>AllDisksAndPartitions</key>
+	<array>
+		<dict>
+			<key>Content</key>
+			<string></string>
+			<key>DeviceIdentifier</key>
+			<string>disk4</string>
+			<key>MountPoint</key>
+			<string>/Volumes/OsmoAction</string>
+			<key>OSInternal</key>
+			<false/>
+			<key>Size</key>
+			<integer>51493834752</integer>
+			<key>VolumeName</key>
+			<string>OsmoAction</string>
+		</dict>
+		<dict>
+			<key>Content</key>
+			<string></string>
+			<key>DeviceIdentifier</key>
+			<string>disk5</string>
+			<key>MountPoint</key>
+			<string>/Volumes/Untitled</string>
+			<key>OSInternal</key>
+			<false/>
+			<key>Size</key>
+			<integer>124658909184</integer>
+			<key>VolumeName</key>
+			<string>Untitled</string>
+		</dict>
+	</array>
+	<key>VolumesFromDisks</key>
+	<array>
+		<string>OsmoAction</string>
+		<string>Untitled</string>
+	</array>
+	<key>WholeDisks</key>
+	<array>
+		<string>disk4</string>
+		<string>disk5</string>
+	</array>
+</dict>
+</plist>
