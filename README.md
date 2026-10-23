@@ -36,7 +36,7 @@ dji_backup/
 - V0.2 已于 2026-10-23 完成：扫描器、Sync Engine、计划 API、darwin 真相机后端；mac 接真相机 dry-run 实测通过，证据在 `docs/evidence/20261023T0249Z-mac-dryrun-real-camera/`。
 - V0.3 已于 2026-10-23 完成：流式传输、`.part`、断点、basic / sha256 校验、单 Worker 调度、任务 API；5 GB 模拟备份含中断续传实测通过，证据在 `docs/evidence/20261023T0305Z-sim-5gb-sha256-resume/`。真 NAS 上传因 NAS 不可达未做。
 - V0.4 已于 2026-10-23 完成：故障注入规则引擎、自动重试与重连、冲突策略、恢复测试框架（11 个场景含进程崩溃重启）全绿，证据在 `docs/evidence/20261023T0330Z-recovery-suite/`。
-- V0.5 已于 2026-10-23 完成：`action-backup passwd`、用户名密码会话认证与 CSRF、登录限速、SSE、`/config` 在线修改、`/storage/test`、Vue 3 Web UI（含模式横幅与测试面板）；未登录 401 全路由测试与 curl 实测通过，证据在 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`。
+- V0.5 已于 2026-10-23 完成：`action-backup passwd`、用户名密码会话认证与 CSRF、登录限速、SSE、`/config` 在线修改、`/storage/test`、Vue 3 Web UI（含模式横幅与测试面板）；未登录 401 全路由测试、curl 实测与 Chrome 逐页核对（登录、SSE 实时进度、暂停 / 恢复 / 取消、设置写回、存储测试、测试面板、退出）通过，证据在 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`。
 - 待办：NAS 可达后在 Finder 挂载共享并执行 `smbutil statshares -a`，确认 SMB 版本（问题 2）。
 - 下一步：V0.6 Linux 后端（udev、mount helper、CIFS）、实机 dry-run 与真备份、性能测试（任务清单见 V1.4 §16）。NAS 可达后补做 premounted 真实上传。
 

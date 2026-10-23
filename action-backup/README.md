@@ -16,7 +16,7 @@ V0.5 新增：
 - 运行时可调：`backup.Service.SetVerifyMode / SetConflictPolicy` 与 `scheduler.Configure` 加锁，重连周期每轮重新读取。
 - 测试：`internal/api/auth` 单元测试；`internal/app/auth_test.go` 遍历全部路由验证未登录 401、CSRF、注销、限速、`PATCH /config` 写回文件与运行时生效、SSE 真实流；`cmd/action-backup` 的 passwd 测试。
 
-2026-10-23 实测：测试构建 + 认证开启的 simulation 服务，curl 覆盖 401 全路由、登录 Cookie 属性、CSRF 403、`PATCH /config` 写回、SSE 实时插拔事件、第 4 次登录 429、注销后 401；证据在 `../docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`。
+2026-10-23 实测：测试构建 + 认证开启的 simulation 服务，curl 覆盖 401 全路由、登录 Cookie 属性、CSRF 403、`PATCH /config` 写回、SSE 实时插拔事件、第 4 次登录 429、注销后 401；随后用 Chrome（chrome-devtools-mcp）逐页核对 Web UI：登录 / 错误口令、SSE 实时进度、开始 / 暂停 / 恢复 / 取消、设置写回与存储测试、测试面板添加规则、设备与事件页、退出，记录在 `ui-browser-check.md` 并附截图。核对后修正：设备名标题不再被 CSS 转为大写，登录表单 label 关联 input，设置表单控件加 name。证据在 `../docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`。
 
 V0.4 新增：
 

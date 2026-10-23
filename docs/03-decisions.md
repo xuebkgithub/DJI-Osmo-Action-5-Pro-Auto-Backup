@@ -64,3 +64,5 @@
 | 2026-10-23 | 前端不用 vue-router / pinia，单页 tab + reactive store | 六个页面、单用户，少两个依赖；状态通过 SSE 推送而非轮询 |
 | 2026-10-23 | `passwd` 非终端输入必须显式 `--stdin`，口令至少 8 字符，不自动改 `auth.enabled` | 防止脚本误把其它内容当口令；是否启用认证由配置显式决定 |
 | 2026-10-23 | 发布架构文档 V1.4 | 回写 V0.5 实现：§9 认证与 SSE 细节、§10 白名单、§11.2、§14、§16 |
+| 2026-10-23 | V0.5 Web UI 以 Chrome（chrome-devtools-mcp）逐页核对，curl 不替代浏览器验收 | 真实 SSE 渲染、按钮状态与表单关联只有浏览器能验证；核对发现 3 处修正（标题 CSS 大写、登录 label 关联、设置控件 name），记录 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/ui-browser-check.md` |
+| 2026-10-23 | 前端验收规则：每个阶段的 UI 改动都在浏览器核对并留记录与截图，放进该阶段证据目录 | 与“验证输出放 evidence、文档只引用”的约定一致；chrome-devtools-mcp 可在隔离上下文复现 |

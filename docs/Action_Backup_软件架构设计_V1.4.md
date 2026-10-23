@@ -1144,7 +1144,7 @@ OEC-Turbo 暂不能从 mac SSH 访问，部署流程分两步：
 | V0.2 | 扫描器、卷分类、Sync Engine、Plan、dry-run 门禁、darwin 后端 | mac 接真相机能列出双卷全部 MP4 并输出计划 | 完成 2026-10-23，证据 `docs/evidence/20261023T0249Z-mac-dryrun-real-camera/` |
 | V0.3 | 流式传输、`.part`、基础校验、断点、`local` 与 `premounted` 目标、`destination_layout` | simulation 下 5 GB 文件完成归档；mac 连真 NAS 完成一次真实上传 | 完成 2026-10-23（5 GB 含中断续传，证据 `docs/evidence/20261023T0305Z-sim-5gb-sha256-resume/`）；真 NAS 上传因 NAS 不可达待补 |
 | V0.4 | 状态机、恢复、重试、故障注入、恢复测试框架 | 12.4 全部注入点有对应用例，`make test-recovery` 全绿 | 完成 2026-10-23，证据 `docs/evidence/20261023T0330Z-recovery-suite/` |
-| V0.5 | Web UI（Vue 3）、用户名密码登录、会话与 CSRF、SSE、SHA-256 可选校验的 UI 开关、模式横幅、测试控制面板 | 未登录请求全部 401；浏览器可以管理任务、查看计划、添加故障规则 | 完成 2026-10-23，证据 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`（全路由 401、CSRF、SSE、限速 curl 实测与全部测试输出） |
+| V0.5 | Web UI（Vue 3）、用户名密码登录、会话与 CSRF、SSE、SHA-256 可选校验的 UI 开关、模式横幅、测试控制面板 | 未登录请求全部 401；浏览器可以管理任务、查看计划、添加故障规则 | 完成 2026-10-23，证据 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`（全路由 401、CSRF、SSE、限速 curl 实测、全部测试输出，以及 Chrome 逐页核对记录 `ui-browser-check.md` 与截图） |
 | V0.6 | linux 后端（udev、mount helper、CIFS）、实机 dry-run、实机真备份、性能测试、发布 | 实机 dry-run 计划正确；以 81.1 GB / 30 分钟为目标提交真实结果 | 待设备可用 |
 
 ## 15. 开发规范（可写入 AGENTS.md）
