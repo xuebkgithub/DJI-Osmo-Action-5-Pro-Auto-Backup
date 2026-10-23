@@ -1,0 +1,21 @@
+$ ioreg -w0 -r -c IOSCSILogicalUnitNub -l | grep -E 'IOSCSILogicalUnitNub|SCSI Logical Unit Number|Vendor Identification|Product Identification|Product Revision Level|BSD Name|Physical Interconnect'
++-o IOSCSILogicalUnitNub@0  <class IOSCSILogicalUnitNub, id 0x100084057, registered, matched, active, busy 0 (18 ms), retain 8>
+  |   "Vendor Identification" = "Linux"
+  |   "SCSI Logical Unit Number" = 0
+  |   "Product Identification" = "File-Stor Gadget"
+  |   "Protocol Characteristics" = {"Physical Interconnect"="USB","Read Time Out Duration"=30000,"SCSI Logical Unit Number"=0,"Physical Interconnect Location"="External","Write Time Out Duration"=30000,"Retry Count"=20}
+  |   "Product Revision Level" = "0515"
+      |   "Protocol Characteristics" = {"Physical Interconnect"="USB","Read Time Out Duration"=30000,"SCSI Logical Unit Number"=0,"Physical Interconnect Location"="External","Write Time Out Duration"=30000,"Retry Count"=20}
+      |   "Device Characteristics" = {"Vendor Name"="Linux","Product Name"="File-Stor Gadget","Product Revision Level"="0515"}
+          |   "BSD Name" = "disk4"
++-o IOSCSILogicalUnitNub@1  <class IOSCSILogicalUnitNub, id 0x100084058, registered, matched, active, busy 0 (143 ms), retain 8>
+  |   "Vendor Identification" = "Linux"
+  |   "SCSI Logical Unit Number" = 1
+  |   "Product Identification" = "File-Stor Gadget"
+  |   "Protocol Characteristics" = {"Physical Interconnect"="USB","Read Time Out Duration"=30000,"SCSI Logical Unit Number"=1,"Physical Interconnect Location"="External","Write Time Out Duration"=30000,"Retry Count"=20}
+  |   "Product Revision Level" = "0515"
+      |   "Protocol Characteristics" = {"Physical Interconnect"="USB","Read Time Out Duration"=30000,"SCSI Logical Unit Number"=1,"Physical Interconnect Location"="External","Write Time Out Duration"=30000,"Retry Count"=20}
+      |   "Device Characteristics" = {"Vendor Name"="Linux","Product Name"="File-Stor Gadget","Product Revision Level"="0515"}
+          |   "BSD Name" = "disk5"
+
+[exit=0]

@@ -1,0 +1,43 @@
+$ diskutil info /Volumes/OsmoAction
+   Device Identifier:         disk4
+   Device Node:               /dev/disk4
+   Whole:                     Yes
+   Part of Whole:             disk4
+   Device / Media Name:       File-Stor Gadget
+
+   Volume Name:               OsmoAction
+   Mounted:                   Yes
+   Mount Point:               /Volumes/OsmoAction
+
+   Content (IOContent):       None
+   File System Personality:   ExFAT
+   Type (Bundle):             exfat
+   Name (User Visible):       ExFAT
+
+   OS Can Be Installed:       No
+   Media Type:                通用
+   Protocol:                  USB
+   SMART Status:              Not Supported
+   Volume UUID:               19366435-A3D2-3F06-B0DD-D82D6236962A
+
+   Disk Size:                 51.5 GB (51493834752 Bytes) (exactly 100573896 512-Byte-Units)
+   Device Block Size:         4096 Bytes
+
+   Volume Total Space:        51.5 GB (51490848768 Bytes) (exactly 100568064 512-Byte-Units)
+   Volume Used Space:         1.4 MB (1441792 Bytes) (exactly 2816 512-Byte-Units) (0.0%)
+   Volume Free Space:         51.5 GB (51489406976 Bytes) (exactly 100565248 512-Byte-Units) (100.0%)
+   Allocation Block Size:     131072 Bytes
+
+   Media OS Use Only:         No
+   Media Read-Only:           No
+   Volume Read-Only:          No
+
+   Device Location:           External
+   Removable Media:           Removable
+   Media Removal:             Software-Activated
+
+   Solid State:               Info not available
+   Virtual:                   No
+
+
+[exit=0]

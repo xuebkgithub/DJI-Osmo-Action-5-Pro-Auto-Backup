@@ -1,0 +1,3 @@
+$ find '/Volumes/OsmoAction/DCIM' -type f 2>/dev/null | sed -E 's/.*\.//' | tr 'a-z' 'A-Z' | sort | uniq -c | sort -rn
+
+[exit=0]

@@ -1,0 +1,4 @@
+$ nc -z -v -w 3 192.168.1.100 5001
+nc: connectx to 192.168.1.100 port 5001 (tcp) failed: Operation timed out
+
+[exit=1]

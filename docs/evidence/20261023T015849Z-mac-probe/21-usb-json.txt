@@ -1,0 +1,7 @@
+$ system_profiler SPUSBDataType -json
+{
+  "SPUSBDataType" : [
+
+  ]
+}
+[exit=0]

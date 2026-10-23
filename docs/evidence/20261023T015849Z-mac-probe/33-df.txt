@@ -1,0 +1,15 @@
+$ df -h
+Filesystem        Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s1s1   460Gi    13Gi   168Gi     8%    484k  1.8G    0%   /
+devfs            201Ki   201Ki     0Bi   100%     694     0  100%   /dev
+/dev/disk3s6     460Gi   7.0Gi   168Gi     4%       7  1.8G    0%   /System/Volumes/VM
+/dev/disk3s2     460Gi    10Gi   168Gi     6%    1.0k  1.8G    0%   /System/Volumes/Preboot
+/dev/disk3s4     460Gi    76Mi   168Gi     1%      67  1.8G    0%   /System/Volumes/Update
+/dev/disk1s2     500Mi   6.0Mi   480Mi     2%       1  4.9M    0%   /System/Volumes/xarts
+/dev/disk1s1     500Mi   6.0Mi   480Mi     2%      32  4.9M    0%   /System/Volumes/iSCPreboot
+/dev/disk1s3     500Mi   3.0Mi   480Mi     1%     109  4.9M    0%   /System/Volumes/Hardware
+/dev/disk3s5     460Gi   261Gi   168Gi    61%    3.1M  1.8G    0%   /System/Volumes/Data
+map auto_home      0Bi     0Bi     0Bi   100%       0     0     -   /System/Volumes/Data/home
+/dev/disk3s3     460Gi   1.4Gi   168Gi     1%      68  1.8G    0%   /Volumes/Recovery
+
+[exit=0]

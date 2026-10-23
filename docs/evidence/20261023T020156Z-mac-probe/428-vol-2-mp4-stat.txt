@@ -1,0 +1,6 @@
+$ find '/Volumes/Untitled/DCIM' -type f -iname '*.MP4' 2>/dev/null | head -10 | while IFS= read -r f; do stat -f '%z  %Sm  %N' -t '%Y-%m-%dT%H:%M:%S%z' "$f"; done
+5031028178  2026-08-02T12:40:40+0800  /Volumes/Untitled/DCIM/DJI_002_XZH/DJI_20260802121833_0001_D.MP4
+15838067008  2026-08-02T13:53:07+0800  /Volumes/Untitled/DCIM/DJI_002_XZH/DJI_20260802124328_0002_D.MP4
+13134635057  2026-10-23T08:50:35+0800  /Volumes/Untitled/DCIM/DJI_003/DJI_20261023080221_0019_D.MP4
+
+[exit=0]

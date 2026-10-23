@@ -1,0 +1,193 @@
+$ ioreg -w0 -r -c IOSCSILogicalUnitNub -l
++-o IOSCSILogicalUnitNub@0  <class IOSCSILogicalUnitNub, id 0x100084057, registered, matched, active, busy 0 (18 ms), retain 8>
+  | {
+  |   "TPGS Information" = 0
+  |   "Peripheral Device Type" = 0
+  |   "Vendor Identification" = "Linux"
+  |   "SCSI Logical Unit Number" = 0
+  |   "IOMatchCategory" = "SCSITaskUserClientIniter"
+  |   "IOServiceBusyTimeoutExtensions" = 2
+  |   "Product Identification" = "File-Stor Gadget"
+  |   "Protocol Characteristics" = {"Physical Interconnect"="USB","Read Time Out Duration"=30000,"SCSI Logical Unit Number"=0,"Physical Interconnect Location"="External","Write Time Out Duration"=30000,"Retry Count"=20}
+  |   "IOUnitLUN" = 0
+  |   "Product Revision Level" = "0515"
+  | }
+  | 
+  +-o IOSCSIPeripheralDeviceType00  <class IOSCSIPeripheralDeviceType00, id 0x100084059, !registered, !matched, active, busy 0 (15 ms), retain 9>
+    | {
+    |   "IOClass" = "IOSCSIPeripheralDeviceType00"
+    |   "CFBundleIdentifier" = "com.apple.iokit.IOSCSIBlockCommandsDevice"
+    |   "IOProviderClass" = "IOSCSIPeripheralDeviceNub"
+    |   "IOMaximumBlockCountRead" = 256
+    |   "IOPowerManagement" = {"CapabilityFlags"=32832,"MaxPowerState"=4,"ActivityTickles"=56,"DevicePowerState"=4,"IdleTimerPeriod"=20000,"TimeSinceLastTickle"=12654,"DriverPowerState"=1,"IdleTimerElapsedTime"=14309,"CurrentPowerState"=4}
+    |   "IOMaximumBlockCountWrite" = 256
+    |   "IOProbeScore" = 5000
+    |   "Peripheral Device Type" = 0
+    |   "IOMatchedAtBoot" = Yes
+    |   "IOMatchCategory" = "IODefaultMatchCategory"
+    |   "IOServiceBusyTimeoutExtensions" = 2
+    |   "IOPersonalityPublisher" = "com.apple.iokit.IOSCSIBlockCommandsDevice"
+    |   "IOMaximumByteCountWrite" = 1048576
+    |   "CFBundleIdentifierKernel" = "com.apple.iokit.IOSCSIBlockCommandsDevice"
+    |   "IOPMResetPowerStateOnWake" = Yes
+    |   "WriteCacheState" = No
+    |   "IOMaximumByteCountRead" = 1048576
+    |   "IOPrimaryDriverTerminateOptions" = Yes
+    | }
+    | 
+    +-o IOBlockStorageServices  <class IOBlockStorageServices, id 0x10008405c, registered, matched, active, busy 0 (15 ms), retain 6>
+      | {
+      |   "IOMinimumSegmentAlignmentByteCount" = 4
+      |   "device-type" = "Generic"
+      |   "Protocol Characteristics" = {"Physical Interconnect"="USB","Read Time Out Duration"=30000,"SCSI Logical Unit Number"=0,"Physical Interconnect Location"="External","Write Time Out Duration"=30000,"Retry Count"=20}
+      |   "Device Characteristics" = {"Vendor Name"="Linux","Product Name"="File-Stor Gadget","Product Revision Level"="0515"}
+      | }
+      | 
+      +-o IOBlockStorageDriver  <class IOBlockStorageDriver, id 0x10008405d, registered, matched, active, busy 0 (13 ms), retain 8>
+        | {
+        |   "IOClass" = "IOBlockStorageDriver"
+        |   "CFBundleIdentifier" = "com.apple.iokit.IOStorageFamily"
+        |   "IOProviderClass" = "IOBlockStorageDevice"
+        |   "IOPropertyMatch" = {"device-type"="Generic"}
+        |   "IOPowerManagement" = {"CapabilityFlags"=0,"CurrentPowerState"=0}
+        |   "IOProbeScore" = 0
+        |   "IOMatchedAtBoot" = Yes
+        |   "IOGeneralInterest" = "IOCommand is not serializable"
+        |   "IOMatchCategory" = "IODefaultMatchCategory"
+        |   "Statistics" = {"Operations (Write)"=6,"Latency Time (Write)"=0,"Bytes (Read)"=651264,"Errors (Write)"=0,"Total Time (Read)"=136829946,"Latency Time (Read)"=0,"Retries (Read)"=0,"Errors (Read)"=0,"Total Time (Write)"=5544665,"Bytes (Write)"=98304,"Operations (Read)"=50,"Retries (Write)"=0}
+        |   "IOPersonalityPublisher" = "com.apple.iokit.IOStorageFamily"
+        |   "CFBundleIdentifierKernel" = "com.apple.iokit.IOStorageFamily"
+        | }
+        | 
+        +-o Linux File-Stor Gadget Media  <class IOMedia, id 0x100084066, registered, matched, active, busy 0 (13 ms), retain 12>
+          | {
+          |   "Content" = ""
+          |   "Removable" = Yes
+          |   "Whole" = Yes
+          |   "Leaf" = Yes
+          |   "BSD Name" = "disk4"
+          |   "Ejectable" = Yes
+          |   "Preferred Block Size" = 4096
+          |   "IOMediaIcon" = {"IOBundleResourceFile"="Removable.icns","CFBundleIdentifier"="com.apple.iokit.IOStorageFamily"}
+          |   "BSD Minor" = 20
+          |   "IOGeneralInterest" = "IOCommand is not serializable"
+          |   "Writable" = Yes
+          |   "BSD Major" = 1
+          |   "Size" = 51493834752
+          |   "IOBusyInterest" = "IOCommand is not serializable"
+          |   "Open" = Yes
+          |   "Content Hint" = ""
+          |   "BSD Unit" = 4
+          | }
+          | 
+          +-o IOMediaBSDClient  <class IOMediaBSDClient, id 0x100084067, registered, matched, active, busy 0 (1 ms), retain 7>
+              {
+                "IOProbeScore" = 30000
+                "CFBundleIdentifier" = "com.apple.iokit.IOStorageFamily"
+                "IOMatchCategory" = "IOMediaBSDClient"
+                "IOClass" = "IOMediaBSDClient"
+                "IOPersonalityPublisher" = "com.apple.iokit.IOStorageFamily"
+                "IOProviderClass" = "IOMedia"
+                "CFBundleIdentifierKernel" = "com.apple.iokit.IOStorageFamily"
+                "IOMatchedAtBoot" = Yes
+                "IOResourceMatch" = "IOBSD"
+              }
+              
+
++-o IOSCSILogicalUnitNub@1  <class IOSCSILogicalUnitNub, id 0x100084058, registered, matched, active, busy 0 (143 ms), retain 8>
+  | {
+  |   "TPGS Information" = 0
+  |   "Peripheral Device Type" = 0
+  |   "Vendor Identification" = "Linux"
+  |   "SCSI Logical Unit Number" = 1
+  |   "IOMatchCategory" = "SCSITaskUserClientIniter"
+  |   "IOServiceBusyTimeoutExtensions" = 2
+  |   "Product Identification" = "File-Stor Gadget"
+  |   "Protocol Characteristics" = {"Physical Interconnect"="USB","Read Time Out Duration"=30000,"SCSI Logical Unit Number"=1,"Physical Interconnect Location"="External","Write Time Out Duration"=30000,"Retry Count"=20}
+  |   "IOUnitLUN" = 1
+  |   "Product Revision Level" = "0515"
+  | }
+  | 
+  +-o IOSCSIPeripheralDeviceType00  <class IOSCSIPeripheralDeviceType00, id 0x10008405f, !registered, !matched, active, busy 0 (139 ms), retain 9>
+    | {
+    |   "IOClass" = "IOSCSIPeripheralDeviceType00"
+    |   "CFBundleIdentifier" = "com.apple.iokit.IOSCSIBlockCommandsDevice"
+    |   "IOProviderClass" = "IOSCSIPeripheralDeviceNub"
+    |   "IOMaximumBlockCountRead" = 2048
+    |   "IOPowerManagement" = {"CapabilityFlags"=32832,"MaxPowerState"=4,"ActivityTickles"=96,"DevicePowerState"=4,"IdleTimerPeriod"=20000,"TimeSinceLastTickle"=12648,"DriverPowerState"=1,"IdleTimerElapsedTime"=14207,"CurrentPowerState"=4}
+    |   "IOMaximumBlockCountWrite" = 2048
+    |   "IOProbeScore" = 5000
+    |   "Peripheral Device Type" = 0
+    |   "IOMatchedAtBoot" = Yes
+    |   "IOMatchCategory" = "IODefaultMatchCategory"
+    |   "IOServiceBusyTimeoutExtensions" = 2
+    |   "IOPersonalityPublisher" = "com.apple.iokit.IOSCSIBlockCommandsDevice"
+    |   "IOMaximumByteCountWrite" = 1048576
+    |   "CFBundleIdentifierKernel" = "com.apple.iokit.IOSCSIBlockCommandsDevice"
+    |   "IOPMResetPowerStateOnWake" = Yes
+    |   "WriteCacheState" = No
+    |   "IOMaximumByteCountRead" = 1048576
+    |   "IOPrimaryDriverTerminateOptions" = Yes
+    | }
+    | 
+    +-o IOBlockStorageServices  <class IOBlockStorageServices, id 0x100084062, registered, matched, active, busy 0 (139 ms), retain 6>
+      | {
+      |   "IOMinimumSegmentAlignmentByteCount" = 4
+      |   "device-type" = "Generic"
+      |   "Protocol Characteristics" = {"Physical Interconnect"="USB","Read Time Out Duration"=30000,"SCSI Logical Unit Number"=1,"Physical Interconnect Location"="External","Write Time Out Duration"=30000,"Retry Count"=20}
+      |   "Device Characteristics" = {"Vendor Name"="Linux","Product Name"="File-Stor Gadget","Product Revision Level"="0515"}
+      | }
+      | 
+      +-o IOBlockStorageDriver  <class IOBlockStorageDriver, id 0x100084063, registered, matched, active, busy 0 (138 ms), retain 8>
+        | {
+        |   "IOClass" = "IOBlockStorageDriver"
+        |   "CFBundleIdentifier" = "com.apple.iokit.IOStorageFamily"
+        |   "IOProviderClass" = "IOBlockStorageDevice"
+        |   "IOPropertyMatch" = {"device-type"="Generic"}
+        |   "IOPowerManagement" = {"CapabilityFlags"=0,"CurrentPowerState"=0}
+        |   "IOProbeScore" = 0
+        |   "IOMatchedAtBoot" = Yes
+        |   "IOGeneralInterest" = "IOCommand is not serializable"
+        |   "IOMatchCategory" = "IODefaultMatchCategory"
+        |   "Statistics" = {"Operations (Write)"=6,"Latency Time (Write)"=0,"Bytes (Read)"=399360,"Errors (Write)"=0,"Total Time (Read)"=209031684,"Latency Time (Read)"=0,"Retries (Read)"=0,"Errors (Read)"=0,"Total Time (Write)"=6775707,"Bytes (Write)"=23040,"Operations (Read)"=90,"Retries (Write)"=0}
+        |   "IOPersonalityPublisher" = "com.apple.iokit.IOStorageFamily"
+        |   "CFBundleIdentifierKernel" = "com.apple.iokit.IOStorageFamily"
+        | }
+        | 
+        +-o Linux File-Stor Gadget Media  <class IOMedia, id 0x10008406d, registered, matched, active, busy 0 (137 ms), retain 12>
+          | {
+          |   "Content" = ""
+          |   "Removable" = Yes
+          |   "Whole" = Yes
+          |   "Leaf" = Yes
+          |   "BSD Name" = "disk5"
+          |   "Ejectable" = Yes
+          |   "Preferred Block Size" = 512
+          |   "IOMediaIcon" = {"IOBundleResourceFile"="Removable.icns","CFBundleIdentifier"="com.apple.iokit.IOStorageFamily"}
+          |   "BSD Minor" = 21
+          |   "IOGeneralInterest" = "IOCommand is not serializable"
+          |   "Writable" = Yes
+          |   "BSD Major" = 1
+          |   "Size" = 124658909184
+          |   "IOBusyInterest" = "IOCommand is not serializable"
+          |   "Open" = Yes
+          |   "Content Hint" = ""
+          |   "BSD Unit" = 5
+          | }
+          | 
+          +-o IOMediaBSDClient  <class IOMediaBSDClient, id 0x10008406e, registered, matched, active, busy 0 (0 ms), retain 7>
+              {
+                "IOProbeScore" = 30000
+                "CFBundleIdentifier" = "com.apple.iokit.IOStorageFamily"
+                "IOMatchCategory" = "IOMediaBSDClient"
+                "IOClass" = "IOMediaBSDClient"
+                "IOPersonalityPublisher" = "com.apple.iokit.IOStorageFamily"
+                "IOProviderClass" = "IOMedia"
+                "CFBundleIdentifierKernel" = "com.apple.iokit.IOStorageFamily"
+                "IOMatchedAtBoot" = Yes
+                "IOResourceMatch" = "IOBSD"
+              }
+              
+
+
+[exit=0]

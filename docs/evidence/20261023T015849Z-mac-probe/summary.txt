@@ -1,0 +1,45 @@
+# mac 环境探测  20261023T015849Z
+输出目录: /path/to/dji_backup/docs/evidence/20261023T015849Z-mac-probe
+
+## 1. 工具链
+  - 10-sw_vers.txt  <= sw_vers
+  - 11-uname.txt  <= uname -a
+  - 12-go-version.txt  <= go version
+  - 13-go-env.txt  <= go env GOOS GOARCH GOPATH GOMODCACHE GOFLAGS CGO_ENABLED
+  - 14-node-version.txt  <= node -v
+  - 15-pnpm-version.txt  <= pnpm -v
+  - 16-golangci-lint.txt  <= golangci-lint --version
+  - 17-brew-list.txt  <= brew list --versions go node pnpm golangci-lint 2>&1
+## 2. USB 设备（寻找 VID 0x0506 / PID 0x8002）
+  - 20-usb-tree.txt  <= system_profiler SPUSBDataType
+  - 21-usb-json.txt  <= system_profiler SPUSBDataType -json
+  - 22-usb-dji.txt  <= system_profiler SPUSBDataType | grep -n -i -B6 -A14 '0x0506'
+  - 23-ioreg-lun.txt  <= ioreg -w0 -r -c IOSCSILogicalUnitNub -l
+  - 24-ioreg-lun-brief.txt  <= ioreg -w0 -r -c IOSCSILogicalUnitNub -l | grep -E 'IOSCSILogicalUnitNub|SCSI Logical Unit Number|Vendor Identification|Product Identification|Product Revision Level|BSD Name|Physical Interconnect'
+## 3. 磁盘与卷
+  - 30-diskutil-list.txt  <= diskutil list
+  - 31-diskutil-external-plist.txt  <= diskutil list -plist external physical
+  - 32-mount.txt  <= mount
+  - 33-df.txt  <= df -h
+  - 34-ls-volumes.txt  <= ls -la /Volumes
+## 4. exFAT 卷（相机）
+  (没有发现 exFAT 卷。相机未接入，或 macOS 尚未挂载。)
+## 5. NAS / SMB（NAS_HOST=192.168.1.100）
+  - 50-smb-statshares.txt  <= smbutil statshares -a
+  - 51-mount-smbfs.txt  <= mount -t smbfs
+  - 52-ping-nas.txt  <= ping -c 3 -t 5 192.168.1.100
+  - 53-nc-445.txt  <= nc -z -v -w 3 192.168.1.100 445
+  - 54-nc-5001.txt  <= nc -z -v -w 3 192.168.1.100 5001
+## 6. OEC-Turbo（OEC_HOST=未设置）
+  (未设置 OEC_HOST，跳过。设备有 IP 后用 OEC_HOST=<ip> 重跑。)
+
+## 关键摘要
+- DJI USB 命中行数: 0
+- exFAT 卷: 无
+- SMB 挂载: 
+- SMB 协商版本: 
+- Go: go version go1.25.5 darwin/arm64
+- Node: v25.5.0  pnpm: 10.33.0  golangci-lint: 已安装
+
+完成。把以下目录交给 Claude 核对：
+/path/to/dji_backup/docs/evidence/20261023T015849Z-mac-probe

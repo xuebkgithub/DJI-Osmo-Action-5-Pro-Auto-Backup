@@ -1,0 +1,5 @@
+$ mdutil -s /Volumes/Untitled
+/System/Volumes/Data/Volumes/Untitled:
+	Indexing disabled.
+
+[exit=0]

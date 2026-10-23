@@ -1,0 +1,4 @@
+$ golangci-lint --version
+golangci-lint has version 2.15.0 built with go1.27.2 from 25c5369 on 2026-10-16T10:51:54Z
+
+[exit=0]

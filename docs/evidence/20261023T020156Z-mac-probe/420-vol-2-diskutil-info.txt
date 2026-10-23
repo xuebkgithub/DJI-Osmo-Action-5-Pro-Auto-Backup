@@ -1,0 +1,43 @@
+$ diskutil info /Volumes/Untitled
+   Device Identifier:         disk5
+   Device Node:               /dev/disk5
+   Whole:                     Yes
+   Part of Whole:             disk5
+   Device / Media Name:       File-Stor Gadget
+
+   Volume Name:               Untitled
+   Mounted:                   Yes
+   Mount Point:               /Volumes/Untitled
+
+   Content (IOContent):       None
+   File System Personality:   ExFAT
+   Type (Bundle):             exfat
+   Name (User Visible):       ExFAT
+
+   OS Can Be Installed:       No
+   Media Type:                通用
+   Protocol:                  USB
+   SMART Status:              Not Supported
+   Volume UUID:               3A8C3713-C262-3DB7-8BEC-604865B64393
+
+   Disk Size:                 124.7 GB (124658909184 Bytes) (exactly 243474432 512-Byte-Units)
+   Device Block Size:         512 Bytes
+
+   Volume Total Space:        124.6 GB (124642263040 Bytes) (exactly 243441920 512-Byte-Units)
+   Volume Used Space:         42.5 GB (42514120704 Bytes) (exactly 83035392 512-Byte-Units) (34.1%)
+   Volume Free Space:         82.1 GB (82128142336 Bytes) (exactly 160406528 512-Byte-Units) (65.9%)
+   Allocation Block Size:     131072 Bytes
+
+   Media OS Use Only:         No
+   Media Read-Only:           No
+   Volume Read-Only:          No
+
+   Device Location:           External
+   Removable Media:           Removable
+   Media Removal:             Software-Activated
+
+   Solid State:               Info not available
+   Virtual:                   No
+
+
+[exit=0]

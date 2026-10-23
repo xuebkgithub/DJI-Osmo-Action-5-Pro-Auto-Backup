@@ -1,0 +1,5 @@
+$ mdutil -s /Volumes/OsmoAction
+/System/Volumes/Data/Volumes/OsmoAction:
+	Indexing disabled.
+
+[exit=0]

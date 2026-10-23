@@ -1,0 +1,9 @@
+$ go env GOOS GOARCH GOPATH GOMODCACHE GOFLAGS CGO_ENABLED
+darwin
+arm64
+~/go
+~/go/pkg/mod
+
+1
+
+[exit=0]

@@ -1,0 +1,4 @@
+$ du -sh '/Volumes/Untitled/DCIM' 2>&1
+ 40G	/Volumes/Untitled/DCIM
+
+[exit=0]

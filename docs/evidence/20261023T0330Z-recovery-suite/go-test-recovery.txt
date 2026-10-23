@@ -1,0 +1,33 @@
+=== RUN   TestProcessCrashAtCheckpointThenRestartResumes
+--- PASS: TestProcessCrashAtCheckpointThenRestartResumes (5.62s)
+=== RUN   TestSourceReadErrorIsInterruptedThenReconciled
+--- PASS: TestSourceReadErrorIsInterruptedThenReconciled (1.18s)
+=== RUN   TestNASOutageDuringWriteRecovers
+--- PASS: TestNASOutageDuringWriteRecovers (5.16s)
+=== RUN   TestCorruptedPartDetectedBySHA256AndRetried
+--- PASS: TestCorruptedPartDetectedBySHA256AndRetried (1.67s)
+=== RUN   TestVerifyMismatchRule
+--- PASS: TestVerifyMismatchRule (0.15s)
+=== RUN   TestDeviceDetachMidTransfer
+--- PASS: TestDeviceDetachMidTransfer (2.81s)
+=== RUN   TestThrottledPauseResume
+--- PASS: TestThrottledPauseResume (2.36s)
+=== RUN   TestRetryExhaustedNeedsManualRetry
+--- PASS: TestRetryExhaustedNeedsManualRetry (4.75s)
+=== RUN   TestConflictPolicies
+=== RUN   TestConflictPolicies/manual
+=== RUN   TestConflictPolicies/overwrite
+--- PASS: TestConflictPolicies (0.14s)
+=== RUN   TestStallIsCancellable
+--- PASS: TestStallIsCancellable (0.15s)
+PASS
+ok  	action-backup/tests/recovery	26.021s
+--- PASS: TestRemainingPointsClassification (9.07s)
+    --- PASS: TestRemainingPointsClassification/source.open (1.11s)
+    --- PASS: TestRemainingPointsClassification/dest.open (1.38s)
+    --- PASS: TestRemainingPointsClassification/dest.sync (1.37s)
+    --- PASS: TestRemainingPointsClassification/dest.rename (1.37s)
+    --- PASS: TestRemainingPointsClassification/db.commit (1.38s)
+    --- PASS: TestRemainingPointsClassification/dest.write (1.37s)
+    --- PASS: TestRemainingPointsClassification/dest.probe (1.09s)
+ok  	action-backup/tests/recovery	10.576s

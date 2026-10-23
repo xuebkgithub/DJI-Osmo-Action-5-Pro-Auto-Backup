@@ -1,0 +1,24 @@
+$ ls -laR '/Volumes/Untitled/DCIM' 2>&1 | head -300
+total 1024
+drwx------  1 user  staff  131072 Oct 21 18:44 .
+drwx------  1 user  staff  131072 Jan  1  1970 ..
+drwx------  1 user  staff  131072 Oct 15 18:16 DJI_002_XZH
+drwx------  1 user  staff  131072 Oct 23 09:38 DJI_003
+
+/Volumes/Untitled/DCIM/DJI_002_XZH:
+total 51660288
+drwx------  1 user  staff       131072 Oct 15 18:16 .
+drwx------  1 user  staff       131072 Oct 21 18:44 ..
+-rwx------  1 user  staff   1338061985 Aug  2 12:40 DJI_20260802121833_0001_D.LRF
+-rwx------  1 user  staff   5031028178 Aug  2 12:40 DJI_20260802121833_0001_D.MP4
+-rwx------  1 user  staff   4242507227 Aug  2 13:53 DJI_20260802124328_0002_D.LRF
+-rwx------  1 user  staff  15838067008 Aug  2 13:53 DJI_20260802124328_0002_D.MP4
+
+/Volumes/Untitled/DCIM/DJI_003:
+total 31366144
+drwx------  1 user  staff       131072 Oct 23 09:38 .
+drwx------  1 user  staff       131072 Oct 21 18:44 ..
+-rwx------  1 user  staff   2924373428 Oct 23 08:50 DJI_20261023080221_0019_D.LRF
+-rwx------  1 user  staff  13134635057 Oct 23 08:50 DJI_20261023080221_0019_D.MP4
+
+[exit=0]

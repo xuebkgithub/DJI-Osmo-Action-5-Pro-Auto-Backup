@@ -1,0 +1,14 @@
+time=2026-10-23T10:52:09.590+08:00 level=INFO msg="action-backup starting" version=0.1.0-dev config=/path/to/dji_backup/action-backup/configs/config.mac-dryrun.yaml mode=dry-run faultinject=false
+time=2026-10-23T10:52:09.596+08:00 level=INFO msg="database ready" path=/path/to/dji_backup/action-backup/dev/backup-mac-dryrun.db migrations_applied=1
+time=2026-10-23T10:52:09.596+08:00 level=INFO msg="service started" event=system.started
+time=2026-10-23T10:52:09.596+08:00 level=WARN msg="storage target not ready" kind=premounted mount_point=/Volumes/VideoBackup err="storage target unavailable: statfs /Volumes/VideoBackup: no such file or directory"
+time=2026-10-23T10:52:09.793+08:00 level=INFO msg="device DJI OsmoAction5pro attached with 2 volume(s)" event=device.attached
+time=2026-10-23T10:52:09.793+08:00 level=INFO msg="http listening" addr=127.0.0.1:8080 mode=dry-run platform=darwin
+time=2026-10-23T10:52:09.803+08:00 level=INFO msg="plan: 3 upload (34003730243 bytes), 0 skip, 0 conflict across 2 volume(s)" event=plan.generated
+time=2026-10-23T10:52:09.803+08:00 level=INFO msg="dry-run: plan generated, no transfer" device=0506:8002:0A1B2C3D upload_files=3 upload_bytes=34003730243
+time=2026-10-23T10:52:14.489+08:00 level=DEBUG msg=http method=GET path=/api/v1/system/mode status=200 duration_ms=0 remote=127.0.0.1:55045
+time=2026-10-23T10:52:14.518+08:00 level=DEBUG msg=http method=GET path=/api/v1/devices status=200 duration_ms=0 remote=127.0.0.1:55046
+time=2026-10-23T10:52:14.541+08:00 level=DEBUG msg=http method=GET path=/api/v1/backups/plan status=200 duration_ms=0 remote=127.0.0.1:55047
+time=2026-10-23T10:52:14.558+08:00 level=DEBUG msg=http method=GET path=/api/v1/events status=200 duration_ms=0 remote=127.0.0.1:55048
+time=2026-10-23T10:52:14.563+08:00 level=INFO msg="service stopping" event=system.stopping
+time=2026-10-23T10:52:14.564+08:00 level=INFO msg="action-backup stopped"

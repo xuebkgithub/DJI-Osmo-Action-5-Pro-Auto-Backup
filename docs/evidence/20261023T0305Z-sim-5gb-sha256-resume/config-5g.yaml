@@ -1,0 +1,66 @@
+# mac 开发用 simulation 配置。相对路径按运行时工作目录解析，请在工程根目录执行 make dev。
+mode: "simulation"
+
+server:
+  listen: "127.0.0.1:8080"
+  auth:
+    enabled: false                # 开发时免登录；设为 true 可测试登录流程（V0.5）
+
+device:
+  vendor_id: "0506"
+  product_id: "8002"
+  auto_detect: true
+  auto_backup: true              # 开发时手动触发
+  readonly: true
+
+simulation:
+  device_source: "fixtures"       # fixtures | volumes | both
+  fixtures:
+    devices:
+      - key: "sim-cam-1"
+        serial: "SIM0001"
+        name: "Simulated Osmo Action 5 Pro"
+        volumes:
+          - type: "internal"
+            path: "./dev/fixtures-5g/internal"
+          - type: "sdcard"
+            path: "./dev/fixtures-5g/sdcard"
+    attached_on_start: true
+  volumes:                        # 读取 mac 自动挂载的真相机（V0.2）
+    poll_interval_sec: 2
+    match_by: "usb_vid_pid"
+  allow_local_destination: true
+
+backup:
+  include_internal: true
+  include_sdcard: true
+  source_directory: "DCIM"
+  file_extensions: [".mp4"]
+  worker_count: 1
+  buffer_size_mb: 4
+  retry_count: 3
+  checkpoint_interval_sec: 2
+  checkpoint_bytes_mb: 16
+  verify_mode: "sha256"
+  delete_source: false
+
+storage:
+  type: "local"                   # 改为 premounted 即可写 Finder 挂载的真 NAS
+  local_root: "./dev/nas-5g"
+  # premounted 示例：
+  # type: "premounted"
+  # mount_point: "/Volumes/VideoBackup"
+  # share: "//192.168.1.100/VideoBackup"
+  destination_root: "DJI-Action5Pro-TEST"
+  destination_layout: "{volume_type}/{relative_path}"
+
+faults:
+  enabled: true
+  rules: []                       # 也可运行时通过 /api/v1/test/faults 添加（V0.4）
+
+database:
+  path: "./dev/backup-5g.db"
+
+logging:
+  level: "debug"
+  format: "text"

@@ -1,0 +1,6 @@
+$ brew list --versions go node pnpm golangci-lint 2>&1
+go 1.27.3
+golangci-lint 2.15.0
+node 25.5.0
+
+[exit=1]

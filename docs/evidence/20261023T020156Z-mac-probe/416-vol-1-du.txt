@@ -1,0 +1,4 @@
+$ du -sh '/Volumes/OsmoAction/DCIM' 2>&1
+128K	/Volumes/OsmoAction/DCIM
+
+[exit=0]

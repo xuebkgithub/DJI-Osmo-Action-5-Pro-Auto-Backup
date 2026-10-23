@@ -1,0 +1,3 @@
+$ system_profiler SPUSBDataType | grep -n -i -B6 -A14 '0x0506'
+
+[exit=1]

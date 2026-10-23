@@ -1,0 +1,17 @@
+$ diskutil list -plist external physical
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AllDisks</key>
+	<array/>
+	<key>AllDisksAndPartitions</key>
+	<array/>
+	<key>VolumesFromDisks</key>
+	<array/>
+	<key>WholeDisks</key>
+	<array/>
+</dict>
+</plist>
+
+[exit=0]

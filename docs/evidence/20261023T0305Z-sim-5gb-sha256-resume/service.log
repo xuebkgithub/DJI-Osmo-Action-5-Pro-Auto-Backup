@@ -1,0 +1,43 @@
+time=2026-10-23T11:05:55.223+08:00 level=INFO msg="action-backup starting" version=0.1.0-dev config=/path/to/dji_backup/action-backup/dev/config-5g.yaml mode=simulation faultinject=true
+time=2026-10-23T11:05:55.230+08:00 level=INFO msg="database ready" path=/path/to/dji_backup/action-backup/dev/backup-5g.db migrations_applied=1
+time=2026-10-23T11:05:55.230+08:00 level=INFO msg="service started" event=system.started
+time=2026-10-23T11:05:55.230+08:00 level=INFO msg="storage target ready" kind=local root=/path/to/dji_backup/action-backup/dev/nas-5g/DJI-Action5Pro-TEST fs=local free_bytes=171556511744
+time=2026-10-23T11:05:55.231+08:00 level=INFO msg="device Simulated Osmo Action 5 Pro attached with 2 volume(s)" event=device.attached
+time=2026-10-23T11:05:55.231+08:00 level=INFO msg="http listening" addr=127.0.0.1:8080 mode=simulation platform=sim
+time=2026-10-23T11:05:55.231+08:00 level=INFO msg="plan: 1 upload (5368709120 bytes), 0 skip, 0 conflict across 2 volume(s)" event=plan.generated
+time=2026-10-23T11:05:55.232+08:00 level=INFO msg="backup started: 1 new, 0 re-queued, 0 conflicts left untouched" event=backup.started
+time=2026-10-23T11:05:55.232+08:00 level=INFO msg="auto backup queued" device=0506:8002:SIM0001 created=1 requeued=0 conflicts=0
+time=2026-10-23T11:05:55.232+08:00 level=INFO msg="transferring DCIM/DJI_003/DJI_20261023080100_0001_D.MP4 (5368709120 bytes)" event=task.started
+time=2026-10-23T11:05:56.176+08:00 level=DEBUG msg=http method=GET path=/api/v1/system/status status=200 duration_ms=0 remote=127.0.0.1:56192
+time=2026-10-23T11:05:56.329+08:00 level=DEBUG msg=http method=GET path=/api/v1/tasks/1 status=200 duration_ms=0 remote=127.0.0.1:56193
+time=2026-10-23T11:05:56.380+08:00 level=INFO msg="service stopping" event=system.stopping
+time=2026-10-23T11:05:56.381+08:00 level=INFO msg="action-backup stopped"
+time=2026-10-23T11:06:16.473+08:00 level=INFO msg="action-backup starting" version=0.1.0-dev config=/path/to/dji_backup/action-backup/dev/config-5g.yaml mode=simulation faultinject=true
+time=2026-10-23T11:06:16.474+08:00 level=INFO msg="database ready" path=/path/to/dji_backup/action-backup/dev/backup-5g.db migrations_applied=0
+time=2026-10-23T11:06:16.474+08:00 level=INFO msg="service started" event=system.started
+time=2026-10-23T11:06:16.474+08:00 level=INFO msg="storage target ready" kind=local root=/path/to/dji_backup/action-backup/dev/nas-5g/DJI-Action5Pro-TEST fs=local free_bytes=170591105024
+time=2026-10-23T11:06:16.474+08:00 level=WARN msg="1 task(s) were in progress at last shutdown, marked INTERRUPTED" event=recovery.interrupted
+time=2026-10-23T11:06:16.475+08:00 level=INFO msg="device Simulated Osmo Action 5 Pro attached with 2 volume(s)" event=device.attached
+time=2026-10-23T11:06:16.475+08:00 level=INFO msg="http listening" addr=127.0.0.1:8080 mode=simulation platform=sim
+time=2026-10-23T11:06:16.475+08:00 level=INFO msg="plan: 1 upload (5368709120 bytes), 0 skip, 0 conflict across 2 volume(s)" event=plan.generated
+time=2026-10-23T11:06:16.476+08:00 level=ERROR msg="start task failed" task=1 err="database is locked (5) (SQLITE_BUSY)"
+time=2026-10-23T11:06:16.476+08:00 level=INFO msg="backup started: 0 new, 1 re-queued, 0 conflicts left untouched" event=backup.started
+time=2026-10-23T11:06:16.476+08:00 level=INFO msg="auto backup queued" device=0506:8002:SIM0001 created=0 requeued=1 conflicts=0
+time=2026-10-23T11:06:16.476+08:00 level=INFO msg="transferring DCIM/DJI_003/DJI_20261023080100_0001_D.MP4 (5368709120 bytes)" event=task.started
+time=2026-10-23T11:06:18.493+08:00 level=DEBUG msg=http method=GET path=/api/v1/tasks/1 status=200 duration_ms=0 remote=127.0.0.1:56205
+time=2026-10-23T11:06:18.588+08:00 level=INFO msg="task 1 re-queued" event=task.retry
+time=2026-10-23T11:06:18.588+08:00 level=DEBUG msg=http method=POST path=/api/v1/tasks/1/retry status=200 duration_ms=0 remote=127.0.0.1:56206
+time=2026-10-23T11:06:18.959+08:00 level=DEBUG msg=http method=GET path=/api/v1/system/status status=200 duration_ms=0 remote=127.0.0.1:56207
+time=2026-10-23T11:06:19.969+08:00 level=DEBUG msg=http method=GET path=/api/v1/system/status status=200 duration_ms=0 remote=127.0.0.1:56208
+time=2026-10-23T11:06:20.976+08:00 level=DEBUG msg=http method=GET path=/api/v1/system/status status=200 duration_ms=0 remote=127.0.0.1:56210
+time=2026-10-23T11:06:21.852+08:00 level=ERROR msg="finish task failed" task=1 status=FAILED err="invalid task state transition: task 1 QUEUED -> FAILED"
+time=2026-10-23T11:06:21.853+08:00 level=INFO msg="transferring DCIM/DJI_003/DJI_20261023080100_0001_D.MP4 (5368709120 bytes)" event=task.started
+time=2026-10-23T11:06:21.978+08:00 level=DEBUG msg=http method=GET path=/api/v1/system/status status=200 duration_ms=0 remote=127.0.0.1:56213
+time=2026-10-23T11:06:22.982+08:00 level=DEBUG msg=http method=GET path=/api/v1/system/status status=200 duration_ms=0 remote=127.0.0.1:56218
+time=2026-10-23T11:06:23.985+08:00 level=DEBUG msg=http method=GET path=/api/v1/system/status status=200 duration_ms=0 remote=127.0.0.1:56219
+time=2026-10-23T11:06:24.174+08:00 level=INFO msg="completed DCIM/DJI_003/DJI_20261023080100_0001_D.MP4" event=backup.completed
+time=2026-10-23T11:06:24.992+08:00 level=DEBUG msg=http method=GET path=/api/v1/system/status status=200 duration_ms=0 remote=127.0.0.1:56220
+time=2026-10-23T11:06:24.995+08:00 level=DEBUG msg=http method=GET path=/api/v1/tasks/1 status=200 duration_ms=0 remote=127.0.0.1:56221
+time=2026-10-23T11:06:24.997+08:00 level=DEBUG msg=http method=GET path=/api/v1/events status=200 duration_ms=0 remote=127.0.0.1:56222
+time=2026-10-23T11:06:25.025+08:00 level=INFO msg="service stopping" event=system.stopping
+time=2026-10-23T11:06:25.028+08:00 level=INFO msg="action-backup stopped"

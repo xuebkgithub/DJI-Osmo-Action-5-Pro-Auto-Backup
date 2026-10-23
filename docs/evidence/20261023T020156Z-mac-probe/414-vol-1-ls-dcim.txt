@@ -1,0 +1,6 @@
+$ ls -laR '/Volumes/OsmoAction/DCIM' 2>&1 | head -300
+total 512
+drwx------  1 user  staff  131072 Jan  1  2024 .
+drwx------  1 user  staff  131072 Jan  1  1970 ..
+
+[exit=0]

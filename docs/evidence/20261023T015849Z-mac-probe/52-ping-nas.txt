@@ -1,0 +1,9 @@
+$ ping -c 3 -t 5 192.168.1.100
+PING 192.168.1.100 (192.168.1.100): 56 data bytes
+Request timeout for icmp_seq 0
+Request timeout for icmp_seq 1
+
+--- 192.168.1.100 ping statistics ---
+3 packets transmitted, 0 packets received, 100.0% packet loss
+
+[exit=2]

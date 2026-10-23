@@ -1,0 +1,11 @@
+$ ls -la /Volumes
+total 512
+drwxr-xr-x   7 root      wheel     224 Oct 23 10:01 .
+drwxr-xr-x  23 root      wheel     736 Sep 24 15:10 ..
+drwxr-xr-x   3 root      wheel      96 Sep 24  2025 .timemachine
+lrwxr-xr-x   1 root      wheel       1 Oct 19 09:41 Macintosh HD -> /
+drwx------   1 user  staff  131072 Jan  1  1970 OsmoAction
+drwxr-xr-x@  4 root      wheel     128 Jan 15  2026 Recovery
+drwx------   1 user  staff  131072 Jan  1  1970 Untitled
+
+[exit=0]

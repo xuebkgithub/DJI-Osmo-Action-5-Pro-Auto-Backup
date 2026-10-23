@@ -1,0 +1,5 @@
+$ find '/Volumes/Untitled' \( -name '._*' -o -name '.DS_Store' -o -name '.Spotlight-V100' -o -name '.fseventsd' -o -name '.Trashes' \) 2>/dev/null | head -50
+/Volumes/Untitled/.fseventsd
+/Volumes/Untitled/MISC/._AC004.db
+
+[exit=0]

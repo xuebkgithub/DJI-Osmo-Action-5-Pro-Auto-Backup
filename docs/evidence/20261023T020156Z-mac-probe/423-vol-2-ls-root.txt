@@ -1,0 +1,12 @@
+$ ls -la '/Volumes/Untitled'
+total 1536
+drwx------  1 user  staff  131072 Jan  1  1970 .
+drwxr-xr-x  7 root      wheel     224 Oct 23 10:01 ..
+drwx------  1 user  staff  131072 Oct 23 10:01 .fseventsd
+drwx------  1 user  staff  131072 Oct 21 18:44 DCIM
+drwx------  1 user  staff       0 Oct 26  2025 LOST+FOUND
+drwx------  1 user  staff  131072 Oct 23 09:38 MISC
+drwx------  1 user  staff  131072 Aug 15  2025 System Volume Information
+drwx------  1 user  staff  131072 Aug 22  2025 logs
+
+[exit=0]

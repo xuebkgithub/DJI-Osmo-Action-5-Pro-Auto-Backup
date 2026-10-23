@@ -1,0 +1,105 @@
+$ diskutil info -plist /Volumes/Untitled
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Bootable</key>
+	<false/>
+	<key>BusProtocol</key>
+	<string>USB</string>
+	<key>CanBeMadeBootable</key>
+	<false/>
+	<key>CanBeMadeBootableRequiresDestroy</key>
+	<false/>
+	<key>Content</key>
+	<string></string>
+	<key>DeviceBlockSize</key>
+	<integer>512</integer>
+	<key>DeviceIdentifier</key>
+	<string>disk5</string>
+	<key>DeviceNode</key>
+	<string>/dev/disk5</string>
+	<key>DeviceTreePath</key>
+	<string>IODeviceTree:/arm-io@10F00000/usb-drd0@2280000/usb-drd0-port-ss@00200000</string>
+	<key>Ejectable</key>
+	<true/>
+	<key>EjectableMediaAutomaticUnderSoftwareControl</key>
+	<true/>
+	<key>EjectableOnly</key>
+	<true/>
+	<key>FilesystemName</key>
+	<string>ExFAT</string>
+	<key>FilesystemType</key>
+	<string>exfat</string>
+	<key>FilesystemUserVisibleName</key>
+	<string>ExFAT</string>
+	<key>FreeSpace</key>
+	<integer>82128142336</integer>
+	<key>GlobalPermissionsEnabled</key>
+	<false/>
+	<key>IOKitSize</key>
+	<integer>124658909184</integer>
+	<key>IORegistryEntryName</key>
+	<string>Linux File-Stor Gadget Media</string>
+	<key>Internal</key>
+	<false/>
+	<key>LowLevelFormatSupported</key>
+	<false/>
+	<key>MediaName</key>
+	<string>File-Stor Gadget</string>
+	<key>MediaType</key>
+	<string>通用</string>
+	<key>MountPoint</key>
+	<string>/Volumes/Untitled</string>
+	<key>OS9DriversInstalled</key>
+	<false/>
+	<key>OSInternalMedia</key>
+	<false/>
+	<key>ParentWholeDisk</key>
+	<string>disk5</string>
+	<key>PartitionMapPartition</key>
+	<false/>
+	<key>RAIDMaster</key>
+	<false/>
+	<key>RAIDSlice</key>
+	<false/>
+	<key>Removable</key>
+	<true/>
+	<key>RemovableMedia</key>
+	<true/>
+	<key>RemovableMediaOrExternalDevice</key>
+	<true/>
+	<key>SMARTDeviceSpecificKeysMayVaryNotGuaranteed</key>
+	<dict/>
+	<key>SMARTStatus</key>
+	<string>Not Supported</string>
+	<key>Size</key>
+	<integer>124658909184</integer>
+	<key>SupportsGlobalPermissionsDisable</key>
+	<false/>
+	<key>SystemImage</key>
+	<false/>
+	<key>TotalSize</key>
+	<integer>124642263040</integer>
+	<key>VirtualOrPhysical</key>
+	<string>Physical</string>
+	<key>VolumeAllocationBlockSize</key>
+	<integer>131072</integer>
+	<key>VolumeName</key>
+	<string>Untitled</string>
+	<key>VolumeSize</key>
+	<integer>124642263040</integer>
+	<key>VolumeUUID</key>
+	<string>3A8C3713-C262-3DB7-8BEC-604865B64393</string>
+	<key>WholeDisk</key>
+	<true/>
+	<key>Writable</key>
+	<true/>
+	<key>WritableMedia</key>
+	<true/>
+	<key>WritableVolume</key>
+	<true/>
+</dict>
+</plist>
+
+[exit=0]

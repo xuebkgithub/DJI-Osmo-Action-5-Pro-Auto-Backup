@@ -1,0 +1,5 @@
+$ find '/Volumes/Untitled/DCIM' -type f 2>/dev/null | sed -E 's/.*\.//' | tr 'a-z' 'A-Z' | sort | uniq -c | sort -rn
+   3 MP4
+   3 LRF
+
+[exit=0]

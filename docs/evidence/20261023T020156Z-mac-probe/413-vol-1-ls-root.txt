@@ -1,0 +1,10 @@
+$ ls -la '/Volumes/OsmoAction'
+total 1024
+drwx------  1 user  staff  131072 Jan  1  1970 .
+drwxr-xr-x  7 root      wheel     224 Oct 23 10:01 ..
+drwx------  1 user  staff  131072 Oct 23 10:01 .fseventsd
+drwx------  1 user  staff  131072 Jan  1  2024 DCIM
+drwx------  1 user  staff       0 Jan  1  2024 LOST+FOUND
+drwx------  1 user  staff  131072 Jan  1  2024 MISC
+
+[exit=0]

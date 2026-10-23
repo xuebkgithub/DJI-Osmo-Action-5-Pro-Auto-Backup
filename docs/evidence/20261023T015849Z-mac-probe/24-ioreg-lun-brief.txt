@@ -1,0 +1,3 @@
+$ ioreg -w0 -r -c IOSCSILogicalUnitNub -l | grep -E 'IOSCSILogicalUnitNub|SCSI Logical Unit Number|Vendor Identification|Product Identification|Product Revision Level|BSD Name|Physical Interconnect'
+
+[exit=1]
