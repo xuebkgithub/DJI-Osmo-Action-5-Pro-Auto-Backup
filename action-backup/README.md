@@ -113,6 +113,48 @@ Go 模块代理：本机默认 `goproxy.cn` 不可用时，用 `GOPROXY=https://
 3. 以 root 执行 `install.sh`：校验 SHA256、拒绝测试构建、创建用户与目录、注册 systemd，不自动启动。
 4. 编辑 `/etc/action-backup/config.yaml`，执行 `action-backup passwd --config /etc/action-backup/config.yaml` 设置登录口令，先以 dry-run 启动验证。
 
+## 持续集成与发布
+
+工作流在仓库根的 `.github/workflows/`，运行在 `ubuntu-latest`。
+
+| 工作流 | 触发 | 做什么 |
+| --- | --- | --- |
+| `ci.yml` | push 到 main、PR、手动 | 重建前端并核对 `web/dist` 与源码一致 → gofmt / vet / golangci-lint → 单元 + 集成测试 → `make package-all` 冒烟，四个包作为 artifact 保留 7 天；非 PR 时另跑恢复测试套件 |
+| `release.yml` | push `v*` tag、手动指定已有 tag | 从源码重建前端 → 单元测试 → `make package-all` → 生成 `SHA256SUMS` 与发布说明 → 建 GitHub Release 并上传四个包 |
+
+发布产物：
+
+| 平台 | 包名 | 内容 |
+| --- | --- | --- |
+| `linux-arm64` | `action-backup-<version>-linux-arm64.tar.gz` | OEC-Turbo 目标平台。二进制 + 配置样例 + systemd 单元 + udev 规则 + mount helper + `install.sh` |
+| `linux-amd64` | `action-backup-<version>-linux-amd64.tar.gz` | 同上，x86 机器 |
+| `darwin-arm64` | `action-backup-<version>-darwin-arm64.tar.gz` | Apple Silicon。二进制 + `config.mac-dryrun.yaml` + `config.example.yaml` + `README-macos.md` |
+| `darwin-amd64` | `action-backup-<version>-darwin-amd64.tar.gz` | Intel mac，同上 |
+
+全部为 production 构建，不含 faultinject，`CGO_ENABLED=0`。本地也可单独打：
+
+```bash
+make package                    # 默认 linux-arm64
+make package-darwin-arm64       # 单个平台
+make package-all                # 四个平台
+make build-linux-amd64          # 只交叉编译，不打包
+```
+
+发布一个版本：
+
+```bash
+make tag V=0.6.0        # 打 v0.6.0 并推送，自动触发 release.yml
+```
+
+约定与注意：
+
+- tag 必须形如 `v0.6.0`；包与二进制内嵌版本号取 tag 去掉前缀 `v`。含 `-`（如 `v0.6.0-rc1`）发布为 pre-release。
+- Release 附件另有一份 `SHA256SUMS` 覆盖四个包；每个包内还有一份覆盖包内各文件的 `SHA256SUMS`，`install.sh` 会校验它并拒绝测试构建。
+- macOS 二进制未签名未公证，下载后需 `xattr -dr com.apple.quarantine ./action-backup`，细节在包内 `README-macos.md`。mac 上的定位是开发与接真相机 dry-run，长期运行仍在 OEC-Turbo。
+- 发布说明由上一个 tag 到当前 tag 的提交标题自动生成，可在 Release 页面手动补充。
+- 重跑同一个 tag（Actions → Release → Run workflow）会覆盖该 Release 的说明与附件，不会重复创建。
+- CI 会校验 `web/dist` 是否与 `web/src` 一致：改前端后必须 `make web-build` 并把产物一起提交，否则 CI 失败。
+
 ## 目录
 
 ```text

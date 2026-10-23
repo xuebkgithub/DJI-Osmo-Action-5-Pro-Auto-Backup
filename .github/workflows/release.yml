@@ -1,0 +1,177 @@
+# 打 tag（v*）后自动交叉编译四个平台、打包并发布到 GitHub Releases。
+# 也可在 Actions 页面手动触发，指定一个已存在的 tag 重新发布。
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要发布的 tag，必须已存在，例如 v0.6.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+    working-directory: action-backup
+
+jobs:
+  release:
+    name: 打包并发布
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 解析 tag
+        id: meta
+        working-directory: .
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG:-}" ]; then TAG="$INPUT_TAG"; else TAG="$GITHUB_REF_NAME"; fi
+          case "$TAG" in
+            v[0-9]*) ;;
+            *) echo "::error::tag 必须形如 v0.6.0，实际为 $TAG"; exit 1 ;;
+          esac
+          VERSION="${TAG#v}"
+          case "$VERSION" in
+            *-*) PRERELEASE=true ;;
+            *)   PRERELEASE=false ;;
+          esac
+          {
+            echo "tag=$TAG"
+            echo "version=$VERSION"
+            echo "prerelease=$PRERELEASE"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.meta.outputs.tag }}
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: action-backup/go.mod
+          cache-dependency-path: action-backup/go.sum
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: action-backup/web/pnpm-lock.yaml
+
+      - name: 从源码重建前端
+        run: make web-build
+
+      - name: 单元测试
+        run: make test
+
+      - name: 交叉编译并打包四个平台
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          make package-all VERSION="$VERSION"
+          ( cd dist && sha256sum action-backup-"$VERSION"-*.tar.gz > SHA256SUMS )
+          cat dist/SHA256SUMS
+
+      - name: 生成发布说明
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          PREV=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)
+          if [ -n "$PREV" ]; then
+            RANGE="${PREV}..${TAG}"; HEADING="### 自 ${PREV} 以来的变更"
+          else
+            RANGE="$TAG"; HEADING="### 变更"
+          fi
+          sha() { grep " action-backup-${VERSION}-$1.tar.gz\$" dist/SHA256SUMS | cut -d' ' -f1; }
+
+          {
+            echo "## action-backup ${VERSION}"
+            echo
+            echo "production 构建，不含 faultinject，CGO 关闭。"
+            echo
+            echo "| 平台 | 文件 | 说明 |"
+            echo "| --- | --- | --- |"
+            echo "| Linux ARM64 | \`action-backup-${VERSION}-linux-arm64.tar.gz\` | OEC-Turbo，含 \`install.sh\` / systemd / udev |"
+            echo "| Linux x86_64 | \`action-backup-${VERSION}-linux-amd64.tar.gz\` | 同上，x86 机器 |"
+            echo "| macOS Apple Silicon | \`action-backup-${VERSION}-darwin-arm64.tar.gz\` | M 系列 mac，含 \`README-macos.md\` |"
+            echo "| macOS Intel | \`action-backup-${VERSION}-darwin-amd64.tar.gz\` | Intel mac，同上 |"
+            echo
+            echo "$HEADING"
+            echo
+            git log --no-merges --pretty='- %s (%h)' "$RANGE"
+            echo
+            echo "### 安装（Linux）"
+            echo
+            echo '```bash'
+            echo "tar -xzf action-backup-${VERSION}-linux-arm64.tar.gz"
+            echo "cd action-backup-${VERSION}-linux-arm64"
+            echo "sudo ./install.sh"
+            echo '```'
+            echo
+            echo "安装后编辑 \`/etc/action-backup/config.yaml\`（默认 dry-run 模板）与 \`/etc/action-backup/smb.credentials\`，"
+            echo "用 \`action-backup passwd --config /etc/action-backup/config.yaml\` 设置登录口令，再 \`systemctl enable --now action-backup\`。"
+            echo
+            echo "### 运行（macOS）"
+            echo
+            echo "二进制未签名未公证，下载后需解除隔离属性："
+            echo
+            echo '```bash'
+            echo "tar -xzf action-backup-${VERSION}-darwin-arm64.tar.gz"
+            echo "cd action-backup-${VERSION}-darwin-arm64"
+            echo "shasum -a 256 -c SHA256SUMS"
+            echo "xattr -dr com.apple.quarantine ./action-backup"
+            echo "./action-backup --config config.mac-dryrun.yaml --check"
+            echo '```'
+            echo
+            echo "详见包内 \`README-macos.md\`。"
+            echo
+            echo "### 校验"
+            echo
+            echo "附件 \`SHA256SUMS\` 覆盖全部四个包（包内另有一份覆盖包内各文件的 \`SHA256SUMS\`）："
+            echo
+            echo '```'
+            echo "$(sha linux-arm64)  action-backup-${VERSION}-linux-arm64.tar.gz"
+            echo "$(sha linux-amd64)  action-backup-${VERSION}-linux-amd64.tar.gz"
+            echo "$(sha darwin-arm64)  action-backup-${VERSION}-darwin-arm64.tar.gz"
+            echo "$(sha darwin-amd64)  action-backup-${VERSION}-darwin-amd64.tar.gz"
+            echo '```'
+          } > dist/RELEASE_NOTES.md
+          cat dist/RELEASE_NOTES.md
+
+      - name: 发布到 GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          PRERELEASE: ${{ steps.meta.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          ASSETS=(dist/action-backup-"$VERSION"-*.tar.gz dist/SHA256SUMS)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "action-backup ${VERSION}" \
+              --notes-file dist/RELEASE_NOTES.md --prerelease="$PRERELEASE"
+            gh release upload "$TAG" "${ASSETS[@]}" --clobber
+          else
+            FLAGS=(--verify-tag --title "action-backup ${VERSION}" --notes-file dist/RELEASE_NOTES.md)
+            if [ "$PRERELEASE" = "true" ]; then FLAGS+=(--prerelease); fi
+            gh release create "$TAG" "${ASSETS[@]}" "${FLAGS[@]}"
+          fi
+          gh release view "$TAG"

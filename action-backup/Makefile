@@ -11,9 +11,12 @@ LDFLAGS := -s -w \
   -X $(MODULE)/internal/version.BuildTime=$(BUILD_TIME)
 DEV_CONFIG ?= configs/config.dev.yaml
 DIST := dist
+# 发布目标平台。OEC-Turbo 是 linux-arm64，其余供 mac 开发与 x86 机器使用。
+PLATFORMS := linux-arm64 linux-amd64 darwin-arm64 darwin-amd64
 
 .PHONY: tools fixtures dev web-install web-dev web-build lint fmt vet test test-integration test-recovery \
-        build build-arm64 build-arm64-test package deploy check-config clean
+        build build-arm64 build-arm64-test build-all package package-all tag deploy check-config clean
+# 注意：build-% / package-% 的具体目标不能列进 .PHONY，GNU make 不会为 phony 目标套用模式规则。
 
 tools: ## 检查工具链
 	@go version
@@ -62,14 +65,29 @@ test-recovery: ## 故障注入 + 进程重启
 build: ## 本机构建
 	go build -trimpath -ldflags "$(LDFLAGS)" -o $(DIST)/$(BIN) ./cmd/$(BIN)
 
-build-arm64: ## production ARM64 构建，不含 faultinject
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "$(LDFLAGS)" -o $(DIST)/$(BIN)-linux-arm64 ./cmd/$(BIN)
+build-%: ## production 交叉编译，不含 faultinject：make build-darwin-arm64 → dist/action-backup-darwin-arm64
+	CGO_ENABLED=0 GOOS=$(word 1,$(subst -, ,$*)) GOARCH=$(word 2,$(subst -, ,$*)) \
+	  go build -trimpath -ldflags "$(LDFLAGS)" -o $(DIST)/$(BIN)-$* ./cmd/$(BIN)
+
+build-arm64: build-linux-arm64 ## 兼容别名，等同 build-linux-arm64
+
+build-all: $(addprefix build-,$(PLATFORMS)) ## 四个发布平台全部交叉编译
 
 build-arm64-test: ## 测试 ARM64 构建，含 faultinject，文件名带 -test
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -tags faultinject -ldflags "$(LDFLAGS)" -o $(DIST)/$(BIN)-test-linux-arm64 ./cmd/$(BIN)
 
-package: build-arm64 ## 产出安装包 dist/action-backup-<version>-linux-arm64.tar.gz
-	VERSION=$(VERSION) bash scripts/package.sh
+package-%: build-% ## 打单个平台的包：make package-darwin-arm64
+	VERSION=$(VERSION) TARGET=$* bash scripts/package.sh
+
+package: package-linux-arm64 ## 默认产出 OEC-Turbo 安装包 dist/action-backup-<version>-linux-arm64.tar.gz
+
+package-all: $(addprefix package-,$(PLATFORMS)) ## 四个发布平台全部打包
+
+tag: ## 打发布 tag 并推送，触发 GitHub Release 工作流：make tag V=0.6.0
+	@[ -n "$(V)" ] || { echo "用法: make tag V=0.6.0"; exit 2; }
+	@git diff --quiet HEAD || { echo "工作区有未提交改动，先提交再打 tag"; exit 2; }
+	git tag -a "v$(V)" -m "action-backup $(V)"
+	git push origin "v$(V)"
 
 deploy: ## 预留：OEC-Turbo 可 SSH 后实现
 	@echo "deploy 尚未实现：设备可 SSH 后在 scripts/deploy.sh 中补充 scp + install.sh + systemctl restart"; exit 1

@@ -1,0 +1,98 @@
+# 每次推送与 PR 的验证：前端产物一致性、格式、lint、单元 / 集成测试、ARM64 打包冒烟。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+    working-directory: action-backup
+
+jobs:
+  build-test:
+    name: 构建与测试
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: action-backup/go.mod
+          cache-dependency-path: action-backup/go.sum
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: action-backup/web/pnpm-lock.yaml
+
+      - name: 构建前端并核对 web/dist 与源码一致
+        run: |
+          make web-build
+          if ! git diff --exit-code --stat -- web/dist; then
+            echo "::error file=action-backup/web/dist::web/dist 与 web/src 不一致。本地执行 make web-build，把产物一起提交。"
+            exit 1
+          fi
+
+      - name: gofmt
+        run: |
+          out=$(gofmt -l ./cmd ./internal ./tests ./web)
+          if [ -n "$out" ]; then
+            echo "::error::以下文件未格式化，执行 make fmt："; echo "$out"; exit 1
+          fi
+
+      - name: go vet
+        run: make vet
+
+      - name: 安装 golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh \
+            | sh -s -- -b "$(go env GOPATH)/bin" v2.15.0
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: lint
+        run: make lint
+
+      - name: 单元测试
+        run: make test
+
+      - name: 集成测试（simulation 端到端）
+        run: make test-integration
+
+      - name: 四平台打包冒烟（linux/darwin × arm64/amd64）
+        run: make package-all
+
+      - name: 上传安装包（保留 7 天，非正式发布）
+        uses: actions/upload-artifact@v4
+        with:
+          name: action-backup-${{ github.sha }}
+          path: action-backup/dist/*.tar.gz
+          retention-days: 7
+          if-no-files-found: error
+
+  recovery:
+    name: 故障恢复测试
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: action-backup/go.mod
+          cache-dependency-path: action-backup/go.sum
+      - name: 恢复测试套件
+        run: make test-recovery
