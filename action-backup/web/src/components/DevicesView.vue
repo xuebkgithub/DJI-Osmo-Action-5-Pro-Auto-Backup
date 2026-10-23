@@ -28,7 +28,7 @@ async function rescan() {
   </div>
   <div class="empty card" v-if="!store.devices.length">没有检测到相机。请用 USB 连接 Osmo Action 5 Pro<span v-if="store.mode && store.mode.test_endpoints_enabled">，或在测试面板模拟插入</span>。</div>
   <div class="card" v-for="d in store.devices" :key="d.key" style="margin-bottom:12px">
-    <h2>{{ d.name }} <span class="badge warn" v-if="d.weak_identity">弱身份</span></h2>
+    <h2 class="plain">{{ d.name }} <span class="badge warn" v-if="d.weak_identity">弱身份</span></h2>
     <dl class="kv">
       <dt>序列号</dt><dd class="mono">{{ d.serial || '-' }}</dd>
       <dt>USB</dt><dd class="mono">{{ d.vendor_id }}:{{ d.product_id }}</dd>

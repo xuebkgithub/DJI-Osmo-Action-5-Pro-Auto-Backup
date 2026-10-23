@@ -76,10 +76,10 @@ async function testStorage() {
       <form class="inline" @submit.prevent="save">
         <label v-for="p in fields" :key="p.key">
           <span>{{ p.key }}</span>
-          <select v-if="p.kind === 'bool'" v-model="form[p.key]"><option :value="true">true</option><option :value="false">false</option></select>
-          <select v-else-if="p.choices" v-model="form[p.key]"><option v-for="c in p.choices" :key="c" :value="c">{{ c }}</option></select>
-          <input v-else-if="p.kind === 'int'" type="number" v-model.number="form[p.key]" />
-          <input v-else type="text" v-model="form[p.key]" />
+          <select v-if="p.kind === 'bool'" :name="p.key" v-model="form[p.key]"><option :value="true">true</option><option :value="false">false</option></select>
+          <select v-else-if="p.choices" :name="p.key" v-model="form[p.key]"><option v-for="c in p.choices" :key="c" :value="c">{{ c }}</option></select>
+          <input v-else-if="p.kind === 'int'" :name="p.key" type="number" v-model.number="form[p.key]" />
+          <input v-else :name="p.key" type="text" v-model="form[p.key]" />
           <span class="muted" style="font-size:11px">{{ p.doc }}</span>
         </label>
         <div><button class="primary" type="submit" :disabled="saving">{{ saving ? '保存中…' : '保存' }}</button></div>

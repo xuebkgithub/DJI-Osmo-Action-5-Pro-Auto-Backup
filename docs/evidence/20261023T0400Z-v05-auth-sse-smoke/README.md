@@ -4,6 +4,7 @@
 - `login-headers.txt`：登录响应头（会话 ID 已截断）。
 - `sse.txt`、`sse-headers.txt`：6 秒内收到的 SSE 原始流与响应头。
 - `service.log`：服务日志（路径已脱敏）。
+- `ui-browser-check.md`、`ui-overview.png`、`ui-events.png`：Chrome（chrome-devtools-mcp）逐页核对记录与截图：登录、SSE 实时进度、暂停 / 恢复 / 取消、设置写回、存储测试、测试面板、退出。
 - `go-test-lint.txt`：`go test`（单元 / faultinject / integration / recovery）、`golangci-lint`、`pnpm build` 全部输出。
 
 配置：`configs/config.dev.yaml` 副本，`server.auth.enabled: true`，口令由 `action-backup passwd --stdin` 写入。

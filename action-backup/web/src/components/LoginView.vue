@@ -28,10 +28,10 @@ async function submit() {
     <form class="card login" @submit.prevent="submit">
       <h1 style="font-size:18px;margin:0 0 6px">Action Backup</h1>
       <p class="muted" style="margin:0">DJI Osmo Action 5 Pro 自动备份</p>
-      <label>用户名</label>
-      <input type="text" v-model="username" autocomplete="username" required autofocus />
-      <label>密码</label>
-      <input type="password" v-model="password" autocomplete="current-password" required />
+      <label for="login-username">用户名</label>
+      <input id="login-username" name="username" type="text" v-model="username" autocomplete="username" required autofocus />
+      <label for="login-password">密码</label>
+      <input id="login-password" name="password" type="password" v-model="password" autocomplete="current-password" required />
       <div class="row" style="margin-top:14px">
         <button class="primary" type="submit" :disabled="busy">{{ busy ? '登录中…' : '登录' }}</button>
       </div>

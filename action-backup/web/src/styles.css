@@ -76,6 +76,7 @@ main { padding: 16px; max-width: 1280px; margin: 0 auto; }
 .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
 .card h2 { font-size: 13px; margin: 0 0 8px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.card h2.plain { text-transform: none; letter-spacing: 0; font-size: 15px; color: var(--text); }
 .card h3 { font-size: 14px; margin: 12px 0 6px; }
 .kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; }
 .kv dt { color: var(--muted); }
