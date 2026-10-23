@@ -4,7 +4,7 @@ mode: "simulation"
 server:
   listen: "127.0.0.1:8080"
   auth:
-    enabled: false                # 开发时免登录；设为 true 可测试登录流程（V0.5）
+    enabled: false                # 开发时免登录；设为 true 并用 `action-backup passwd --config configs/config.dev.yaml` 设口令可测试登录
 
 device:
   vendor_id: "0506"

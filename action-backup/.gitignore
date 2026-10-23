@@ -2,8 +2,7 @@
 /dev/
 /tests/fixtures/
 /web/node_modules/
-/web/dist/*
-!/web/dist/index.html
 *.db
 *.db-wal
 *.db-shm
+*.swp

@@ -84,13 +84,24 @@ func New(tasks repository.Tasks, worker *backup.Worker, devices DeviceSource, mo
 
 // Configure 设置重试与重连参数及目标探测。
 func (s *Scheduler) Configure(opts Options, target TargetProbe) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if opts.MaxRetries >= 0 {
 		s.opts.MaxRetries = opts.MaxRetries
 	}
 	if opts.ReconcileInterval > 0 {
 		s.opts.ReconcileInterval = opts.ReconcileInterval
 	}
-	s.target = target
+	if target != nil {
+		s.target = target
+	}
+}
+
+// Options 返回当前重试与重连参数。
+func (s *Scheduler) Options() Options {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.opts
 }
 
 // Start 启动工作循环与重连检查，直到 ctx 取消。
@@ -104,7 +115,7 @@ func (s *Scheduler) Start(ctx context.Context) {
 
 // reconcileLoop 周期性把设备在位、目标可用且未用尽重试次数的 INTERRUPTED 任务重新入队。
 func (s *Scheduler) reconcileLoop(ctx context.Context) {
-	t := time.NewTicker(s.opts.ReconcileInterval)
+	t := time.NewTimer(s.Options().ReconcileInterval)
 	defer t.Stop()
 	for {
 		select {
@@ -112,6 +123,7 @@ func (s *Scheduler) reconcileLoop(ctx context.Context) {
 			return
 		case <-t.C:
 		}
+		t.Reset(s.Options().ReconcileInterval)
 		if n := s.Reconcile(ctx); n > 0 {
 			s.log.Info("re-queued interrupted tasks", "count", n)
 		}
@@ -122,6 +134,7 @@ func (s *Scheduler) reconcileLoop(ctx context.Context) {
 func (s *Scheduler) Reconcile(ctx context.Context) int {
 	s.mu.Lock()
 	paused := s.paused
+	maxRetries := s.opts.MaxRetries
 	s.mu.Unlock()
 	if paused {
 		return 0
@@ -148,7 +161,7 @@ func (s *Scheduler) Reconcile(ctx context.Context) int {
 		if !attached[t.DeviceKey+"|"+t.VolumeKey] {
 			continue
 		}
-		if t.RetryCount >= s.opts.MaxRetries {
+		if t.RetryCount >= maxRetries {
 			continue
 		}
 		if err := s.Retry(ctx, t.ID); err == nil {
@@ -160,7 +173,7 @@ func (s *Scheduler) Reconcile(ctx context.Context) int {
 
 // RetriesLeft 判断任务是否还可自动重试。
 func (s *Scheduler) RetriesLeft(t repository.TaskRecord) bool {
-	return t.RetryCount < s.opts.MaxRetries
+	return t.RetryCount < s.Options().MaxRetries
 }
 
 func (s *Scheduler) loop(ctx context.Context) {

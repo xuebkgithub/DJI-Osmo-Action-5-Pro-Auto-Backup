@@ -53,3 +53,14 @@
 | 2026-10-23 | `backup.on_conflict` 默认 manual | 文档 §6 要求目标存在而记录缺失时不得静默覆盖；overwrite 需显式开启 |
 | 2026-10-23 | 崩溃注入使用退出码 137 | 与 SIGKILL 的惯例一致，恢复测试据此区分"注入崩溃"与其它退出 |
 | 2026-10-23 | 发布架构文档 V1.3 | 回写 V0.1 至 V0.4 全部实现偏差；之后新偏差继续先记本表，按阶段回写 |
+| 2026-10-23 | V0.5 交付 | passwd 子命令、会话认证与 CSRF、登录限速、SSE、`/config` 在线修改、`/storage/test`、Vue 3 Web UI；全路由 401 测试与 curl 实测通过，证据 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/` |
+| 2026-10-23 | SSE 路由 `/api/v1/events/stream` 绕过 30 秒 `http.TimeoutHandler` | TimeoutHandler 缓冲响应且不实现 Flusher，流 30 秒即断；其它接口仍经超时包装；认证中间件在最外层所以流同样要求登录 |
+| 2026-10-23 | 会话 Cookie 不设 `Secure` | 设备在局域网以纯 HTTP 提供服务，设 Secure 浏览器会丢弃 Cookie；HttpOnly + SameSite=Strict 保留；上 HTTPS 反代后再加 |
+| 2026-10-23 | 登录限速按来源 IP 统计全部尝试（含成功），不信任 `X-Forwarded-For` | 服务直连无反代；成功也计数可防止用正确口令刷会话 |
+| 2026-10-23 | 用户名不匹配时仍执行一次 bcrypt 比较 | 避免通过响应时间判断用户名是否存在 |
+| 2026-10-23 | `PATCH /config` 白名单仅 6 项，用 yaml.v3 Node 原地改写并原子替换文件 | 文档 §9 只说"白名单字段"；选运行时能安全生效的项；`yaml.Marshal` 整体重写会丢注释，Node 方式保留注释与顺序 |
+| 2026-10-23 | `POST /storage/test` 只读，不写探测文件 | 规范第 17 条要求新增写入路径必须配注入点与测试；探测挂载类型、剩余空间与根目录已足够判断可用性 |
+| 2026-10-23 | `web/dist` 构建产物入库，Vite 输出固定文件名 | `go build` / `make build-arm64` 不依赖 Node；服务端所有响应 `Cache-Control: no-store`，无需哈希文件名；改前端必须 `make web-build` 一并提交 |
+| 2026-10-23 | 前端不用 vue-router / pinia，单页 tab + reactive store | 六个页面、单用户，少两个依赖；状态通过 SSE 推送而非轮询 |
+| 2026-10-23 | `passwd` 非终端输入必须显式 `--stdin`，口令至少 8 字符，不自动改 `auth.enabled` | 防止脚本误把其它内容当口令；是否启用认证由配置显式决定 |
+| 2026-10-23 | 发布架构文档 V1.4 | 回写 V0.5 实现：§9 认证与 SSE 细节、§10 白名单、§11.2、§14、§16 |

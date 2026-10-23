@@ -26,6 +26,9 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) > 0 && args[0] == "passwd" {
+		return runPasswd(args[1:], os.Stdin, os.Stderr)
+	}
 	fs := flag.NewFlagSet("action-backup", flag.ContinueOnError)
 	cfgPath := fs.String("config", "/etc/action-backup/config.yaml", "配置文件路径")
 	showVersion := fs.Bool("version", false, "打印版本并退出")
@@ -50,14 +53,14 @@ func run(args []string) error {
 		return nil
 	}
 
-	log := newLogger(cfg.Logging)
+	log, level := newLogger(cfg.Logging)
 	slog.SetDefault(log)
 	log.Info("action-backup starting", "version", version.Version, "config", cfg.Path, "mode", cfg.Mode, "faultinject", faultinject.Enabled)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	a, err := app.New(ctx, cfg, log)
+	a, err := app.New(ctx, cfg, log, app.WithLogLevel(level))
 	if err != nil {
 		return err
 	}
@@ -68,21 +71,22 @@ func run(args []string) error {
 	return nil
 }
 
-func newLogger(c config.LoggingConfig) *slog.Logger {
-	var lvl slog.Level
+// newLogger 返回日志器与可在运行时调整的级别变量（PATCH /config logging.level）。
+func newLogger(c config.LoggingConfig) (*slog.Logger, *slog.LevelVar) {
+	level := new(slog.LevelVar)
 	switch strings.ToLower(c.Level) {
 	case "debug":
-		lvl = slog.LevelDebug
+		level.Set(slog.LevelDebug)
 	case "warn", "warning":
-		lvl = slog.LevelWarn
+		level.Set(slog.LevelWarn)
 	case "error":
-		lvl = slog.LevelError
+		level.Set(slog.LevelError)
 	default:
-		lvl = slog.LevelInfo
+		level.Set(slog.LevelInfo)
 	}
-	opts := &slog.HandlerOptions{Level: lvl}
+	opts := &slog.HandlerOptions{Level: level}
 	if strings.ToLower(c.Format) == "text" {
-		return slog.New(slog.NewTextHandler(os.Stdout, opts))
+		return slog.New(slog.NewTextHandler(os.Stdout, opts)), level
 	}
-	return slog.New(slog.NewJSONHandler(os.Stdout, opts))
+	return slog.New(slog.NewJSONHandler(os.Stdout, opts)), level
 }

@@ -9,9 +9,11 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"action-backup/internal/api"
+	"action-backup/internal/api/auth"
 	"action-backup/internal/backup"
 	"action-backup/internal/config"
 	"action-backup/internal/database"
@@ -44,15 +46,27 @@ type App struct {
 	engine  *syncengine.Engine
 	sched   *scheduler.Scheduler
 	service *backup.Service
+	auth    *auth.Manager
 	handler http.Handler
 	started time.Time
+
+	autoBackup atomic.Bool
+	logLevel   *slog.LevelVar
+
+	cfgMu sync.Mutex // 保护 cfg 的运行时修改
 
 	addrMu   sync.Mutex
 	listener net.Listener
 }
 
+// Option 装配选项。
+type Option func(*App)
+
+// WithLogLevel 让 PATCH /config 的 logging.level 实时生效。
+func WithLogLevel(v *slog.LevelVar) Option { return func(a *App) { a.logLevel = v } }
+
 // New 装配应用。配置必须已通过 Validate。
-func New(ctx context.Context, cfg *config.Config, log *slog.Logger) (*App, error) {
+func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Option) (*App, error) {
 	mode, err := runmode.Parse(cfg.Mode)
 	if err != nil {
 		return nil, err
@@ -129,13 +143,20 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger) (*App, error
 	service := backup.NewService(engine, repository.SourceFiles{DB: db.DB}, repository.Tasks{DB: db.DB}, sched, guard, domain.VerifyMode(cfg.Backup.VerifyMode), bus, log)
 	service.SetConflictPolicy(cfg.Backup.OnConflict)
 
+	authMgr := auth.New(auth.Config{
+		Enabled: cfg.Server.Auth.Enabled, Username: cfg.Server.Auth.Username, PasswordHash: cfg.Server.Auth.PasswordHash,
+		SessionTTL: time.Duration(cfg.Server.Auth.SessionTTLHours) * time.Hour, LoginRateLimitPerMin: cfg.Server.Auth.LoginRateLimitPerMin,
+	}, bus, log)
+
 	a := &App{
 		cfg: cfg, log: log, guard: guard, backend: backend, sim: simBackend,
-		db: db, bus: bus, target: target, devices: devices, engine: engine, sched: sched, service: service, started: time.Now(),
+		db: db, bus: bus, target: target, devices: devices, engine: engine, sched: sched, service: service, auth: authMgr, started: time.Now(),
 	}
-	if cfg.Device.AutoBackup {
-		devices.OnAttached = a.onDeviceAttached
+	for _, o := range opts {
+		o(a)
 	}
+	a.autoBackup.Store(cfg.Device.AutoBackup)
+	devices.OnAttached = a.onDeviceAttached
 	deps := api.Deps{
 		Planner: engine,
 		Backups: service,
@@ -143,7 +164,7 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger) (*App, error
 		Guard:   guard, PlatformName: backend.Name, Version: version.Version, StartedAt: a.started,
 		DB: db, Target: target, Devices: devices,
 		Events: repository.Events{DB: db.DB}, Tasks: repository.Tasks{DB: db.DB},
-		Static: web.Dist(), AuthEnabled: cfg.Server.Auth.Enabled, Log: log,
+		Static: web.Dist(), AuthEnabled: cfg.Server.Auth.Enabled, Auth: authMgr, Bus: bus, Config: (*configStore)(a), Log: log,
 	}
 	if simBackend != nil {
 		deps.Sim = simBackend
@@ -157,6 +178,9 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger) (*App, error
 
 // onDeviceAttached auto_backup 为 true 时在设备就绪后自动规划并开始备份；dry-run 只规划。
 func (a *App) onDeviceAttached(ctx context.Context, d domain.Device) {
+	if !a.autoBackup.Load() {
+		return
+	}
 	res, err := a.service.Start(ctx)
 	if err != nil {
 		if !errors.Is(err, syncengine.ErrPlanRunning) {
@@ -170,6 +194,9 @@ func (a *App) onDeviceAttached(ctx context.Context, d domain.Device) {
 	}
 	a.log.Info("auto backup queued", "device", d.Key, "created", res.Created, "requeued", res.Requeued, "conflicts", res.Conflicts)
 }
+
+// Auth 返回会话管理器。
+func (a *App) Auth() *auth.Manager { return a.auth }
 
 // Scheduler 返回调度器。
 func (a *App) Scheduler() *scheduler.Scheduler { return a.sched }
@@ -203,8 +230,10 @@ func (a *App) Addr() string {
 func (a *App) Run(ctx context.Context) error {
 	defer a.db.Close()
 
-	if a.cfg.Server.Auth.Enabled {
-		a.log.Warn("server.auth.enabled is set but authentication is not implemented until V0.5; API is open")
+	if a.auth.Enabled() {
+		a.log.Info("authentication enabled", "username", a.cfg.Server.Auth.Username, "session_ttl_hours", a.cfg.Server.Auth.SessionTTLHours)
+	} else {
+		a.log.Warn("authentication disabled; API is open to anyone who can reach the listen address")
 	}
 	a.bus.Publish(ctx, events.Event{Type: "system.started", Message: "service started",
 		Data: map[string]any{"version": version.Version, "mode": string(a.guard.Mode()), "platform": a.backend.Name}})

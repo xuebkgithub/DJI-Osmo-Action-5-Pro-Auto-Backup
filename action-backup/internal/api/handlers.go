@@ -69,6 +69,7 @@ type statusResponse struct {
 	Tasks         map[string]int    `json:"tasks"`
 	Storage       map[string]string `json:"storage"`
 	Scheduler     *scheduler.State  `json:"scheduler,omitempty"`
+	Auth          map[string]any    `json:"auth"`
 }
 
 func (h *handlers) status(w http.ResponseWriter, r *http.Request) {
@@ -98,6 +99,10 @@ func (h *handlers) status(w http.ResponseWriter, r *http.Request) {
 		st := h.d.Queue.State()
 		resp.Scheduler = &st
 	}
+	resp.Auth = map[string]any{"enabled": h.authEnabled()}
+	if h.authEnabled() {
+		resp.Auth["active_sessions"] = h.d.Auth.ActiveSessions()
+	}
 	writeData(w, resp)
 }
 
@@ -121,7 +126,7 @@ func (h *handlers) mode(w http.ResponseWriter, _ *http.Request) {
 		FaultInjectBuild:        faultinject.Enabled,
 		DestinationWriteAllowed: h.d.Guard.AllowDestinationWrite(),
 		TestEndpointsEnabled:    h.d.Guard.TestEndpointsEnabled(),
-		AuthEnabled:             h.d.AuthEnabled,
+		AuthEnabled:             h.authEnabled(),
 	})
 }
 

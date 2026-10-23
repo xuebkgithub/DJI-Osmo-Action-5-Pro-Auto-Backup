@@ -12,13 +12,14 @@ dji_backup/
 │   ├── Action_Backup_软件架构设计_V1.0.md   # 初版架构
 │   ├── Action_Backup_软件架构设计_V1.1.md   # mac 开发环境 + 测试模式
 │   ├── Action_Backup_软件架构设计_V1.2.md   # 落实决策 3 至 7
-│   ├── Action_Backup_软件架构设计_V1.3.md   # 当前基线：回写 V0.1 至 V0.4 实现偏差
+│   ├── Action_Backup_软件架构设计_V1.3.md   # 回写 V0.1 至 V0.4 实现偏差
+│   ├── Action_Backup_软件架构设计_V1.4.md   # 当前基线：回写 V0.5 Web UI / 认证 / SSE
 │   ├── 02-verification-checklist.md         # 待确认问题 → 对应命令 → 核对方法
 │   ├── 03-decisions.md                      # 已确认的决策与依据（随问题回答更新）
 │   └── evidence/                            # 命令原始输出，按 <UTC时间>-<主题>/ 分目录
 ├── scripts/
 │   └── probe-mac-env.sh           # 只读探测 mac 环境、相机卷、NAS；结果写入 docs/evidence/
-├── action-backup/                 # Go 工程（V0.1 已交付，见其 README.md；尚未 git init）
+├── action-backup/                 # Go 工程 + Vue 前端（V0.5 已交付，见其 README.md）
 └── dist/                          # 交叉编译产物与安装包，不入库
 ```
 
@@ -30,13 +31,14 @@ dji_backup/
 
 ## 当前阶段
 
-- 架构基线：V1.3（`docs/Action_Backup_软件架构设计_V1.3.md`），已与 V0.4 代码一致。
+- 架构基线：V1.4（`docs/Action_Backup_软件架构设计_V1.4.md`），已与 V0.5 代码一致。
 - V0.1 基座已于 2026-10-23 完成：mac 上 `make dev` 以 simulation 启动，单元 / 集成测试、lint 全绿，ARM64 安装包可产出。
 - V0.2 已于 2026-10-23 完成：扫描器、Sync Engine、计划 API、darwin 真相机后端；mac 接真相机 dry-run 实测通过，证据在 `docs/evidence/20261023T0249Z-mac-dryrun-real-camera/`。
 - V0.3 已于 2026-10-23 完成：流式传输、`.part`、断点、basic / sha256 校验、单 Worker 调度、任务 API；5 GB 模拟备份含中断续传实测通过，证据在 `docs/evidence/20261023T0305Z-sim-5gb-sha256-resume/`。真 NAS 上传因 NAS 不可达未做。
 - V0.4 已于 2026-10-23 完成：故障注入规则引擎、自动重试与重连、冲突策略、恢复测试框架（11 个场景含进程崩溃重启）全绿，证据在 `docs/evidence/20261023T0330Z-recovery-suite/`。
+- V0.5 已于 2026-10-23 完成：`action-backup passwd`、用户名密码会话认证与 CSRF、登录限速、SSE、`/config` 在线修改、`/storage/test`、Vue 3 Web UI（含模式横幅与测试面板）；未登录 401 全路由测试与 curl 实测通过，证据在 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`。
 - 待办：NAS 可达后在 Finder 挂载共享并执行 `smbutil statshares -a`，确认 SMB 版本（问题 2）。
-- 下一步：V0.5 Web UI、用户名密码认证、SSE（任务清单见 V1.3 §16）。NAS 可达后补做 premounted 真实上传。
+- 下一步：V0.6 Linux 后端（udev、mount helper、CIFS）、实机 dry-run 与真备份、性能测试（任务清单见 V1.4 §16）。NAS 可达后补做 premounted 真实上传。
 
 ## 环境探测
 

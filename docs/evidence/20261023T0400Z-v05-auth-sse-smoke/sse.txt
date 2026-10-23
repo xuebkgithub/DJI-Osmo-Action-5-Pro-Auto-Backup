@@ -1,0 +1,11 @@
+event: hello
+data: {"mode":"simulation","server_time":"2026-10-23T04:01:18Z","version":"0.1.0-dev"}
+
+event: device.detached
+id: 7
+data: {"id":7,"level":"info","type":"device.detached","message":"device Simulated Osmo Action 5 Pro detached","data":{"device_key":"0506:8002:SIM0001"},"created_at":"2026-10-23T12:01:19.715243+08:00"}
+
+event: device.attached
+id: 8
+data: {"id":8,"level":"info","type":"device.attached","message":"device Simulated Osmo Action 5 Pro attached with 2 volume(s)","data":{"device_key":"0506:8002:SIM0001","serial":"SIM0001","volumes":2,"weak_identity":false},"created_at":"2026-10-23T12:01:20.745865+08:00"}
+

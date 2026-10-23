@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	"action-backup/internal/database/repository"
 	"action-backup/internal/domain"
@@ -24,22 +25,42 @@ type Queue interface {
 
 // Service 把计划转换为任务并入队。
 type Service struct {
-	planner    Planner
-	files      repository.SourceFiles
-	tasks      repository.Tasks
-	queue      Queue
-	guard      *runmode.Guard
+	planner Planner
+	files   repository.SourceFiles
+	tasks   repository.Tasks
+	queue   Queue
+	guard   *runmode.Guard
+	bus     *events.Broadcaster
+	log     *slog.Logger
+
+	mu         sync.Mutex
 	verifyMode domain.VerifyMode
 	onConflict string
-	bus        *events.Broadcaster
-	log        *slog.Logger
 }
 
-// SetConflictPolicy 设置冲突策略：manual | overwrite | skip。
+// SetConflictPolicy 设置冲突策略：manual | overwrite | skip。可在运行时调用。
 func (s *Service) SetConflictPolicy(p string) {
 	if p != "" {
+		s.mu.Lock()
 		s.onConflict = p
+		s.mu.Unlock()
 	}
+}
+
+// SetVerifyMode 设置新任务的校验方式。可在运行时调用，只影响之后创建的任务。
+func (s *Service) SetVerifyMode(m domain.VerifyMode) {
+	if m == domain.VerifyBasic || m == domain.VerifySHA256 {
+		s.mu.Lock()
+		s.verifyMode = m
+		s.mu.Unlock()
+	}
+}
+
+// Policy 返回当前校验方式与冲突策略。
+func (s *Service) Policy() (domain.VerifyMode, string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.verifyMode, s.onConflict
 }
 
 // NewService 创建服务。
@@ -70,9 +91,10 @@ func (s *Service) Start(ctx context.Context) (*StartResult, error) {
 	if !s.guard.AllowDestinationWrite() {
 		return res, nil
 	}
+	verifyMode, onConflict := s.Policy()
 	var ids []int64
 	for _, it := range plan.Items {
-		if it.Action == domain.PlanConflict && s.onConflict == "overwrite" && it.File.RelativePath != "" {
+		if it.Action == domain.PlanConflict && onConflict == "overwrite" && it.File.RelativePath != "" {
 			res.Overwritten++
 		} else if it.Action != domain.PlanUpload {
 			continue
@@ -103,7 +125,7 @@ func (s *Service) Start(ctx context.Context) (*StartResult, error) {
 			}
 			continue
 		}
-		id, err := s.tasks.Create(ctx, fileID, it.DestinationPath, s.verifyMode)
+		id, err := s.tasks.Create(ctx, fileID, it.DestinationPath, verifyMode)
 		if err != nil {
 			return res, fmt.Errorf("create task for %s: %w", it.RelativePath, err)
 		}

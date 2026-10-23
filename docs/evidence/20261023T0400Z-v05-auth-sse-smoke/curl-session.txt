@@ -1,0 +1,114 @@
+## 1. 未登录：所有 API 401，health 与静态页例外
+GET /api/v1/system/status                              -> 400 400 Bad Request
+GET /api/v1/devices                              -> 400 400 Bad Request
+POST /api/v1/backups/plan                              -> 400 400 Bad Request
+GET /api/v1/events/stream                              -> 400 400 Bad Request
+GET /api/v1/config                              -> 400 400 Bad Request
+GET /api/v1/test/faults                              -> 400 400 Bad Request
+GET /api/v1/auth/me                              -> 400 400 Bad Request
+GET   /api/v1/system/health         -> 200
+GET   /                             -> 200 <title>Action Backup</title>
+GET   /assets/index.js              -> 200 111855 bytes
+
+## 2. 错误口令 401，正确口令 200 + Cookie
+{"error":{"code":"INVALID_CREDENTIALS","message":"invalid username or password","retryable":false}}
+ [401]
+{"data":{"auth_enabled":true,"authenticated":true,"username":"admin","csrf_token":"f80e0285c40efb4386f910152183b3904f3810cda720aec40531eac5c13946b4","expires_at":"2026-10-24T04:01:18Z"}}
+
+Set-Cookie: ab_session=d092f3e40340ac06666600c0c5fd95caf23453b193877b9305f226c88d7e69c3; Path=/; Expires=Sat, 24 Oct 2026 04:01:18 GMT; Max-Age=86399; HttpOnly; SameSite=Strict
+
+## 3. 登录后 GET 可用；POST 无 CSRF 403；带 CSRF 200
+{"data":{"auth_enabled":true,"authenticated":true,"username":"admin","csrf_token":"f80e0285c40efb4386f910152183b3904f3810cda720aec40531eac5c13946b4","expires_at":"2026-10-24T04:01:18Z"}}
+ [200]
+{"error":{"code":"CSRF_INVALID","message":"missing or invalid CSRF token","retryable":false}}
+ [403]
+
+plan with csrf [200] upload {'files': 4, 'bytes': 33554432} skip {'files': 0, 'bytes': 0}
+
+## 4. GET /config 脱敏；PATCH 白名单；越权键 400
+path <scratchpad>/smoke/config.yaml
+auth {'enabled': True, 'username': 'admin', 'password_hash': '***', 'session_ttl_hours': 24, 'login_rate_limit_per_min': 5}
+patchable ['device.auto_backup', 'backup.verify_mode', 'backup.on_conflict', 'backup.retry_count', 'backup.reconcile_interval_sec', 'logging.level']
+{"error":{"code":"BAD_PATCH","message":"config key is not patchable: \"server.auth.password_hash\"","retryable":false}}
+ [400]
+patch [200] verify_mode basic retry_count 5
+39:  retry_count: 5
+42:  verify_mode: basic
+
+## 5. POST /storage/test
+{"data":{"ok":true,"kind":"local","mount_point":"<scratchpad>/smoke/nas","root":"<scratchpad>/smoke/nas/DJI-Action5Pro-TEST","fs_type":"local","source":"<scratchpad>/smoke/nas","free_bytes":175870877696,"root_exists":false,"write_allowed":true,"latency_ms":0,"checked_at":"2026-10-23T04:01:18Z"}}
+ [200]
+
+## 6. SSE：hello + 实时事件（后台触发 detach/attach），6 秒截断
+event: hello
+data: {"mode":"simulation","server_time":"2026-10-23T04:01:18Z","version":"0.1.0-dev"}
+
+event: device.detached
+id: 7
+data: {"id":7,"level":"info","type":"device.detached","message":"device Simulated Osmo Action 5 Pro detached","data":{"device_key":"0506:8002:SIM0001"},"created
+
+event: device.attached
+id: 8
+data: {"id":8,"level":"info","type":"device.attached","message":"device Simulated Osmo Action 5 Pro attached with 2 volume(s)","data":{"device_key":"0506:8002:S
+
+Content-Type: text/event-stream; charset=utf-8
+X-Content-Type-Options: nosniff
+
+## 7. 登录限速：连续错误口令直到 429
+attempt 1 -> 401
+attempt 2 -> 401
+attempt 3 -> 401
+attempt 4 -> 429
+attempt 5 -> 429
+attempt 6 -> 429
+
+## 8. 注销后 401
+{"data":{"ok":true}}
+ [200]
+after logout GET /devices -> 401
+
+## 9. 安全事件已入库
+relogin -> 429
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+KeyError: 'data'
+## 1 (重跑). 未登录：所有 API 401，health 与静态页例外
+GET    /api/v1/system/status              -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/devices                    -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/devices/1/volumes          -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+POST   /api/v1/devices/rescan             -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+POST   /api/v1/backups/plan               -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/backups/plan               -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+POST   /api/v1/backups/start              -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/tasks                      -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/events                     -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/events/stream              -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/config                     -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+PATCH  /api/v1/config                     -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+POST   /api/v1/storage/test               -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/test/faults                -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/test/sim/devices           -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+GET    /api/v1/auth/me                    -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+POST   /api/v1/auth/logout                -> 401 {"error":{"code":"UNAUTHENTICATED","message":"login required","retryable":false}}
+
+
+## 9 (重跑). 安全事件已入库
+relogin -> 200
+['auth.login', 'auth.login_failed', 'auth.login_rate_limited', 'auth.logout', 'config.changed', 'device.attached', 'device.detached', 'plan.generated', 'system.started']
+[('auth.login', {'ip': '127.0.0.1', 'username': 'admin'}), ('auth.login_rate_limited', {'ip': '127.0.0.1'}), ('auth.logout', {'username': 'admin'}), ('auth.login_rate_limited', {'ip': '127.0.0.1'})]

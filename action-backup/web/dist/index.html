@@ -1,39 +1,14 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Action Backup</title>
-<style>
-  body { font-family: -apple-system, system-ui, sans-serif; margin: 2rem; color: #222; }
-  .banner { padding: .5rem 1rem; border-radius: 6px; background: #ffe9a8; display: none; margin-bottom: 1rem; }
-  pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow: auto; }
-</style>
-</head>
-<body>
-<div id="banner" class="banner"></div>
-<h1>Action Backup</h1>
-<p>V0.1 占位页面。完整 Web UI 在 V0.5 提供。</p>
-<h2>/api/v1/system/mode</h2><pre id="mode">加载中…</pre>
-<h2>/api/v1/system/health</h2><pre id="health">加载中…</pre>
-<h2>/api/v1/system/status</h2><pre id="status">加载中…</pre>
-<script>
-async function load(id, url) {
-  try {
-    const r = await fetch(url); const j = await r.json();
-    document.getElementById(id).textContent = JSON.stringify(j, null, 2);
-    return j;
-  } catch (e) { document.getElementById(id).textContent = String(e); }
-}
-load('mode', '/api/v1/system/mode').then(j => {
-  if (j && j.data && j.data.mode !== 'production') {
-    const b = document.getElementById('banner');
-    b.textContent = '运行模式: ' + j.data.mode.toUpperCase() + (j.data.faultinject_build ? '（测试构建）' : '');
-    b.style.display = 'block';
-  }
-});
-load('health', '/api/v1/system/health');
-load('status', '/api/v1/system/status');
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Action Backup</title>
+    <script type="module" crossorigin src="/assets/index.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
 </html>

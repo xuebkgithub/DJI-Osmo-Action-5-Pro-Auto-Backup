@@ -12,7 +12,7 @@ LDFLAGS := -s -w \
 DEV_CONFIG ?= configs/config.dev.yaml
 DIST := dist
 
-.PHONY: tools fixtures dev web-dev web-build lint fmt vet test test-integration test-recovery \
+.PHONY: tools fixtures dev web-install web-dev web-build lint fmt vet test test-integration test-recovery \
         build build-arm64 build-arm64-test package deploy check-config clean
 
 tools: ## 检查工具链
@@ -31,10 +31,13 @@ dev: ## mac 上以 simulation 模式运行（测试构建）
 check-config: ## 校验配置
 	go run ./cmd/$(BIN) --config $(DEV_CONFIG) --check
 
-web-dev: ## Vite 开发服务器（V0.5）
+web-install: ## 安装前端依赖（需 node / pnpm）
+	pnpm --dir web install --frozen-lockfile
+
+web-dev: web-install ## Vite 开发服务器，/api 代理到 127.0.0.1:8080（先 make dev）
 	pnpm --dir web dev
 
-web-build: ## 构建前端到 web/dist（V0.5）
+web-build: web-install ## 构建前端到 web/dist；产物已入库，改动前端后必须重新执行并一起提交
 	pnpm --dir web build
 
 fmt:

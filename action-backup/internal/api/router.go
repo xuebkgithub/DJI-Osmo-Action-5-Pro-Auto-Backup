@@ -7,10 +7,12 @@ import (
 	"net/http"
 	"time"
 
+	"action-backup/internal/api/auth"
 	"action-backup/internal/backup"
 	"action-backup/internal/database"
 	"action-backup/internal/database/repository"
 	"action-backup/internal/domain"
+	"action-backup/internal/events"
 	"action-backup/internal/faultinject"
 	"action-backup/internal/runmode"
 	"action-backup/internal/scheduler"
@@ -69,8 +71,14 @@ type Deps struct {
 	Faults       faultinject.Controller
 	Static       fs.FS
 	AuthEnabled  bool
+	Auth         *auth.Manager
+	Bus          *events.Broadcaster
+	Config       ConfigStore
 	Log          *slog.Logger
 }
+
+// StreamPath SSE 路由；不经过请求超时包装。
+const StreamPath = "/api/v1/events/stream"
 
 // NewRouter 组装路由。
 func NewRouter(d Deps) http.Handler {
@@ -83,9 +91,16 @@ func NewRouter(d Deps) http.Handler {
 	mux.HandleFunc("GET /api/v1/system/health", h.health)
 	mux.HandleFunc("GET /api/v1/system/status", h.status)
 	mux.HandleFunc("GET /api/v1/system/mode", h.mode)
+	mux.HandleFunc("POST /api/v1/auth/login", h.authLogin)
+	mux.HandleFunc("POST /api/v1/auth/logout", h.authLogout)
+	mux.HandleFunc("GET /api/v1/auth/me", h.authMe)
 	mux.HandleFunc("GET /api/v1/devices", h.devices)
+	mux.HandleFunc("GET /api/v1/devices/{id}/volumes", h.deviceVolumes)
 	mux.HandleFunc("POST /api/v1/devices/rescan", h.rescan)
 	mux.HandleFunc("GET /api/v1/events", h.events)
+	mux.HandleFunc("GET /api/v1/config", h.configGet)
+	mux.HandleFunc("PATCH /api/v1/config", h.configPatch)
+	mux.HandleFunc("POST /api/v1/storage/test", h.storageTest)
 	mux.HandleFunc("POST /api/v1/backups/plan", h.planRun)
 	mux.HandleFunc("GET /api/v1/backups/plan", h.planLast)
 	mux.HandleFunc("POST /api/v1/backups/start", h.backupStart)
@@ -116,8 +131,23 @@ func NewRouter(d Deps) http.Handler {
 		mux.Handle("/", http.FileServerFS(d.Static))
 	}
 
-	var handler http.Handler = mux
-	handler = http.TimeoutHandler(handler, 30*time.Second, `{"error":{"code":"TIMEOUT","message":"request timed out","retryable":true}}`)
+	timed := http.TimeoutHandler(mux, 30*time.Second, `{"error":{"code":"TIMEOUT","message":"request timed out","retryable":true}}`)
+	stream := http.HandlerFunc(h.eventsStream)
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == StreamPath {
+			if r.Method != http.MethodGet {
+				w.Header().Set("Allow", http.MethodGet)
+				writeError(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "use GET", false)
+				return
+			}
+			stream.ServeHTTP(w, r)
+			return
+		}
+		timed.ServeHTTP(w, r)
+	})
+	if d.Auth != nil {
+		handler = d.Auth.Middleware(auth.DefaultPolicy())(handler)
+	}
 	handler = securityHeaders(handler)
 	handler = logging(d.Log)(handler)
 	handler = recovery(d.Log)(handler)

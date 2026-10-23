@@ -14,128 +14,128 @@ import (
 
 // Config 顶层配置。
 type Config struct {
-	Mode       string            `yaml:"mode"`
-	Server     ServerConfig      `yaml:"server"`
-	Device     DeviceConfig      `yaml:"device"`
-	Simulation *SimulationConfig `yaml:"simulation,omitempty"`
-	Backup     BackupConfig      `yaml:"backup"`
-	Storage    StorageConfig     `yaml:"storage"`
-	Faults     *FaultsConfig     `yaml:"faults,omitempty"`
-	Database   DatabaseConfig    `yaml:"database"`
-	Logging    LoggingConfig     `yaml:"logging"`
+	Mode       string            `yaml:"mode" json:"mode"`
+	Server     ServerConfig      `yaml:"server" json:"server"`
+	Device     DeviceConfig      `yaml:"device" json:"device"`
+	Simulation *SimulationConfig `yaml:"simulation,omitempty" json:"simulation,omitempty"`
+	Backup     BackupConfig      `yaml:"backup" json:"backup"`
+	Storage    StorageConfig     `yaml:"storage" json:"storage"`
+	Faults     *FaultsConfig     `yaml:"faults,omitempty" json:"faults,omitempty"`
+	Database   DatabaseConfig    `yaml:"database" json:"database"`
+	Logging    LoggingConfig     `yaml:"logging" json:"logging"`
 
 	// Path 配置文件绝对路径，加载时填充。
-	Path string `yaml:"-"`
+	Path string `yaml:"-" json:"-"`
 }
 
 // ServerConfig HTTP 服务。
 type ServerConfig struct {
-	Listen string     `yaml:"listen"`
-	Auth   AuthConfig `yaml:"auth"`
+	Listen string     `yaml:"listen" json:"listen"`
+	Auth   AuthConfig `yaml:"auth" json:"auth"`
 }
 
 // AuthConfig 用户名密码认证。
 type AuthConfig struct {
-	Enabled              bool   `yaml:"enabled"`
-	Username             string `yaml:"username"`
-	PasswordHash         string `yaml:"password_hash"`
-	SessionTTLHours      int    `yaml:"session_ttl_hours"`
-	LoginRateLimitPerMin int    `yaml:"login_rate_limit_per_min"`
+	Enabled              bool   `yaml:"enabled" json:"enabled"`
+	Username             string `yaml:"username" json:"username"`
+	PasswordHash         string `yaml:"password_hash" json:"password_hash"`
+	SessionTTLHours      int    `yaml:"session_ttl_hours" json:"session_ttl_hours"`
+	LoginRateLimitPerMin int    `yaml:"login_rate_limit_per_min" json:"login_rate_limit_per_min"`
 }
 
 // DeviceConfig 设备识别。
 type DeviceConfig struct {
-	VendorID   string `yaml:"vendor_id"`
-	ProductID  string `yaml:"product_id"`
-	AutoDetect bool   `yaml:"auto_detect"`
-	AutoBackup bool   `yaml:"auto_backup"`
-	MountRoot  string `yaml:"mount_root"`
-	ReadOnly   bool   `yaml:"readonly"`
+	VendorID   string `yaml:"vendor_id" json:"vendor_id"`
+	ProductID  string `yaml:"product_id" json:"product_id"`
+	AutoDetect bool   `yaml:"auto_detect" json:"auto_detect"`
+	AutoBackup bool   `yaml:"auto_backup" json:"auto_backup"`
+	MountRoot  string `yaml:"mount_root" json:"mount_root"`
+	ReadOnly   bool   `yaml:"readonly" json:"readonly"`
 }
 
 // SimulationConfig 仅 simulation 模式。
 type SimulationConfig struct {
-	DeviceSource          string            `yaml:"device_source"`
-	Fixtures              SimFixturesConfig `yaml:"fixtures"`
-	Volumes               SimVolumesConfig  `yaml:"volumes"`
-	AllowLocalDestination bool              `yaml:"allow_local_destination"`
+	DeviceSource          string            `yaml:"device_source" json:"device_source"`
+	Fixtures              SimFixturesConfig `yaml:"fixtures" json:"fixtures"`
+	Volumes               SimVolumesConfig  `yaml:"volumes" json:"volumes"`
+	AllowLocalDestination bool              `yaml:"allow_local_destination" json:"allow_local_destination"`
 }
 
 // SimFixturesConfig 目录型模拟设备。
 type SimFixturesConfig struct {
-	Devices         []SimDevice `yaml:"devices"`
-	AttachedOnStart bool        `yaml:"attached_on_start"`
+	Devices         []SimDevice `yaml:"devices" json:"devices"`
+	AttachedOnStart bool        `yaml:"attached_on_start" json:"attached_on_start"`
 }
 
 // SimDevice 一台模拟相机。
 type SimDevice struct {
-	Key     string      `yaml:"key"`
-	Serial  string      `yaml:"serial"`
-	Name    string      `yaml:"name"`
-	Volumes []SimVolume `yaml:"volumes"`
+	Key     string      `yaml:"key" json:"key"`
+	Serial  string      `yaml:"serial" json:"serial"`
+	Name    string      `yaml:"name" json:"name"`
+	Volumes []SimVolume `yaml:"volumes" json:"volumes"`
 }
 
 // SimVolume 模拟卷。
 type SimVolume struct {
-	Type  string `yaml:"type"`
-	Path  string `yaml:"path"`
-	Label string `yaml:"label"`
+	Type  string `yaml:"type" json:"type"`
+	Path  string `yaml:"path" json:"path"`
+	Label string `yaml:"label" json:"label"`
 }
 
 // SimVolumesConfig mac 上读取 /Volumes 真相机。
 type SimVolumesConfig struct {
-	PollIntervalSec int    `yaml:"poll_interval_sec"`
-	MatchBy         string `yaml:"match_by"`
+	PollIntervalSec int    `yaml:"poll_interval_sec" json:"poll_interval_sec"`
+	MatchBy         string `yaml:"match_by" json:"match_by"`
 }
 
 // BackupConfig 备份策略。
 type BackupConfig struct {
 	// IncludeInternal / IncludeSDCard 省略时默认 true。
-	IncludeInternal       *bool    `yaml:"include_internal"`
-	IncludeSDCard         *bool    `yaml:"include_sdcard"`
-	SourceDirectory       string   `yaml:"source_directory"`
-	FileExtensions        []string `yaml:"file_extensions"`
-	IgnorePatterns        []string `yaml:"ignore_patterns"`
-	WorkerCount           int      `yaml:"worker_count"`
-	BufferSizeMB          int      `yaml:"buffer_size_mb"`
-	RetryCount            int      `yaml:"retry_count"`
-	CheckpointIntervalSec int      `yaml:"checkpoint_interval_sec"`
-	CheckpointBytesMB     int      `yaml:"checkpoint_bytes_mb"`
-	VerifyMode            string   `yaml:"verify_mode"`
-	DeleteSource          bool     `yaml:"delete_source"`
+	IncludeInternal       *bool    `yaml:"include_internal" json:"include_internal"`
+	IncludeSDCard         *bool    `yaml:"include_sdcard" json:"include_sdcard"`
+	SourceDirectory       string   `yaml:"source_directory" json:"source_directory"`
+	FileExtensions        []string `yaml:"file_extensions" json:"file_extensions"`
+	IgnorePatterns        []string `yaml:"ignore_patterns" json:"ignore_patterns"`
+	WorkerCount           int      `yaml:"worker_count" json:"worker_count"`
+	BufferSizeMB          int      `yaml:"buffer_size_mb" json:"buffer_size_mb"`
+	RetryCount            int      `yaml:"retry_count" json:"retry_count"`
+	CheckpointIntervalSec int      `yaml:"checkpoint_interval_sec" json:"checkpoint_interval_sec"`
+	CheckpointBytesMB     int      `yaml:"checkpoint_bytes_mb" json:"checkpoint_bytes_mb"`
+	VerifyMode            string   `yaml:"verify_mode" json:"verify_mode"`
+	DeleteSource          bool     `yaml:"delete_source" json:"delete_source"`
 	// OnConflict 计划中 conflict 项的处理：manual（默认，不动）| overwrite（照常上传覆盖）| skip（忽略）
-	OnConflict string `yaml:"on_conflict"`
+	OnConflict string `yaml:"on_conflict" json:"on_conflict"`
 	// ReconcileIntervalSec 调度器检查 INTERRUPTED 任务是否可重新入队的周期。
-	ReconcileIntervalSec int `yaml:"reconcile_interval_sec"`
+	ReconcileIntervalSec int `yaml:"reconcile_interval_sec" json:"reconcile_interval_sec"`
 }
 
 // StorageConfig 目标存储。
 type StorageConfig struct {
-	Type              string `yaml:"type"`
-	Share             string `yaml:"share"`
-	MountPoint        string `yaml:"mount_point"`
-	SMBVersion        string `yaml:"smb_version"`
-	CredentialsFile   string `yaml:"credentials_file"`
-	LocalRoot         string `yaml:"local_root"`
-	DestinationRoot   string `yaml:"destination_root"`
-	DestinationLayout string `yaml:"destination_layout"`
+	Type              string `yaml:"type" json:"type"`
+	Share             string `yaml:"share" json:"share"`
+	MountPoint        string `yaml:"mount_point" json:"mount_point"`
+	SMBVersion        string `yaml:"smb_version" json:"smb_version"`
+	CredentialsFile   string `yaml:"credentials_file" json:"credentials_file"`
+	LocalRoot         string `yaml:"local_root" json:"local_root"`
+	DestinationRoot   string `yaml:"destination_root" json:"destination_root"`
+	DestinationLayout string `yaml:"destination_layout" json:"destination_layout"`
 }
 
 // FaultsConfig 故障注入。
 type FaultsConfig struct {
-	Enabled bool               `yaml:"enabled"`
-	Rules   []faultinject.Rule `yaml:"rules"`
+	Enabled bool               `yaml:"enabled" json:"enabled"`
+	Rules   []faultinject.Rule `yaml:"rules" json:"rules"`
 }
 
 // DatabaseConfig SQLite。
 type DatabaseConfig struct {
-	Path string `yaml:"path"`
+	Path string `yaml:"path" json:"path"`
 }
 
 // LoggingConfig 日志。
 type LoggingConfig struct {
-	Level  string `yaml:"level"`
-	Format string `yaml:"format"`
+	Level  string `yaml:"level" json:"level"`
+	Format string `yaml:"format" json:"format"`
 }
 
 // DefaultIgnorePatterns 扫描时忽略的系统元数据文件。

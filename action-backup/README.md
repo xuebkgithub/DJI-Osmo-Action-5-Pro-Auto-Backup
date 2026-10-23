@@ -1,9 +1,22 @@
 # action-backup
 
 DJI Osmo Action 5 Pro → NAS 自动备份服务。Go 单体，macOS 开发，交叉编译到 OEC-Turbo（ARM64 Linux），systemd 部署。
-架构文档见上级目录 `docs/Action_Backup_软件架构设计_V1.3.md`（与 V0.4 代码一致）。
+架构文档见上级目录 `docs/Action_Backup_软件架构设计_V1.4.md`（与 V0.5 代码一致）。
 
-## 当前版本：V0.4 故障注入与恢复
+## 当前版本：V0.5 Web UI、认证与 SSE
+
+V0.5 新增：
+
+- `action-backup passwd --config <file> [--username <name>] [--stdin]`：交互式读两次口令（非终端必须显式 `--stdin`），至少 8 字符，bcrypt cost 12 写入 `server.auth.password_hash`，保留文件注释。不接受命令行明文口令。
+- `internal/api/auth`：用户名密码登录、内存会话表（`crypto/rand` 64 hex 会话 ID，默认 24 小时）、`ab_session` Cookie（`HttpOnly; SameSite=Strict; Path=/`，局域网 HTTP 不设 Secure）、每会话 CSRF Token（POST / PATCH / DELETE 必须带 `X-CSRF-Token`，否则 403 `CSRF_INVALID`）、按来源 IP 的登录限速（默认每分钟 5 次，超出 429）、未知用户名也做一次 bcrypt 比较。`auth.login / logout / login_failed / login_rate_limited` 事件入库。
+- 门禁：`server.auth.enabled: true` 时 `/api/` 下除 `/auth/login`、`/system/health` 外全部 401 `UNAUTHENTICATED`；静态页放行；production 模式配置校验强制启用。
+- SSE `GET /api/v1/events/stream`：连接即发 `hello`，随后转发事件总线全部事件（`event:` 为类型，`id:` 为持久化 ID，`data:` 为完整事件记录）；同一任务多条 `backup.progress` 在一次刷出中只保留最新；15 秒心跳；该路由绕过 30 秒请求超时。
+- `GET /config`（口令哈希脱敏为 `***`，附白名单说明）、`PATCH /config`（白名单：`device.auto_backup`、`backup.verify_mode`、`backup.on_conflict`、`backup.retry_count`、`backup.reconcile_interval_sec`、`logging.level`；先校验、再原子写回配置文件并保留注释、最后在运行中生效；发 `config.changed` 事件）、`POST /storage/test`（只读探测：挂载类型、来源、剩余空间、根目录是否存在，不写任何文件）、`GET /devices/{id|key}/volumes`。
+- Web UI（Vue 3 + Vite，无路由库，`web/src`）：登录页；非 production 顶部模式横幅；总览（健康、任务计数、当前传输进度、开始 / 暂停 / 恢复 / 生成计划）、设备与卷、计划预览（可过滤 upload / skip / conflict）、任务列表（分页、状态过滤、实时进度、取消 / 重试、展开详情）、事件日志（SSE 实时追加、过滤）、设置（在线修改白名单项、查看脱敏配置、测试目标存储）、测试面板（仅测试构建且非 production：模拟插拔、故障规则表单 / 预设 / JSON，命中计数）。构建产物 `web/dist` 已入库并由 `go:embed` 嵌入，文件名固定，纯 Go 构建无需 Node。
+- 运行时可调：`backup.Service.SetVerifyMode / SetConflictPolicy` 与 `scheduler.Configure` 加锁，重连周期每轮重新读取。
+- 测试：`internal/api/auth` 单元测试；`internal/app/auth_test.go` 遍历全部路由验证未登录 401、CSRF、注销、限速、`PATCH /config` 写回文件与运行时生效、SSE 真实流；`cmd/action-backup` 的 passwd 测试。
+
+2026-10-23 实测：测试构建 + 认证开启的 simulation 服务，curl 覆盖 401 全路由、登录 Cookie 属性、CSRF 403、`PATCH /config` 写回、SSE 实时插拔事件、第 4 次登录 429、注销后 401；证据在 `../docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`。
 
 V0.4 新增：
 
@@ -44,25 +57,37 @@ V0.1 已实现：
 - 目标存储 `internal/storage`：local / premounted / cifs 三类，`destination_layout` 模板，路径越界校验。
 - 设备管理器：枚举、事件、持久化。
 - HTTP API：`/api/v1/system/{health,status,mode}`、`/devices`、`/devices/rescan`、`/events`，以及仅测试构建可见的 `/api/v1/test/sim/*`。
-- 占位 Web 页面（V0.5 替换为 Vue 3）。
+- 占位 Web 页面（V0.5 已替换为 Vue 3）。
 - fixtures 生成脚本、ARM64 构建与安装包、systemd 单元、udev 规则、install.sh。
 
-未实现（按阶段）：Web UI、用户名密码认证、SSE（V0.5）；Linux udev / mount helper / CIFS 挂载与实机验证（V0.6）、Web UI 与认证（V0.5）、Linux udev / mount helper / CIFS 挂载（V0.6）。
+未实现（按阶段）：Linux udev / mount helper / CIFS 挂载与实机验证、性能测试、发布（V0.6）；真 NAS premounted 上传待 NAS 可达后补做。
 
 ## 快速开始（mac）
 
 ```bash
-make tools            # go 1.25+、golangci-lint；node / pnpm 仅 V0.5 需要
+make tools            # go 1.25+、golangci-lint；node / pnpm 仅改前端时需要
 make fixtures         # 生成 tests/fixtures/cam1（8 MB 小文件可加 --size，见脚本）
-make dev              # simulation 模式启动，http://127.0.0.1:8080
+make dev              # simulation 模式启动，浏览器打开 http://127.0.0.1:8080（dev 配置免登录）
 curl -s localhost:8080/api/v1/system/mode
 curl -s -X POST localhost:8080/api/v1/test/sim/devices/sim-cam-1/detach
+```
+
+认证开启时的 curl 用法：
+
+```bash
+curl -c c.txt -X POST -H 'Content-Type: application/json' -d '{"username":"admin","password":"..."}' localhost:8080/api/v1/auth/login
+CSRF=$(curl -s -b c.txt localhost:8080/api/v1/auth/me | python3 -c 'import json,sys;print(json.load(sys.stdin)["data"]["csrf_token"])')
+curl -b c.txt -H "X-CSRF-Token: $CSRF" -X POST localhost:8080/api/v1/backups/start
+curl -N -b c.txt localhost:8080/api/v1/events/stream
 ```
 
 ```bash
 make test             # 单元测试
 make test-integration # simulation 端到端（-tags faultinject,integration）
+make test-recovery    # 故障注入 + 进程崩溃重启
 make lint
+make web-dev          # 改前端：Vite 开发服务器，/api 代理到 8080
+make web-build        # 改前端后必须执行并提交 web/dist
 make build-arm64      # dist/action-backup-linux-arm64（production，无 faultinject）
 make package          # dist/action-backup-<version>-linux-arm64.tar.gz
 ```
@@ -74,7 +99,7 @@ Go 模块代理：本机默认 `goproxy.cn` 不可用时，用 `GOPROXY=https://
 
 | 文件 | 用途 |
 | --- | --- |
-| `configs/config.example.yaml` | 实机 production 模板，`password_hash` 为占位符，校验会拒绝，必须用 `action-backup passwd`（V0.5）生成 |
+| `configs/config.example.yaml` | 实机 production 模板，`password_hash` 为占位符，校验会拒绝，必须用 `action-backup passwd --config /etc/action-backup/config.yaml` 生成 |
 | `configs/config.dryrun.yaml` | 实机首轮 dry-run，零写入 |
 | `configs/config.dev.yaml` | mac simulation，本地目录模拟相机与 NAS |
 | `configs/config.mac-dryrun.yaml` | mac 接真相机的 dry-run，真实 USB 发现，零写入 |
@@ -86,7 +111,7 @@ Go 模块代理：本机默认 `goproxy.cn` 不可用时，用 `GOPROXY=https://
 1. `make package`。
 2. 把 `dist/action-backup-<version>-linux-arm64.tar.gz` 拷到设备并解压。
 3. 以 root 执行 `install.sh`：校验 SHA256、拒绝测试构建、创建用户与目录、注册 systemd，不自动启动。
-4. 编辑 `/etc/action-backup/config.yaml`，先以 dry-run 启动验证。
+4. 编辑 `/etc/action-backup/config.yaml`，执行 `action-backup passwd --config /etc/action-backup/config.yaml` 设置登录口令，先以 dry-run 启动验证。
 
 ## 目录
 
@@ -104,9 +129,10 @@ internal/database        SQLite、迁移、repository
 internal/storage         目标存储、layout 模板
 internal/device          设备管理器
 internal/events          事件总线
-internal/api             路由与处理器
+internal/api             路由与处理器、SSE
+internal/api/auth        会话、CSRF、登录限速、门禁中间件
 internal/app             装配与生命周期
 internal/faultinject     注入点定义（规则引擎 V0.4）
-web/                     嵌入的静态资源
+web/                     Vue 3 前端（src/）与构建产物（dist/，已入库，go:embed）
 configs/ deployments/ scripts/ tests/
 ```

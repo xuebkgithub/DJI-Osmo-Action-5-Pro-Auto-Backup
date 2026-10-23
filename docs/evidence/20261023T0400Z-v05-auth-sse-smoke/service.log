@@ -1,0 +1,25 @@
+time=2026-10-23T12:00:47.266+08:00 level=INFO msg="action-backup starting" version=0.1.0-dev config=<scratchpad>/smoke/config.yaml mode=simulation faultinject=true
+time=2026-10-23T12:00:47.271+08:00 level=INFO msg="database ready" path=<scratchpad>/smoke/backup.db migrations_applied=1
+time=2026-10-23T12:00:47.271+08:00 level=WARN msg="fault injection enabled" rules=0
+time=2026-10-23T12:00:47.271+08:00 level=INFO msg="authentication enabled" username=admin session_ttl_hours=24
+time=2026-10-23T12:00:47.271+08:00 level=INFO msg="service started" event=system.started
+time=2026-10-23T12:00:47.271+08:00 level=INFO msg="storage target ready" kind=local root=<scratchpad>/smoke/nas/DJI-Action5Pro-TEST fs=local free_bytes=175860596736
+time=2026-10-23T12:00:47.272+08:00 level=INFO msg="device Simulated Osmo Action 5 Pro attached with 2 volume(s)" event=device.attached
+time=2026-10-23T12:00:47.272+08:00 level=INFO msg="http listening" addr=127.0.0.1:18080 mode=simulation platform=sim
+time=2026-10-23T12:01:18.279+08:00 level=WARN msg="login failed" event=auth.login_failed
+time=2026-10-23T12:01:18.486+08:00 level=INFO msg="login succeeded" event=auth.login
+time=2026-10-23T12:01:18.559+08:00 level=INFO msg="plan: 4 upload (33554432 bytes), 0 skip, 0 conflict across 2 volume(s)" event=plan.generated
+time=2026-10-23T12:01:18.648+08:00 level=INFO msg="configuration changed: backup.retry_count, backup.verify_mode" event=config.changed
+time=2026-10-23T12:01:19.715+08:00 level=INFO msg="device Simulated Osmo Action 5 Pro detached" event=device.detached
+time=2026-10-23T12:01:20.746+08:00 level=INFO msg="device Simulated Osmo Action 5 Pro attached with 2 volume(s)" event=device.attached
+time=2026-10-23T12:01:24.927+08:00 level=WARN msg="login failed" event=auth.login_failed
+time=2026-10-23T12:01:25.133+08:00 level=WARN msg="login failed" event=auth.login_failed
+time=2026-10-23T12:01:25.340+08:00 level=WARN msg="login failed" event=auth.login_failed
+time=2026-10-23T12:01:25.348+08:00 level=WARN msg="login rate limit exceeded" event=auth.login_rate_limited
+time=2026-10-23T12:01:25.355+08:00 level=WARN msg="login rate limit exceeded" event=auth.login_rate_limited
+time=2026-10-23T12:01:25.362+08:00 level=WARN msg="login rate limit exceeded" event=auth.login_rate_limited
+time=2026-10-23T12:01:25.369+08:00 level=INFO msg=logout event=auth.logout
+time=2026-10-23T12:01:25.382+08:00 level=WARN msg="login rate limit exceeded" event=auth.login_rate_limited
+time=2026-10-23T12:02:54.248+08:00 level=INFO msg="login succeeded" event=auth.login
+time=2026-10-23T12:04:05.393+08:00 level=INFO msg="service stopping" event=system.stopping
+time=2026-10-23T12:04:05.394+08:00 level=INFO msg="action-backup stopped"

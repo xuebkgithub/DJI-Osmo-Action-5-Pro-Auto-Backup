@@ -195,3 +195,9 @@ func (t *Target) Stat(rel string) (os.FileInfo, error) {
 	}
 	return os.Stat(abs)
 }
+
+// RootExists 目标根目录是否已存在（只读检查）。
+func (t *Target) RootExists() bool {
+	info, err := os.Stat(t.root)
+	return err == nil && info.IsDir()
+}

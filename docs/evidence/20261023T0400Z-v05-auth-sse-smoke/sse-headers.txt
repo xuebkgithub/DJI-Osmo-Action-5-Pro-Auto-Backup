@@ -1,0 +1,11 @@
+HTTP/1.1 200 OK
+Cache-Control: no-store
+Connection: keep-alive
+Content-Type: text/event-stream; charset=utf-8
+Referrer-Policy: no-referrer
+X-Accel-Buffering: no
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Date: Fri, 23 Oct 2026 04:01:18 GMT
+Transfer-Encoding: chunked
+

@@ -1,0 +1,54 @@
+# go test / lint，2026-10-23，mac，Go go1.25.5
+
+## go test -race ./internal/... ./cmd/...
+ok  	action-backup/internal/api	1.328s
+ok  	action-backup/internal/api/auth	5.825s
+ok  	action-backup/internal/app	1.655s
+ok  	action-backup/internal/backup	1.674s
+ok  	action-backup/internal/config	1.271s
+ok  	action-backup/internal/database	1.328s
+ok  	action-backup/internal/database/repository	1.366s
+?   	action-backup/internal/device	[no test files]
+ok  	action-backup/internal/domain	1.213s
+?   	action-backup/internal/events	[no test files]
+?   	action-backup/internal/faultinject	[no test files]
+?   	action-backup/internal/platform	[no test files]
+ok  	action-backup/internal/platform/darwin	1.638s
+ok  	action-backup/internal/platform/fsinfo	1.204s
+ok  	action-backup/internal/platform/plist	1.277s
+?   	action-backup/internal/platform/raw	[no test files]
+ok  	action-backup/internal/platform/sim	1.270s
+ok  	action-backup/internal/runmode	1.197s
+ok  	action-backup/internal/scanner	1.202s
+ok  	action-backup/internal/scheduler	1.531s
+ok  	action-backup/internal/storage	1.216s
+ok  	action-backup/internal/storage/layout	1.192s
+ok  	action-backup/internal/syncengine	1.376s
+?   	action-backup/internal/version	[no test files]
+ok  	action-backup/cmd/action-backup	5.595s
+
+## go test -race -tags faultinject ./internal/faultinject/... ./internal/app/...
+ok  	action-backup/internal/faultinject	1.842s
+ok  	action-backup/internal/app	1.601s
+
+## go test -race -tags faultinject,integration ./tests/integration/...
+ok  	action-backup/tests/integration	1.745s
+
+## go test -race -tags faultinject,recovery ./tests/recovery/...
+ok  	action-backup/tests/recovery	35.953s
+
+## golangci-lint run ./...
+0 issues.
+
+## pnpm --dir web build
+> action-backup-web@0.5.0 build /path/to/dji_backup/action-backup/web
+> vite build
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 23 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html          0.43 kB │ gzip:  0.27 kB
+dist/assets/index.css    5.29 kB │ gzip:  1.90 kB
+dist/assets/index.js   111.86 kB │ gzip: 40.94 kB
+✓ built in 303ms
