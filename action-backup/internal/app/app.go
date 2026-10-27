@@ -22,6 +22,7 @@ import (
 	"action-backup/internal/domain"
 	"action-backup/internal/events"
 	"action-backup/internal/faultinject"
+	"action-backup/internal/notify"
 	"action-backup/internal/platform"
 	"action-backup/internal/platform/sim"
 	"action-backup/internal/runmode"
@@ -47,6 +48,7 @@ type App struct {
 	sched   *scheduler.Scheduler
 	service *backup.Service
 	auth    *auth.Manager
+	notify  *notify.Dispatcher
 	handler http.Handler
 	started time.Time
 
@@ -148,9 +150,12 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Opti
 		SessionTTL: time.Duration(cfg.Server.Auth.SessionTTLHours) * time.Hour, LoginRateLimitPerMin: cfg.Server.Auth.LoginRateLimitPerMin,
 	}, bus, log)
 
+	notifier := notify.New(bus, log, notify.Options{})
+	notifier.Configure(cfg.Notifications)
+
 	a := &App{
 		cfg: cfg, log: log, guard: guard, backend: backend, sim: simBackend,
-		db: db, bus: bus, target: target, devices: devices, engine: engine, sched: sched, service: service, auth: authMgr, started: time.Now(),
+		db: db, bus: bus, target: target, devices: devices, engine: engine, sched: sched, service: service, auth: authMgr, notify: notifier, started: time.Now(),
 	}
 	for _, o := range opts {
 		o(a)
@@ -165,7 +170,7 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Opti
 		Guard:   guard, PlatformName: backend.Name, Version: version.Version, StartedAt: a.started,
 		DB: db, Target: target, Devices: devices,
 		Events: repository.Events{DB: db.DB}, Tasks: repository.Tasks{DB: db.DB},
-		Static: web.Dist(), AuthEnabled: cfg.Server.Auth.Enabled, Auth: authMgr, Bus: bus, Config: (*configStore)(a), Log: log,
+		Static: web.Dist(), AuthEnabled: cfg.Server.Auth.Enabled, Auth: authMgr, Bus: bus, Config: (*configStore)(a), Notify: notifier, Log: log,
 	}
 	if simBackend != nil {
 		deps.Sim = simBackend
@@ -250,6 +255,9 @@ func (a *App) superviseTarget(ctx context.Context) {
 // Auth 返回会话管理器。
 func (a *App) Auth() *auth.Manager { return a.auth }
 
+// Notifier 返回通知分发器（测试用）。
+func (a *App) Notifier() *notify.Dispatcher { return a.notify }
+
 // Scheduler 返回调度器。
 func (a *App) Scheduler() *scheduler.Scheduler { return a.sched }
 
@@ -287,6 +295,7 @@ func (a *App) Run(ctx context.Context) error {
 	} else {
 		a.log.Warn("authentication disabled; API is open to anyone who can reach the listen address")
 	}
+	a.notify.Start(ctx)
 	a.bus.Publish(ctx, events.Event{Type: "system.started", Message: "service started",
 		Data: map[string]any{"version": version.Version, "mode": string(a.guard.Mode()), "platform": a.backend.Name}})
 

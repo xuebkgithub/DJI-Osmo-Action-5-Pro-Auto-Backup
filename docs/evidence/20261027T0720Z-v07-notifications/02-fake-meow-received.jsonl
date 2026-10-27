@@ -1,0 +1,5 @@
+{"path": "/x", "body": {"title": "t", "msg": "m"}}
+{"path": "/panda", "body": {"title": "Action Backup · 测试", "msg": "通知渠道已连通。2026-10-27 15:20:17", "url": "http://127.0.0.1:8080"}}
+{"path": "/panda", "body": {"title": "Action Backup · 开始备份", "msg": "新建 4 个文件，待上传 32.0 MB", "url": "http://127.0.0.1:8080"}}
+{"path": "/panda", "body": {"title": "Action Backup · 备份完成", "msg": "成功 4 个文件 / 32.0 MB", "url": "http://127.0.0.1:8080"}}
+{"path": "/panda", "body": {"title": "Action Backup · 相机已插入", "msg": "Simulated Osmo Action 5 Pro 已插入（SN SIM0001），2 个卷", "url": "http://127.0.0.1:8080"}}

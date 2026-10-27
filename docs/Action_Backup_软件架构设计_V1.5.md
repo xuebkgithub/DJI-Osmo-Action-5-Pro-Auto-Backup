@@ -29,6 +29,7 @@
 6. **传输**：Worker 改为读写流水线（预读 goroutine + 两块缓冲），归档后 `Target.SetModTime` 保留源 mtime；检查点 fsync 频率是 CIFS 吞吐的决定因素（§7.1、§17、§18 问题 9）。
 7. **部署**：`make deploy` = `scripts/deploy.sh`（打包 → scp → `install.sh` → 可选重启两个单元）；`install.sh` 把 `/etc/action-backup` 设为 `root:actionbackup 0770`；`scripts/test-performance.sh` 实现（§13.1）。
 8. **实机结论**：相机序列号 `0A1B2C3D`、LUN 0 内置 48 GB `OsmoAction`、LUN 1 microSD 116 GB，与 mac 一致；exFAT 时间戳 `+0800` 与 mac 一致；SMB 3.1.1；首次吞吐 24.1 MB/s，瓶颈为每个检查点的 fsync（§17、§18）。
+9. **推送通知（V0.7）**：新包 `internal/notify`，订阅事件总线，把 `device.attached`、`backup.started`、`backup.finished`（新增的批次汇总事件，调度器在队列清空时发）、`task.failed / task.interrupted`（30 秒窗口合并）翻译成中文消息，经 MeoW（`POST https://api.chuckfang.com/{昵称}` JSON）与 Telegram Bot（`sendMessage`，可配 http / socks5 代理）推送；独立 goroutine 串行发送，10 秒超时、3 次指数退避重试、同渠道最小间隔 1 秒，最终失败记 `notify.failed` 事件（不再触发通知）。配置段 `notifications`（§10.4）全部进 `PATCH /config` 白名单，`bot_token` 标记 `secret`：API 输出 `***`、回传 `***` 视为未改、`config.changed` 事件脱敏；Telegram 请求 URL 含 token，错误信息一律替换为 `***`。新路由 `POST /notifications/test`（§9）。设备实测 `api.chuckfang.com` 可直连，`api.telegram.org` DNS 被污染不可达，Telegram 必须填 `proxy_url`（`docs/evidence/20261027T0720Z-v07-notifications/`）。
 
 ### V1.4 相对 V1.3 的变更（按 V0.5 实现回写）
 
@@ -623,6 +624,7 @@ simulation 模式下 fixtures 自带 `manifest.sha256`，集成测试用它核�
 | GET | `/config` | 脱敏配置 | 全部 |
 | PATCH | `/config` | 修改白名单配置项 | 全部 |
 | POST | `/storage/test` | 测试目标存储连接 | 全部 |
+| POST | `/notifications/test` | 向指定渠道（`{"channel":"meow"|"telegram"}`）发一条测试消息，不看开关只要求字段齐全 | 全部 |
 | GET | `/events` | 历史事件 | 全部 |
 | GET | `/events/stream` | SSE 实时进度 | 全部 |
 | GET | `/test/faults` | 当前故障规则 | 测试构建且非 production |
@@ -908,6 +910,31 @@ logging:
 - `server.auth.enabled: true` 时 `password_hash` 必须是合法 bcrypt 串；production 模式强制 `enabled: true`。
 - `destination_layout` 按上表规则校验，非法模板拒绝启动。
 - SMB 用户名与密码存放在独立凭据文件中，权限限制为 `0600`，不能在 Web API 和日志中直接暴露。
+
+### 10.4 推送通知：`notifications`
+
+```yaml
+notifications:
+  enabled: false              # 总开关；为 true 时至少要启用一个渠道
+  site_url: ""                # 通知里附带的网页链接，如 http://172.20.31.6:8080；留空不附
+  on:                         # 省略即 true
+    device_attached: true     # 相机插入并识别
+    backup_started: true      # 计划完成、任务入队（新建 / 重入队数、待上传大小）
+    backup_finished: true     # 一批任务全部结束发一条汇总（成功数 / 大小 / 用时 / 失败数）
+    backup_failed: true       # task.failed / task.interrupted，30 秒内合并为一条
+  meow:
+    enabled: false
+    nickname: ""              # MeoW App 注册的昵称；昵称即密钥，无其它凭据
+    # base_url: https://api.chuckfang.com   仅测试时改
+  telegram:
+    enabled: false
+    bot_token: ""             # API 输出与事件中脱敏为 ***
+    chat_id: ""
+    proxy_url: ""             # 设备直连不到 api.telegram.org，填 http://host:port 或 socks5://host:port
+    # base_url: https://api.telegram.org    仅测试时改
+```
+
+以上除 `base_url` 外全部可在网页「设置 → 通知」修改，立即生效并写回文件。MeoW 非会员限速 3 条 / 3 秒、15 条 / 分钟、60 条 / 小时，分发器按同渠道 1 秒间隔串行发送并合并失败事件，正常使用不会触碰。
 
 ## 11. macOS 开发环境
 
@@ -1217,6 +1244,7 @@ make deploy RESTART=1     # 已 enable 时安装后重启守护与主服务
 3. 守护与主服务的资源占用、长时间运行稳定性（24 小时）记录证据。
 4. HTTPS：若后续经反向代理暴露到局域网外，给会话 Cookie 加 `Secure`。
 5. 设备 apt 源 `deb.debian.org` 不可达，是否永久切 USTC 镜像由用户决定。
+6. ~~推送通知（网页可配、MeoW、Telegram）~~ 已完成（§10.4）；实机启用待用户提供 MeoW 昵称与 Telegram 代理。
 
 ## 17. 需在实机验证的事项
 

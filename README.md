@@ -52,6 +52,10 @@ dji_backup/
 - V0.6 Linux 后端已于 2026-10-27 实机验证通过：sysfs + udev 数据库检测相机（LUN0 内置 / LUN1 microSD、序列号 `0A1B2C3D`）、
   root 挂载守护 `action-backup-mounter` 经 unix socket 只读挂载两卷、拔插闭环、production 模式真实复制一个 409 KB 文件到设备本地目标，SHA-256 一致。
   证据 `docs/evidence/20261027T0530Z-v06-linux-backend/`。新增 `storage.allow_local_destination` 开关（NAS 不可达时本地目标）。
+- V0.7 推送通知已于 2026-10-27 实现：`internal/notify` 订阅事件总线，相机插入 / 开始备份 / 备份完成（新增 `backup.finished` 批次汇总事件）/ 备份失败（30 秒合并）四类消息经 MeoW 与 Telegram Bot 推送；
+  `notifications` 配置段全部可在网页「设置 → 通知」修改并写回，`bot_token` 脱敏，`POST /api/v1/notifications/test` 发测试消息。
+  mac simulation + 假 MeoW 服务浏览器实测通过，证据 `docs/evidence/20261027T0720Z-v07-notifications/`。
+  设备实测 `api.chuckfang.com` 可直连、`api.telegram.org` 不可达（DNS 污染），Telegram 需在设置里填 `proxy_url`，代理由用户在正式环境处理；实机启用待用户提供 MeoW 昵称。
 - 真 NAS 已于 2026-10-27 接通：`//172.20.100.254/home` 经守护挂载（SMB 3.1.1），2 个文件备份后 SHA-256 一致，吞吐 24.1 MB/s，证据 `docs/evidence/20261027T0620Z-v06-nas-cifs-backup/`。
 - 设备现状：`mode: production`、`storage.type: cifs`、`auto_backup: true`（经 `PATCH /config` 打开），插入相机即自动备份到 NAS。
 - V0.7 已于 2026-10-27 完成：读写流水线、检查点默认 30 s / 512 MB（每个检查点的 fsync 曾把吞吐压到 24.1 MB/s）、归档后保留源 mtime、`scripts/test-performance.sh`；实测 66–70 MB/s（裸 CIFS 写 72），81.1 GB 折算约 20 分钟，证据 `docs/evidence/20261027T0700Z-v07-performance/`。

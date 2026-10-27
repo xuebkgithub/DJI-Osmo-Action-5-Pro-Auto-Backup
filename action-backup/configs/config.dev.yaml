@@ -61,6 +61,12 @@ faults:
 database:
   path: "./dev/backup-dev.db"
 
+notifications:                  # 开发时默认关闭；要试推送就在网页「设置 → 通知」里填昵称并打开
+  enabled: false
+  on: { device_attached: true, backup_started: true, backup_finished: true, backup_failed: true }
+  meow: { enabled: false, nickname: "" }
+  telegram: { enabled: false, bot_token: "", chat_id: "", proxy_url: "" }
+
 logging:
   level: "debug"
   format: "text"

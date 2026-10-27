@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { store, refreshMode, notify, errorText } from '../store.js'
 import { get, patch, post } from '../api.js'
 import { bytes } from '../format.js'
@@ -11,6 +11,12 @@ const form = ref({})
 const saving = ref(false)
 const testing = ref(false)
 const storageResult = ref(null)
+const notifyTesting = ref('')
+const notifyResult = ref(null)
+
+const generalFields = computed(() => fields.value.filter((p) => !p.group || p.group === 'general'))
+const notifyFields = computed(() => fields.value.filter((p) => p.group === 'notify'))
+const notifySection = (prefix) => notifyFields.value.filter((p) => p.key.startsWith(prefix))
 
 function valueAt(obj, key) {
   return key.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj)
@@ -30,17 +36,25 @@ async function load() {
 }
 onMounted(load)
 
-async function save() {
+function pendingChanges() {
   const changes = {}
   for (const p of fields.value) {
     const cur = valueAt(cfg.value, p.key)
     let v = form.value[p.key]
     if (p.kind === 'int') v = Number(v)
+    if (p.kind === 'string' && typeof v === 'string') v = v.trim()
+    if (p.secret && v === '***') continue
     if (v !== cur) changes[p.key] = v
   }
+  return changes
+}
+
+// save 把改动 PATCH 到服务端；返回是否成功（没有改动也算成功）。
+async function save() {
+  const changes = pendingChanges()
   if (!Object.keys(changes).length) {
     notify('没有改动')
-    return
+    return true
   }
   saving.value = true
   try {
@@ -49,11 +63,31 @@ async function save() {
     notify(`已保存 ${Object.keys(changes).length} 项并写回 ${r.path || '内存'}`)
     await refreshMode()
     await load()
+    return true
   } catch (e) {
     notify(errorText(e), 'error')
+    return false
   } finally {
     saving.value = false
   }
+}
+
+// testNotify 先保存未提交的改动（服务端用运行配置发送），再向指定渠道发测试消息。
+async function testNotify(channel) {
+  notifyResult.value = null
+  if (Object.keys(pendingChanges()).length && !(await save())) return
+  notifyTesting.value = channel
+  try {
+    notifyResult.value = await post('/api/v1/notifications/test', { channel })
+  } catch (e) {
+    notify(errorText(e), 'error')
+  } finally {
+    notifyTesting.value = ''
+  }
+}
+
+function fieldLabel(p) {
+  return p.label || p.key
 }
 async function testStorage() {
   testing.value = true
@@ -74,7 +108,7 @@ async function testStorage() {
       <h2>可在线修改的配置</h2>
       <p class="muted">修改立即生效并写回配置文件 <code>{{ path || '（内存配置，未写文件）' }}</code>，注释保留。其它项请编辑文件后重启服务。</p>
       <form class="inline" @submit.prevent="save">
-        <label v-for="p in fields" :key="p.key">
+        <label v-for="p in generalFields" :key="p.key">
           <span>{{ p.key }}</span>
           <select v-if="p.kind === 'bool'" :name="p.key" v-model="form[p.key]"><option :value="true">true</option><option :value="false">false</option></select>
           <select v-else-if="p.choices" :name="p.key" v-model="form[p.key]"><option v-for="c in p.choices" :key="c" :value="c">{{ c }}</option></select>
@@ -83,6 +117,73 @@ async function testStorage() {
           <span class="muted" style="font-size:11px">{{ p.doc }}</span>
         </label>
         <div><button class="primary" type="submit" :disabled="saving">{{ saving ? '保存中…' : '保存' }}</button></div>
+      </form>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1" v-if="notifyFields.length">
+      <h2>通知</h2>
+      <p class="muted">
+        相机插入、开始备份、备份完成、备份失败时推送到手机。MeoW 设备可直连；Telegram 在设备上直连不到 api.telegram.org，需填代理。
+        改动保存后立即生效；「发送测试」会先保存再发。
+      </p>
+      <form class="notify" @submit.prevent="save">
+        <fieldset>
+          <legend>开关与事件</legend>
+          <div class="inline">
+            <label v-for="p in [...notifySection('notifications.enabled'), ...notifySection('notifications.on.')]" :key="p.key" class="check">
+              <input type="checkbox" :name="p.key" v-model="form[p.key]" />
+              <span>{{ fieldLabel(p) }}</span>
+              <span class="muted" style="font-size:11px">{{ p.doc }}</span>
+            </label>
+            <label v-for="p in notifySection('notifications.site_url')" :key="p.key">
+              <span>{{ fieldLabel(p) }}</span>
+              <input type="text" :name="p.key" v-model="form[p.key]" placeholder="http://172.20.31.6:8080" />
+              <span class="muted" style="font-size:11px">{{ p.doc }}</span>
+            </label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>MeoW</legend>
+          <div class="inline">
+            <template v-for="p in notifySection('notifications.meow.')" :key="p.key">
+              <label v-if="p.kind === 'bool'" class="check">
+                <input type="checkbox" :name="p.key" v-model="form[p.key]" />
+                <span>{{ fieldLabel(p) }}</span>
+                <span class="muted" style="font-size:11px">{{ p.doc }}</span>
+              </label>
+              <label v-else>
+                <span>{{ fieldLabel(p) }}</span>
+                <input type="text" :name="p.key" v-model="form[p.key]" autocomplete="off" />
+                <span class="muted" style="font-size:11px">{{ p.doc }}</span>
+              </label>
+            </template>
+            <div><button type="button" @click="testNotify('meow')" :disabled="!!notifyTesting || saving">{{ notifyTesting === 'meow' ? '发送中…' : '发送测试到 MeoW' }}</button></div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Telegram</legend>
+          <div class="inline">
+            <template v-for="p in notifySection('notifications.telegram.')" :key="p.key">
+              <label v-if="p.kind === 'bool'" class="check">
+                <input type="checkbox" :name="p.key" v-model="form[p.key]" />
+                <span>{{ fieldLabel(p) }}</span>
+                <span class="muted" style="font-size:11px">{{ p.doc }}</span>
+              </label>
+              <label v-else>
+                <span>{{ fieldLabel(p) }}</span>
+                <input :type="p.secret ? 'password' : 'text'" :name="p.key" v-model="form[p.key]" autocomplete="off" />
+                <span class="muted" style="font-size:11px">{{ p.doc }}</span>
+              </label>
+            </template>
+            <div><button type="button" @click="testNotify('telegram')" :disabled="!!notifyTesting || saving">{{ notifyTesting === 'telegram' ? '发送中…' : '发送测试到 Telegram' }}</button></div>
+          </div>
+        </fieldset>
+        <div class="row">
+          <button class="primary" type="submit" :disabled="saving">{{ saving ? '保存中…' : '保存通知设置' }}</button>
+          <span v-if="notifyResult" :class="notifyResult.ok ? 'ok' : 'err'">
+            {{ notifyResult.channel }}：{{ notifyResult.ok ? `已发送（${notifyResult.latency_ms} ms）` : notifyResult.error }}
+          </span>
+        </div>
       </form>
     </div>
 

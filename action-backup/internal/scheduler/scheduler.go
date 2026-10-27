@@ -74,6 +74,17 @@ type Scheduler struct {
 	currentID     int64
 	lastBytes     int64
 	lastReportAt  time.Time
+
+	// batch 一批任务的汇总：首次入队开始，队列清空时发 backup.finished。
+	batch batchStats
+}
+
+// batchStats 一批任务（从首次入队到队列清空）的结果汇总。
+type batchStats struct {
+	active                                    bool
+	startedAt                                 time.Time
+	completed, failed, interrupted, cancelled int
+	bytes                                     int64
 }
 
 // New 创建调度器。
@@ -199,6 +210,8 @@ func (s *Scheduler) loop(ctx context.Context) {
 				if s.runTask(ctx, *task) {
 					continue
 				}
+			} else {
+				s.finishBatch(ctx)
 			}
 		}
 		select {
@@ -229,8 +242,44 @@ func (s *Scheduler) Enqueue(ctx context.Context, ids []int64) (int, error) {
 		}
 		n++
 	}
+	if n > 0 {
+		s.beginBatch()
+	}
 	s.kick()
 	return n, nil
+}
+
+// beginBatch 开始一批汇总（已在进行中则沿用）。
+func (s *Scheduler) beginBatch() {
+	s.mu.Lock()
+	if !s.batch.active {
+		s.batch = batchStats{active: true, startedAt: time.Now()}
+	}
+	s.mu.Unlock()
+}
+
+// finishBatch 队列清空且无任务在跑时发布 backup.finished 汇总并结束这一批。
+func (s *Scheduler) finishBatch(ctx context.Context) {
+	s.mu.Lock()
+	b := s.batch
+	if !b.active || s.currentCancel != nil {
+		s.mu.Unlock()
+		return
+	}
+	s.batch = batchStats{}
+	s.mu.Unlock()
+	if b.completed+b.failed+b.interrupted+b.cancelled == 0 {
+		return
+	}
+	dur := time.Since(b.startedAt)
+	level := "info"
+	if b.failed > 0 || b.interrupted > 0 {
+		level = "warn"
+	}
+	s.bus.Publish(ctx, events.Event{Level: level, Type: "backup.finished",
+		Message: fmt.Sprintf("backup finished: %d completed, %d failed, %d interrupted, %d cancelled, %d bytes in %s", b.completed, b.failed, b.interrupted, b.cancelled, b.bytes, dur.Round(time.Second)),
+		Data: map[string]any{"completed": b.completed, "failed": b.failed, "interrupted": b.interrupted, "cancelled": b.cancelled,
+			"bytes": b.bytes, "duration_sec": int64(dur.Seconds()), "started_at": b.startedAt.UTC().Format(time.RFC3339)}})
 }
 
 // Pause 暂停：不再取新任务，当前任务在断点处停下并回到 QUEUED。
@@ -284,6 +333,7 @@ func (s *Scheduler) Retry(ctx context.Context, id int64) error {
 		return err
 	}
 	s.bus.Publish(ctx, events.Event{TaskID: &id, Type: "task.retry", Message: fmt.Sprintf("task %d re-queued", id)})
+	s.beginBatch()
 	s.kick()
 	return nil
 }
@@ -406,6 +456,7 @@ func (s *Scheduler) finish(ctx context.Context, t repository.TaskRecord, o backu
 		s.log.Error("finish task failed", "task", t.ID, "status", o.Status, "err", err)
 		return
 	}
+	s.countOutcome(t, o)
 	data := map[string]any{"path": t.RelativePath, "status": string(o.Status), "bytes": o.Bytes, "resumed": o.Resumed, "resume_at": o.ResumeAt}
 	switch o.Status {
 	case domain.TaskCompleted:
@@ -423,6 +474,27 @@ func (s *Scheduler) finish(ctx context.Context, t repository.TaskRecord, o backu
 	default:
 		data["error"] = opt.Error
 		s.bus.Publish(ctx, events.Event{Level: "error", TaskID: &taskID, Type: "task.failed", Message: fmt.Sprintf("failed %s: %s", t.RelativePath, opt.Error), Data: data})
+	}
+}
+
+// countOutcome 把任务结果计入当前批次；暂停（回到 QUEUED）不计。
+func (s *Scheduler) countOutcome(t repository.TaskRecord, o backup.Outcome) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.batch.active {
+		// 重连自动入队等路径未经 Enqueue，此处补开一批
+		s.batch = batchStats{active: true, startedAt: time.Now()}
+	}
+	switch o.Status {
+	case domain.TaskCompleted:
+		s.batch.completed++
+		s.batch.bytes += t.FileSize
+	case domain.TaskFailed:
+		s.batch.failed++
+	case domain.TaskInterrupted:
+		s.batch.interrupted++
+	case domain.TaskCancelled:
+		s.batch.cancelled++
 	}
 }
 

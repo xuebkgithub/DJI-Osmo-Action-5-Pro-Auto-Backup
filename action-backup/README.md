@@ -3,7 +3,11 @@
 DJI Osmo Action 5 Pro → NAS 自动备份服务。Go 单体，macOS 开发，交叉编译到 OEC-Turbo（ARM64 Linux），systemd 部署。
 架构文档见上级目录 `docs/Action_Backup_软件架构设计_V1.4.md`（与 V0.5 代码一致）。
 
-## 当前版本：V0.5 Web UI、认证与 SSE
+## 当前版本：V0.7（v0.7.0）
+
+最新：推送通知（MeoW / Telegram，网页可配）、读写流水线与检查点调优、Linux 后端与挂载守护实机验证。版本号来自 git tag（`make tag V=0.7.0`）。以下按版本记录各阶段新增内容。
+
+### V0.5 Web UI、认证与 SSE
 
 V0.5 新增：
 
@@ -60,7 +64,7 @@ V0.1 已实现：
 - 占位 Web 页面（V0.5 已替换为 Vue 3）。
 - fixtures 生成脚本、ARM64 构建与安装包、systemd 单元、udev 规则、install.sh。
 
-V0.6（2026-10-27）：Linux 检测（sysfs + udev 数据库轮询）、root 挂载守护 `action-backup mount-helper`（只读挂相机卷、`mount.cifs` 挂目标）、拔插卸载、`storage.allow_local_destination` 已实现并实机验证，含真 NAS CIFS 挂载（SMB 3.1.1）与备份。V0.7（2026-10-27）：读写流水线、检查点默认 30 s / 512 MB、归档后保留源 mtime、`scripts/test-performance.sh`，实测 66–70 MB/s。架构基线 V1.5。
+V0.6（2026-10-27）：Linux 检测（sysfs + udev 数据库轮询）、root 挂载守护 `action-backup mount-helper`（只读挂相机卷、`mount.cifs` 挂目标）、拔插卸载、`storage.allow_local_destination` 已实现并实机验证，含真 NAS CIFS 挂载（SMB 3.1.1）与备份。V0.7（2026-10-27）：读写流水线、检查点默认 30 s / 512 MB、归档后保留源 mtime、`scripts/test-performance.sh`，实测 66–70 MB/s；推送通知 `internal/notify`（MeoW / Telegram，`notifications` 配置段网页可改，`backup.finished` 批次汇总事件，`POST /notifications/test`）。架构基线 V1.5。
 
 ## 快速开始（mac）
 
@@ -105,6 +109,8 @@ Go 模块代理：本机默认 `goproxy.cn` 不可用时，用 `GOPROXY=https://
 | `configs/config.mac-dryrun.yaml` | mac 接真相机的 dry-run，真实 USB 发现，零写入 |
 
 校验配置：`action-backup --config <file> --check`。
+
+推送通知（V0.7）：配置段 `notifications`（MeoW 昵称、Telegram `bot_token` / `chat_id` / `proxy_url`、四类事件开关、`site_url`）全部可在网页「设置 → 通知」修改并立即生效；`POST /api/v1/notifications/test` 发测试消息。实现在 `internal/notify`，消息来源是事件总线上的 `device.attached`、`backup.started`、`backup.finished`（批次汇总）、`task.failed / task.interrupted`（合并）。设备直连不到 `api.telegram.org`，Telegram 必须填代理。
 
 ## 部署到 OEC-Turbo
 

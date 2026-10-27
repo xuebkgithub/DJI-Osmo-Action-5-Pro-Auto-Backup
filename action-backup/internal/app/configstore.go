@@ -64,7 +64,12 @@ func (c *configStore) Patch(ctx context.Context, p config.Patch) (config.Config,
 
 // applyRuntime 把修改同步到已装配的组件。
 func (a *App) applyRuntime(next *config.Config, p config.Patch) {
+	notifyChanged := false
 	for k := range p {
+		if strings.HasPrefix(k, "notifications.") {
+			notifyChanged = true
+			continue
+		}
 		switch k {
 		case "device.auto_backup":
 			a.autoBackup.Store(next.Device.AutoBackup)
@@ -79,6 +84,9 @@ func (a *App) applyRuntime(next *config.Config, p config.Patch) {
 				a.logLevel.Set(parseLevel(next.Logging.Level))
 			}
 		}
+	}
+	if notifyChanged && a.notify != nil {
+		a.notify.Configure(next.Notifications)
 	}
 }
 
@@ -95,5 +103,12 @@ func parseLevel(s string) slog.Level {
 }
 
 func eventConfigChanged(keys []string, p config.Patch) events.Event {
-	return events.Event{Type: "config.changed", Message: "configuration changed: " + strings.Join(keys, ", "), Data: map[string]any{"changes": map[string]any(p)}}
+	changes := make(map[string]any, len(p))
+	for k, v := range p {
+		if config.IsSecretKey(k) {
+			v = config.Masked
+		}
+		changes[k] = v
+	}
+	return events.Event{Type: "config.changed", Message: "configuration changed: " + strings.Join(keys, ", "), Data: map[string]any{"changes": changes}}
 }

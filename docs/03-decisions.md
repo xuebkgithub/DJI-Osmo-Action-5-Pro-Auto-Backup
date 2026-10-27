@@ -92,3 +92,11 @@
 | 2026-10-27 | 归档后保留源 mtime（`Target.SetModTime`，经门禁，失败只告警） | 问题 8 关闭；dry-run 拒绝用例已加 |
 | 2026-10-27 | `scripts/test-performance.sh` 实现：删 NAS 副本 → `POST /backups/start` → 采样 → journald 纳秒时间戳算吞吐 → SHA-256 | 口令只走 `LOGIN_JSON` 文件；远程命令经 `cmd_ip.sh` 并重试 3 次（sshd 偶发拒绝密码） |
 | 2026-10-27 | 发布架构文档 V1.5 | 回写 V0.6 实现与实机结论、V0.7 性能数据；守护单元两条禁忌（命名空间沙箱、RuntimeDirectory）写进 §13 |
+| 2026-10-27 | 推送通知方案：MeoW + Telegram，网页可配；默认通知相机插入、开始备份、备份完成、备份失败四类；备份完成按批次发一条汇总而不是每个文件一条 | 用户 2026-10-27 决定。每文件一条会撞 MeoW 限速（3 条 / 3 秒） |
+| 2026-10-27 | Telegram `bot_token` 存 `config.yaml`（方案 A），API 输出、`config.changed` 事件、错误信息全部脱敏为 `***`；网页用密码框，回传 `***` 视为未改 | 用户选方案 A；与 `password_hash` 同一处理方式。`/etc/action-backup` 已是 `root:actionbackup 0770` |
+| 2026-10-27 | Telegram 代理由用户在正式环境自行处理，程序只提供 `proxy_url`（http / socks5） | 设备实测 `api.telegram.org` DNS 被污染、8 秒超时；`api.chuckfang.com` 直连 200。证据 `docs/evidence/20261027T0720Z-v07-notifications/01-device-outbound-probe.txt` |
+| 2026-10-27 | 新增 `backup.finished` 事件：调度器从首次入队开始计数，队列清空且无任务在跑时发布一条（成功 / 失败 / 中断 / 取消数、字节、用时） | 原事件只有逐文件的 `backup.completed`，没有"这批结束"的信号；重连重试（`Retry`）也开新批次，所以重试结果同样有汇总 |
+| 2026-10-27 | 通知分发不阻塞总线：订阅缓冲 256，事件只做分类后入队（队列 64，满则丢并记日志），发送在独立 goroutine 串行进行；失败 3 次后记 `notify.failed` 事件且该事件不再触发通知 | 进度事件高频经同一总线分发；通知服务外部不可控，不能拖慢备份也不能形成失败循环 |
+| 2026-10-27 | `notifications.enabled: true` 但无渠道启用时校验拒绝 | 避免"打开了却收不到"的静默配置；网页一次 PATCH 提交所有改动，不影响操作 |
+| 2026-10-27 | V0.7 通知功能 mac 验证通过 | 假 MeoW 服务收到测试 / 开始备份 / 备份完成 / 相机已插入四条中文消息，写回配置保留注释，`make test`、`test-integration`、`lint` 全绿。证据 `docs/evidence/20261027T0720Z-v07-notifications/` |
+

@@ -122,7 +122,7 @@ func (m *Manager) onAttached(ctx context.Context, raw platform.RawDevice) {
 	if known {
 		return
 	}
-	data := map[string]any{"device_key": d.Key, "serial": d.SerialNumber, "volumes": len(d.Volumes), "weak_identity": d.WeakIdentity}
+	data := map[string]any{"device_key": d.Key, "name": d.Name, "serial": d.SerialNumber, "volumes": len(d.Volumes), "weak_identity": d.WeakIdentity}
 	level := "info"
 	msg := fmt.Sprintf("device %s attached with %d volume(s)", d.Name, len(d.Volumes))
 	if d.WeakIdentity {

@@ -23,6 +23,8 @@ type Config struct {
 	Faults     *FaultsConfig     `yaml:"faults,omitempty" json:"faults,omitempty"`
 	Database   DatabaseConfig    `yaml:"database" json:"database"`
 	Logging    LoggingConfig     `yaml:"logging" json:"logging"`
+	// Notifications 推送通知（MeoW / Telegram）；省略即关闭。
+	Notifications NotificationsConfig `yaml:"notifications" json:"notifications"`
 
 	// Path 配置文件绝对路径，加载时填充。
 	Path string `yaml:"-" json:"-"`
@@ -141,6 +143,49 @@ type LoggingConfig struct {
 	Format string `yaml:"format" json:"format"`
 }
 
+// NotificationsConfig 推送通知。
+type NotificationsConfig struct {
+	Enabled bool `yaml:"enabled" json:"enabled"`
+	// SiteURL 通知里附带的网页链接（如 http://172.20.31.6:8080），留空不附。
+	SiteURL  string         `yaml:"site_url" json:"site_url"`
+	On       NotifyOnConfig `yaml:"on" json:"on"`
+	MeoW     MeoWConfig     `yaml:"meow" json:"meow"`
+	Telegram TelegramConfig `yaml:"telegram" json:"telegram"`
+}
+
+// NotifyOnConfig 触发通知的事件；省略时默认 true。
+type NotifyOnConfig struct {
+	DeviceAttached *bool `yaml:"device_attached" json:"device_attached"`
+	BackupStarted  *bool `yaml:"backup_started" json:"backup_started"`
+	BackupFinished *bool `yaml:"backup_finished" json:"backup_finished"`
+	BackupFailed   *bool `yaml:"backup_failed" json:"backup_failed"`
+}
+
+// MeoWConfig MeoW 推送（https://www.chuckfang.com/MeoW/）。昵称即密钥，没有其它凭据。
+type MeoWConfig struct {
+	Enabled  bool   `yaml:"enabled" json:"enabled"`
+	Nickname string `yaml:"nickname" json:"nickname"`
+	// BaseURL 默认 https://api.chuckfang.com；仅测试时改。
+	BaseURL string `yaml:"base_url" json:"base_url"`
+}
+
+// TelegramConfig Telegram Bot 推送。设备直连不到 api.telegram.org 时填 proxy_url。
+type TelegramConfig struct {
+	Enabled  bool   `yaml:"enabled" json:"enabled"`
+	BotToken string `yaml:"bot_token" json:"bot_token"`
+	ChatID   string `yaml:"chat_id" json:"chat_id"`
+	// ProxyURL http:// 或 socks5:// 代理，留空直连。
+	ProxyURL string `yaml:"proxy_url" json:"proxy_url"`
+	// BaseURL 默认 https://api.telegram.org；仅测试时改。
+	BaseURL string `yaml:"base_url" json:"base_url"`
+}
+
+// 默认的通知服务地址。
+const (
+	DefaultMeoWBaseURL     = "https://api.chuckfang.com"
+	DefaultTelegramBaseURL = "https://api.telegram.org"
+)
+
 // DefaultIgnorePatterns 扫描时忽略的系统元数据文件。
 var DefaultIgnorePatterns = []string{
 	"._*", ".DS_Store", ".Spotlight-V100", ".fseventsd", ".Trashes", "System Volume Information",
@@ -251,6 +296,18 @@ func (c *Config) applyDefaults() {
 	if c.Logging.Format == "" {
 		c.Logging.Format = "json"
 	}
+	n := &c.Notifications
+	for _, p := range []**bool{&n.On.DeviceAttached, &n.On.BackupStarted, &n.On.BackupFinished, &n.On.BackupFailed} {
+		if *p == nil {
+			*p = boolPtr(true)
+		}
+	}
+	if n.MeoW.BaseURL == "" {
+		n.MeoW.BaseURL = DefaultMeoWBaseURL
+	}
+	if n.Telegram.BaseURL == "" {
+		n.Telegram.BaseURL = DefaultTelegramBaseURL
+	}
 	if c.Simulation != nil {
 		if c.Simulation.DeviceSource == "" {
 			c.Simulation.DeviceSource = "fixtures"
@@ -310,5 +367,26 @@ func (c *Config) Redacted() Config {
 	if out.Server.Auth.PasswordHash != "" {
 		out.Server.Auth.PasswordHash = "***"
 	}
+	if out.Notifications.Telegram.BotToken != "" {
+		out.Notifications.Telegram.BotToken = Masked
+	}
 	return out
 }
+
+// Masked API 输出中代替敏感值的占位；PATCH 收到该值视为未修改。
+const Masked = "***"
+
+// On 判断某类通知是否开启（指针省略即 true）。
+func on(p *bool) bool { return p == nil || *p }
+
+// NotifyDeviceAttached 相机插入是否通知。
+func (n NotifyOnConfig) NotifyDeviceAttached() bool { return on(n.DeviceAttached) }
+
+// NotifyBackupStarted 开始备份是否通知。
+func (n NotifyOnConfig) NotifyBackupStarted() bool { return on(n.BackupStarted) }
+
+// NotifyBackupFinished 备份完成是否通知。
+func (n NotifyOnConfig) NotifyBackupFinished() bool { return on(n.BackupFinished) }
+
+// NotifyBackupFailed 备份失败是否通知。
+func (n NotifyOnConfig) NotifyBackupFailed() bool { return on(n.BackupFailed) }

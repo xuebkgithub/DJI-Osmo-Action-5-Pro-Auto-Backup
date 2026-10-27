@@ -117,6 +117,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-sp
 
 form.inline { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; align-items: end; }
 form.inline label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+form.notify fieldset { border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px 12px; margin: 0 0 10px; }
+form.notify legend { color: var(--muted); font-size: 12px; padding: 0 4px; }
+form.notify .inline { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; align-items: end; }
+form.notify .inline label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+form.notify label.check { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
+form.notify label.check > span:first-of-type { color: var(--text); }
+form.notify label.check > .muted { flex-basis: 100%; }
 details summary { cursor: pointer; color: var(--muted); }
 pre { background: var(--bg); padding: 8px; border-radius: 6px; overflow: auto; font-size: 12px; margin: 6px 0; }
 .empty { color: var(--muted); padding: 16px; text-align: center; }

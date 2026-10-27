@@ -14,6 +14,7 @@ import (
 	"action-backup/internal/domain"
 	"action-backup/internal/events"
 	"action-backup/internal/faultinject"
+	"action-backup/internal/notify"
 	"action-backup/internal/runmode"
 	"action-backup/internal/scheduler"
 	"action-backup/internal/storage"
@@ -53,6 +54,11 @@ type Queue interface {
 	State() scheduler.State
 }
 
+// Notifier 通知测试发送。
+type Notifier interface {
+	Test(ctx context.Context, channel string) notify.TestResult
+}
+
 // Deps 处理器依赖。
 type Deps struct {
 	Planner      Planner
@@ -74,6 +80,7 @@ type Deps struct {
 	Auth         *auth.Manager
 	Bus          *events.Broadcaster
 	Config       ConfigStore
+	Notify       Notifier
 	Log          *slog.Logger
 }
 
@@ -101,6 +108,7 @@ func NewRouter(d Deps) http.Handler {
 	mux.HandleFunc("GET /api/v1/config", h.configGet)
 	mux.HandleFunc("PATCH /api/v1/config", h.configPatch)
 	mux.HandleFunc("POST /api/v1/storage/test", h.storageTest)
+	mux.HandleFunc("POST /api/v1/notifications/test", h.notifyTest)
 	mux.HandleFunc("POST /api/v1/backups/plan", h.planRun)
 	mux.HandleFunc("GET /api/v1/backups/plan", h.planLast)
 	mux.HandleFunc("POST /api/v1/backups/start", h.backupStart)

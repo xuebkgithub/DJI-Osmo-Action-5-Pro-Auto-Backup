@@ -1,0 +1,7 @@
+notifications: # 开发时默认关闭；要试推送就在网页「设置 → 通知」里填昵称并打开
+  enabled: true
+  on: {device_attached: true, backup_started: true, backup_finished: true, backup_failed: true}
+  meow: {enabled: true, nickname: panda, base_url: "http://127.0.0.1:9099"}
+  telegram: {enabled: false, bot_token: "", chat_id: "42", proxy_url: ""}
+  site_url: "http://127.0.0.1:8080"
+logging:

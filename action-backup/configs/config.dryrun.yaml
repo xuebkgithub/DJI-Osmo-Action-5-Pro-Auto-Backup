@@ -51,6 +51,23 @@ storage:
 database:
   path: "/var/lib/action-backup/backup.db"
 
+notifications:                  # 推送通知；网页「设置 → 通知」可在线修改，改动写回本文件
+  enabled: false
+  site_url: ""                  # 通知里附带的网页链接，如 http://172.20.31.6:8080；留空不附
+  on:
+    device_attached: true
+    backup_started: true
+    backup_finished: true       # 一批任务全部结束后发一条汇总
+    backup_failed: true         # 失败 / 中断，30 秒内合并
+  meow:                         # https://www.chuckfang.com/MeoW/ ；设备可直连 api.chuckfang.com
+    enabled: false
+    nickname: ""
+  telegram:                     # 设备直连不到 api.telegram.org，需填 proxy_url
+    enabled: false
+    bot_token: ""
+    chat_id: ""
+    proxy_url: ""               # http://host:port 或 socks5://host:port
+
 logging:
   level: "info"
   format: "json"

@@ -26,21 +26,46 @@ const (
 
 // PatchField 一个允许通过 PATCH /config 修改的配置项。
 type PatchField struct {
-	Key      string    `json:"key"`
-	Kind     PatchKind `json:"kind"`
-	Choices  []string  `json:"choices,omitempty"`
-	Min, Max int       `json:"-"`
-	Doc      string    `json:"doc"`
+	Key     string    `json:"key"`
+	Kind    PatchKind `json:"kind"`
+	Choices []string  `json:"choices,omitempty"`
+	// Group 前端分卡片显示：general | notify。
+	Group string `json:"group"`
+	// Secret 为 true 时 GET /config 输出 Masked，PATCH 收到 Masked 视为未修改，前端用密码框。
+	Secret   bool   `json:"secret,omitempty"`
+	Min, Max int    `json:"-"`
+	Doc      string `json:"doc"`
+	// Label 前端显示的中文名；为空显示 Key。
+	Label string `json:"label,omitempty"`
 }
+
+// 白名单分组。
+const (
+	GroupGeneral = "general"
+	GroupNotify  = "notify"
+)
 
 // patchWhitelist 白名单；顺序即 API 输出顺序。
 var patchWhitelist = []PatchField{
-	{Key: "device.auto_backup", Kind: KindBool, Doc: "设备就绪后自动规划并开始备份（dry-run 只规划）"},
-	{Key: "backup.verify_mode", Kind: KindString, Choices: []string{string(domain.VerifyBasic), string(domain.VerifySHA256)}, Doc: "新任务的校验方式；sha256 会重读目标文件"},
-	{Key: "backup.on_conflict", Kind: KindString, Choices: []string{"manual", "overwrite", "skip"}, Doc: "计划中 conflict 项的处理"},
-	{Key: "backup.retry_count", Kind: KindInt, Min: 0, Max: 100, Doc: "INTERRUPTED 任务自动重试上限"},
-	{Key: "backup.reconcile_interval_sec", Kind: KindInt, Min: 1, Max: 3600, Doc: "检查 INTERRUPTED 任务能否重新入队的周期"},
-	{Key: "logging.level", Kind: KindString, Choices: []string{"debug", "info", "warn", "error"}, Doc: "日志级别"},
+	{Key: "device.auto_backup", Kind: KindBool, Group: GroupGeneral, Doc: "设备就绪后自动规划并开始备份（dry-run 只规划）"},
+	{Key: "backup.verify_mode", Kind: KindString, Group: GroupGeneral, Choices: []string{string(domain.VerifyBasic), string(domain.VerifySHA256)}, Doc: "新任务的校验方式；sha256 会重读目标文件"},
+	{Key: "backup.on_conflict", Kind: KindString, Group: GroupGeneral, Choices: []string{"manual", "overwrite", "skip"}, Doc: "计划中 conflict 项的处理"},
+	{Key: "backup.retry_count", Kind: KindInt, Group: GroupGeneral, Min: 0, Max: 100, Doc: "INTERRUPTED 任务自动重试上限"},
+	{Key: "backup.reconcile_interval_sec", Kind: KindInt, Group: GroupGeneral, Min: 1, Max: 3600, Doc: "检查 INTERRUPTED 任务能否重新入队的周期"},
+	{Key: "logging.level", Kind: KindString, Group: GroupGeneral, Choices: []string{"debug", "info", "warn", "error"}, Doc: "日志级别"},
+
+	{Key: "notifications.enabled", Kind: KindBool, Group: GroupNotify, Label: "启用通知", Doc: "总开关；至少要启用一个渠道"},
+	{Key: "notifications.on.device_attached", Kind: KindBool, Group: GroupNotify, Label: "相机插入", Doc: "相机插入并识别后通知"},
+	{Key: "notifications.on.backup_started", Kind: KindBool, Group: GroupNotify, Label: "开始备份", Doc: "计划完成、任务入队后通知（含文件数与大小）"},
+	{Key: "notifications.on.backup_finished", Kind: KindBool, Group: GroupNotify, Label: "备份完成", Doc: "一批任务全部结束后发一条汇总"},
+	{Key: "notifications.on.backup_failed", Kind: KindBool, Group: GroupNotify, Label: "备份失败", Doc: "任务失败或中断时通知，30 秒内多条合并"},
+	{Key: "notifications.site_url", Kind: KindString, Group: GroupNotify, Label: "网页链接", Doc: "通知里附带的本服务地址，如 http://172.20.31.6:8080；留空不附"},
+	{Key: "notifications.meow.enabled", Kind: KindBool, Group: GroupNotify, Label: "MeoW 启用", Doc: "通过 MeoW（api.chuckfang.com）推送到手机"},
+	{Key: "notifications.meow.nickname", Kind: KindString, Group: GroupNotify, Label: "MeoW 昵称", Doc: "MeoW App 里注册的昵称；昵称即密钥"},
+	{Key: "notifications.telegram.enabled", Kind: KindBool, Group: GroupNotify, Label: "Telegram 启用", Doc: "通过 Telegram Bot 推送"},
+	{Key: "notifications.telegram.bot_token", Kind: KindString, Group: GroupNotify, Secret: true, Label: "Telegram Bot Token", Doc: "BotFather 给的 token；保存后只显示 ***"},
+	{Key: "notifications.telegram.chat_id", Kind: KindString, Group: GroupNotify, Label: "Telegram Chat ID", Doc: "接收消息的 chat_id（用户、群或频道）"},
+	{Key: "notifications.telegram.proxy_url", Kind: KindString, Group: GroupNotify, Label: "Telegram 代理", Doc: "设备直连不到 api.telegram.org 时填 http:// 或 socks5://host:port；留空直连"},
 }
 
 // PatchableFields 返回白名单副本。
@@ -48,6 +73,12 @@ func PatchableFields() []PatchField {
 	out := make([]PatchField, len(patchWhitelist))
 	copy(out, patchWhitelist)
 	return out
+}
+
+// IsSecretKey 判断白名单键是否为敏感项（事件与日志中要脱敏）。
+func IsSecretKey(key string) bool {
+	f, ok := lookupField(key)
+	return ok && f.Secret
 }
 
 // ErrNotPatchable 键不在白名单。
@@ -74,7 +105,14 @@ func NormalizePatch(in map[string]any) (Patch, error) {
 			errs = append(errs, fmt.Errorf("%s: %w", k, err))
 			continue
 		}
+		if f.Secret && nv == Masked {
+			// 前端回传脱敏占位，视为未修改
+			continue
+		}
 		out[k] = nv
+	}
+	if len(out) == 0 && len(errs) == 0 {
+		return nil, errors.New("patch is empty")
 	}
 	return out, errors.Join(errs...)
 }
@@ -161,6 +199,30 @@ func (c *Config) Apply(p Patch) (*Config, error) {
 			out.Backup.ReconcileIntervalSec = v.(int)
 		case "logging.level":
 			out.Logging.Level = v.(string)
+		case "notifications.enabled":
+			out.Notifications.Enabled = v.(bool)
+		case "notifications.on.device_attached":
+			out.Notifications.On.DeviceAttached = boolPtr(v.(bool))
+		case "notifications.on.backup_started":
+			out.Notifications.On.BackupStarted = boolPtr(v.(bool))
+		case "notifications.on.backup_finished":
+			out.Notifications.On.BackupFinished = boolPtr(v.(bool))
+		case "notifications.on.backup_failed":
+			out.Notifications.On.BackupFailed = boolPtr(v.(bool))
+		case "notifications.site_url":
+			out.Notifications.SiteURL = v.(string)
+		case "notifications.meow.enabled":
+			out.Notifications.MeoW.Enabled = v.(bool)
+		case "notifications.meow.nickname":
+			out.Notifications.MeoW.Nickname = v.(string)
+		case "notifications.telegram.enabled":
+			out.Notifications.Telegram.Enabled = v.(bool)
+		case "notifications.telegram.bot_token":
+			out.Notifications.Telegram.BotToken = v.(string)
+		case "notifications.telegram.chat_id":
+			out.Notifications.Telegram.ChatID = v.(string)
+		case "notifications.telegram.proxy_url":
+			out.Notifications.Telegram.ProxyURL = v.(string)
 		default:
 			return nil, fmt.Errorf("%w: %q", ErrNotPatchable, k)
 		}

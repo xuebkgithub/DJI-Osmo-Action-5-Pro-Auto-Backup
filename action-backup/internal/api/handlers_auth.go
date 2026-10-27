@@ -12,6 +12,7 @@ import (
 	"action-backup/internal/api/auth"
 	"action-backup/internal/config"
 	"action-backup/internal/domain"
+	"action-backup/internal/notify"
 )
 
 // ConfigStore 运行时配置：读取脱敏副本、按白名单修改并持久化。
@@ -168,4 +169,30 @@ func (h *handlers) deviceVolumes(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	writeError(w, http.StatusNotFound, "DEVICE_NOT_FOUND", domain.ErrDeviceNotFound.Error(), false)
+}
+
+type notifyTestRequest struct {
+	Channel string `json:"channel"`
+}
+
+// notifyTest 用当前运行配置向指定渠道（meow | telegram）发一条测试消息。
+func (h *handlers) notifyTest(w http.ResponseWriter, r *http.Request) {
+	if h.d.Notify == nil {
+		writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "notifier not available", false)
+		return
+	}
+	var req notifyTestRequest
+	if err := json.NewDecoder(io.LimitReader(r.Body, 4<<10)).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "BAD_JSON", err.Error(), false)
+		return
+	}
+	switch req.Channel {
+	case notify.ChannelMeoW, notify.ChannelTelegram:
+	default:
+		writeError(w, http.StatusBadRequest, "BAD_CHANNEL", "channel must be meow or telegram", false)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
+	defer cancel()
+	writeData(w, h.d.Notify.Test(ctx, req.Channel))
 }

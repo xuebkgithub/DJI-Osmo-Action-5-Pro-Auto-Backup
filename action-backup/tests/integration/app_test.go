@@ -229,7 +229,7 @@ logging: { level: error }
 	for _, e := range out["data"].([]any) {
 		types[e.(map[string]any)["type"].(string)] = true
 	}
-	for _, want := range []string{"system.started", "device.attached", "device.detached", "plan.generated", "backup.started", "task.started", "backup.completed"} {
+	for _, want := range []string{"system.started", "device.attached", "device.detached", "plan.generated", "backup.started", "task.started", "backup.completed", "backup.finished"} {
 		if !types[want] {
 			t.Errorf("missing event %s in %v", want, types)
 		}

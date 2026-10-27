@@ -151,7 +151,7 @@ var protectedRoutes = [][2]string{
 	{"POST", "/api/v1/backups/plan"}, {"GET", "/api/v1/backups/plan"}, {"POST", "/api/v1/backups/start"},
 	{"POST", "/api/v1/backups/pause"}, {"POST", "/api/v1/backups/resume"}, {"GET", "/api/v1/backups/history"},
 	{"GET", "/api/v1/tasks"}, {"GET", "/api/v1/tasks/1"}, {"POST", "/api/v1/tasks/1/cancel"}, {"POST", "/api/v1/tasks/1/retry"},
-	{"GET", "/api/v1/config"}, {"PATCH", "/api/v1/config"}, {"POST", "/api/v1/storage/test"},
+	{"GET", "/api/v1/config"}, {"PATCH", "/api/v1/config"}, {"POST", "/api/v1/storage/test"}, {"POST", "/api/v1/notifications/test"},
 	{"GET", "/api/v1/test/faults"}, {"POST", "/api/v1/test/faults"}, {"DELETE", "/api/v1/test/faults/x"}, {"POST", "/api/v1/test/faults/reset"},
 	{"GET", "/api/v1/test/sim/devices"}, {"POST", "/api/v1/test/sim/devices/sim-cam-1/detach"},
 	{"GET", "/api/v1/unknown"},

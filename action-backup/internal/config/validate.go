@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -104,6 +105,8 @@ func (c *Config) Validate(faultInjectBuild bool) error {
 		errs = append(errs, err)
 	}
 
+	errs = append(errs, c.validateNotifications()...)
+
 	// faults
 	if c.Faults != nil && c.Faults.Enabled && !faultInjectBuild {
 		add("faults.enabled is true but this binary was built without -tags faultinject")
@@ -197,6 +200,51 @@ func (c *Config) validateSimulation() []error {
 		}
 	}
 	return errs
+}
+
+// validateNotifications 校验通知配置。渠道字段只在该渠道启用时强制，便于先填一半再开启。
+func (c *Config) validateNotifications() []error {
+	var errs []error
+	add := func(format string, a ...any) { errs = append(errs, fmt.Errorf(format, a...)) }
+	n := c.Notifications
+	if n.SiteURL != "" && !isHTTPURL(n.SiteURL) {
+		add("notifications.site_url must be an http(s) URL, got %q", n.SiteURL)
+	}
+	if !isHTTPURL(n.MeoW.BaseURL) {
+		add("notifications.meow.base_url must be an http(s) URL, got %q", n.MeoW.BaseURL)
+	}
+	if !isHTTPURL(n.Telegram.BaseURL) {
+		add("notifications.telegram.base_url must be an http(s) URL, got %q", n.Telegram.BaseURL)
+	}
+	if strings.ContainsAny(n.MeoW.Nickname, "/?#") {
+		add("notifications.meow.nickname must not contain / ? #")
+	}
+	if n.MeoW.Enabled && strings.TrimSpace(n.MeoW.Nickname) == "" {
+		add("notifications.meow.nickname is required when meow is enabled")
+	}
+	if n.Telegram.Enabled {
+		if strings.TrimSpace(n.Telegram.BotToken) == "" || n.Telegram.BotToken == Masked {
+			add("notifications.telegram.bot_token is required when telegram is enabled")
+		}
+		if strings.TrimSpace(n.Telegram.ChatID) == "" {
+			add("notifications.telegram.chat_id is required when telegram is enabled")
+		}
+	}
+	if p := n.Telegram.ProxyURL; p != "" {
+		u, err := url.Parse(p)
+		if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https" && u.Scheme != "socks5" && u.Scheme != "socks5h") {
+			add("notifications.telegram.proxy_url must be http://, https:// or socks5://host:port, got %q", p)
+		}
+	}
+	if n.Enabled && !n.MeoW.Enabled && !n.Telegram.Enabled {
+		add("notifications.enabled is true but no channel is enabled (meow or telegram)")
+	}
+	return errs
+}
+
+func isHTTPURL(s string) bool {
+	u, err := url.Parse(s)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }
 
 func isBcrypt(h string) bool {

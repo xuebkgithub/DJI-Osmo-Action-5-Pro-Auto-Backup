@@ -157,3 +157,44 @@ func TestRetryGuardAndCancelQueued(t *testing.T) {
 		t.Fatalf("retry completed: %v", err)
 	}
 }
+
+func TestBackupFinishedSummary(t *testing.T) {
+	e := newEnv(t, 3, 64<<10)
+	sub, cancel := e.sched.bus.Subscribe(64)
+	defer cancel()
+	if _, err := e.sched.Enqueue(e.ctx, e.ids); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.After(10 * time.Second)
+	for {
+		select {
+		case ev := <-sub:
+			if ev.Type != "backup.finished" {
+				continue
+			}
+			if ev.Data["completed"] != 3 || ev.Data["failed"] != 0 || ev.Data["bytes"] != int64(3*64<<10) || ev.Level != "info" {
+				t.Fatalf("summary %+v", ev)
+			}
+			for _, id := range e.ids {
+				if e.status(t, id) != domain.TaskCompleted {
+					t.Fatalf("summary published before task %d completed", id)
+				}
+			}
+			// 队列空闲时不再重复发
+			time.Sleep(2500 * time.Millisecond)
+			for {
+				select {
+				case ev := <-sub:
+					if ev.Type == "backup.finished" {
+						t.Fatal("duplicate backup.finished on idle queue")
+					}
+					continue
+				default:
+				}
+				return
+			}
+		case <-deadline:
+			t.Fatal("no backup.finished")
+		}
+	}
+}

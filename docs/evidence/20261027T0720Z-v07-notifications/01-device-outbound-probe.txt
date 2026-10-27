@@ -1,0 +1,14 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: for h in api.chuckfang.com api.telegram.org; do echo "== $h"; getent hosts $h | head -2; curl -sS -o /dev/null -m 8 -w "HTTP %{http_code} in %{time_total}s\n" https://$h/ 2>&1 | tail -1; done; echo "== proxy env"; env | grep -i proxy; echo "(none)"; echo "== action-backup.service network sandbox lines"; grep -iE "IPAddress|RestrictAddress|PrivateNetwork" /etc/systemd/system/action-backup.service; echo "(none)"
+--------------------------------
+== api.chuckfang.com
+8.141.113.54    api.chuckfang.com
+HTTP 200 in 0.212061s
+== api.telegram.org
+2a03:2880:f10a:83:face:b00c:0:25de api.telegram.org
+HTTP 000 in 8.001996s
+== proxy env
+(none)
+== action-backup.service network sandbox lines
+(none)

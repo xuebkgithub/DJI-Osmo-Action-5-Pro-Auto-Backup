@@ -1,0 +1,12 @@
+ time=2026-10-27T15:19:48.475+08:00 level=INFO msg="database ready" path=/path/to/dji_backup/action-backup/dev/backup-notify.db migrations_applied=1
+ time=2026-10-27T15:19:48.475+08:00 level=INFO msg="notifications configured" enabled=false channels=[]
+ time=2026-10-27T15:19:48.476+08:00 level=WARN msg="storage target not ready" kind=local mount_point=/path/to/dji_backup/action-backup/dev/nas-notify err="storage target unavailable: local destination /path/to/dji_backup/action-backup/dev/nas-notify: stat /path/to/dji_backup/action-backup/dev/nas-notify: no such file or directory"
+ time=2026-10-27T15:20:17.934+08:00 level=INFO msg="notifications configured" enabled=true channels=[meow]
+ time=2026-10-27T15:20:17.935+08:00 level=INFO msg="configuration changed: notifications.site_url, notifications.meow.enabled, notifications.meow.nickname, notifications.enabled" event=config.changed
+ time=2026-10-27T15:20:17.945+08:00 level=DEBUG msg=http method=POST path=/api/v1/notifications/test status=200 duration_ms=5 remote=127.0.0.1:64938
+ time=2026-10-27T15:20:26.931+08:00 level=DEBUG msg="notification sent" channel=meow title="Action Backup · 开始备份" attempt=1
+ time=2026-10-27T15:20:27.934+08:00 level=DEBUG msg="notification sent" channel=meow title="Action Backup · 备份完成" attempt=1
+ time=2026-10-27T15:20:42.104+08:00 level=DEBUG msg="notification sent" channel=meow title="Action Backup · 相机已插入" attempt=1
+ time=2026-10-27T15:20:46.243+08:00 level=INFO msg="notifications configured" enabled=true channels=[meow]
+ time=2026-10-27T15:20:46.244+08:00 level=INFO msg="configuration changed: notifications.telegram.chat_id" event=config.changed
+ time=2026-10-27T15:20:46.306+08:00 level=DEBUG msg=http method=POST path=/api/v1/notifications/test status=200 duration_ms=0 remote=127.0.0.1:64989
