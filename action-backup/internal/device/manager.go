@@ -28,6 +28,8 @@ type Manager struct {
 
 	// OnAttached 新设备就绪后的回调（已持久化，含 ID），在独立 goroutine 中调用。
 	OnAttached func(ctx context.Context, d domain.Device)
+	// OnDetached 设备拔出后的回调（卸载残留挂载等），在独立 goroutine 中调用。
+	OnDetached func(ctx context.Context, d domain.Device)
 }
 
 // NewManager 创建管理器。
@@ -142,6 +144,9 @@ func (m *Manager) onDetached(ctx context.Context, raw platform.RawDevice) {
 		return
 	}
 	m.bus.Publish(ctx, events.Event{Level: "info", Type: "device.detached", Message: fmt.Sprintf("device %s detached", d.Name), Data: map[string]any{"device_key": d.Key}})
+	if m.OnDetached != nil {
+		go m.OnDetached(ctx, d)
+	}
 }
 
 // Attached 当前已插入的设备，按键排序。
@@ -165,7 +170,7 @@ func toDomain(raw platform.RawDevice) domain.Device {
 	for _, v := range raw.Volumes {
 		d.Volumes = append(d.Volumes, domain.Volume{
 			DeviceKey: raw.Key, Key: v.Key, Type: domain.ClassifyVolume(v.LUN, v.SizeBytes, v.Label),
-			Filesystem: v.Filesystem, Label: v.Label, LUN: v.LUN, SizeBytes: v.SizeBytes, MountPath: v.MountPath,
+			Filesystem: v.Filesystem, Label: v.Label, LUN: v.LUN, SizeBytes: v.SizeBytes, DevicePath: v.DevicePath, MountPath: v.MountPath,
 			LastSeenAt: d.LastSeenAt,
 		})
 	}

@@ -157,6 +157,7 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Opti
 	}
 	a.autoBackup.Store(cfg.Device.AutoBackup)
 	devices.OnAttached = a.onDeviceAttached
+	devices.OnDetached = a.onDeviceDetached
 	deps := api.Deps{
 		Planner: engine,
 		Backups: service,
@@ -193,6 +194,57 @@ func (a *App) onDeviceAttached(ctx context.Context, d domain.Device) {
 		return
 	}
 	a.log.Info("auto backup queued", "device", d.Key, "created", res.Created, "requeued", res.Requeued, "conflicts", res.Conflicts)
+}
+
+// onDeviceDetached 拔出后让挂载器清掉残留的只读挂载（Linux 上经挂载守护延迟卸载）。
+func (a *App) onDeviceDetached(ctx context.Context, d domain.Device) {
+	for _, v := range d.Volumes {
+		if v.DevicePath == "" {
+			continue
+		}
+		rv := platform.RawVolume{Key: v.Key, LUN: v.LUN, Label: v.Label, Filesystem: v.Filesystem, SizeBytes: v.SizeBytes, DevicePath: v.DevicePath}
+		if err := a.backend.Mounter.Unmount(context.WithoutCancel(ctx), rv); err != nil {
+			a.log.Warn("unmount detached volume failed", "device", d.Key, "volume", v.Key, "err", err)
+		}
+	}
+}
+
+// ensureTargetMounted cifs 目标由平台挂载器挂载；失败只告警，探测继续反映真实状态。
+func (a *App) ensureTargetMounted(ctx context.Context) {
+	if a.backend.Storage == nil {
+		return
+	}
+	if h := a.target.Health(ctx); h.OK {
+		return
+	}
+	if err := a.backend.Storage.MountTarget(ctx); err != nil {
+		a.log.Warn("mount storage target failed", "err", err)
+		return
+	}
+	if h := a.target.Health(ctx); h.OK {
+		a.bus.Publish(ctx, events.Event{Level: "info", Type: "storage.mounted", Message: "storage target mounted", Data: map[string]any{"root": h.Root, "fs": h.FSType}})
+	}
+}
+
+// superviseTarget 目标不可用时每 reconcile 周期重试挂载（NAS 开机晚于设备、掉线恢复）。
+func (a *App) superviseTarget(ctx context.Context) {
+	if a.backend.Storage == nil {
+		return
+	}
+	interval := time.Duration(a.cfg.Backup.ReconcileIntervalSec) * time.Second
+	if interval <= 0 {
+		interval = 30 * time.Second
+	}
+	t := time.NewTicker(interval)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			a.ensureTargetMounted(ctx)
+		}
+	}
 }
 
 // Auth 返回会话管理器。
@@ -238,11 +290,13 @@ func (a *App) Run(ctx context.Context) error {
 	a.bus.Publish(ctx, events.Event{Type: "system.started", Message: "service started",
 		Data: map[string]any{"version": version.Version, "mode": string(a.guard.Mode()), "platform": a.backend.Name}})
 
+	a.ensureTargetMounted(ctx)
 	if h := a.target.Health(ctx); !h.OK {
 		a.log.Warn("storage target not ready", "kind", h.Kind, "mount_point", h.MountPoint, "err", h.Error)
 	} else {
 		a.log.Info("storage target ready", "kind", h.Kind, "root", h.Root, "fs", h.FSType, "free_bytes", h.FreeBytes)
 	}
+	go a.superviseTarget(ctx)
 
 	if n, err := (repository.Tasks{DB: a.db.DB}).MarkInterruptedOnStartup(ctx); err != nil {
 		return fmt.Errorf("recover tasks: %w", err)

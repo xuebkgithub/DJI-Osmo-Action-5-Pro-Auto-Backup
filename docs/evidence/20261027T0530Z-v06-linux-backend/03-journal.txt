@@ -1,0 +1,127 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: echo "### action-backup-mounter journal (本次会话)"; journalctl -u action-backup-mounter --no-pager -o cat --since "13:55" | grep -vE "^Started|^Stopp|Deactivated|Consumed"; echo; echo "### action-backup journal (本次会话，去掉启动噪音)"; journalctl -u action-backup --no-pager -o cat --since "13:55" | grep -E "attached|detached|plan|backup|task|re-queued|storage target|mount|WARN|ERROR"
+--------------------------------
+### action-backup-mounter journal (本次会话)
+{"time":"2026-10-27T13:56:10.807763743+08:00","level":"INFO","msg":"mount-helper starting","version":"v0.6.0-2-g86d1168-dirty","config":"/etc/action-backup/config.yaml","socket":"/run/action-backup-mounter/helper.sock","owner":"actionbackup"}
+{"time":"2026-10-27T13:56:10.811679433+08:00","level":"INFO","msg":"mount helper listening","socket":"/run/action-backup-mounter/helper.sock","owner_uid":999,"owner_gid":995,"config":"/etc/action-backup/config.yaml"}
+{"time":"2026-10-27T13:56:10.852566526+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:56:40.86588544+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:57:10.865869134+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:57:40.865600532+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:58:10.865882313+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:58:27.128352038+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:58:27.194510132+08:00","level":"INFO","msg":"source mounted read-only","source":"/dev/sda","target":"/run/action-backup-mounter/source/sda","fstype":"exfat"}
+{"time":"2026-10-27T13:58:27.478102321+08:00","level":"INFO","msg":"source mounted read-only","source":"/dev/sdb","target":"/run/action-backup-mounter/source/sdb","fstype":"exfat"}
+{"time":"2026-10-27T13:58:57.141431198+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:59:27.142373324+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:59:57.138514537+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T14:00:27.140066257+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-target","device":"","err":"mount helper: parse config: yaml: unmarshal errors:\n  line 45: field allow_local_destination not found in type config.StorageConfig"}
+{"time":"2026-10-27T14:00:43.842968973+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-source","device":"/dev/sda","err":"mount helper: parse config: yaml: unmarshal errors:\n  line 45: field allow_local_destination not found in type config.StorageConfig"}
+{"time":"2026-10-27T14:00:43.846464947+08:00","level":"WARN","msg":"mount helper request failed","op":"mount-source","device":"/dev/sdb","err":"mount helper: parse config: yaml: unmarshal errors:\n  line 45: field allow_local_destination not found in type config.StorageConfig"}
+{"time":"2026-10-27T14:01:18.177618891+08:00","level":"INFO","msg":"mount-helper starting","version":"v0.6.0-2-g86d1168-dirty","config":"/etc/action-backup/config.yaml","socket":"/run/action-backup-mounter/helper.sock","owner":"actionbackup"}
+{"time":"2026-10-27T14:01:18.18138962+08:00","level":"INFO","msg":"mount helper listening","socket":"/run/action-backup-mounter/helper.sock","owner_uid":999,"owner_gid":995,"config":"/etc/action-backup/config.yaml"}
+{"time":"2026-10-27T14:01:18.300003081+08:00","level":"INFO","msg":"source mounted read-only","source":"/dev/sda","target":"/run/action-backup-mounter/source/sda","fstype":"exfat"}
+{"time":"2026-10-27T14:01:18.403157662+08:00","level":"INFO","msg":"source mounted read-only","source":"/dev/sdb","target":"/run/action-backup-mounter/source/sdb","fstype":"exfat"}
+{"time":"2026-10-27T14:04:22.854984695+08:00","level":"INFO","msg":"source unmounted","target":"/run/action-backup-mounter/source/sda"}
+{"time":"2026-10-27T14:04:22.895004065+08:00","level":"INFO","msg":"source unmounted","target":"/run/action-backup-mounter/source/sdb"}
+{"time":"2026-10-27T14:04:51.790565203+08:00","level":"INFO","msg":"source mounted read-only","source":"/dev/sda","target":"/run/action-backup-mounter/source/sda","fstype":"exfat"}
+{"time":"2026-10-27T14:04:52.033895936+08:00","level":"INFO","msg":"source mounted read-only","source":"/dev/sdb","target":"/run/action-backup-mounter/source/sdb","fstype":"exfat"}
+
+### action-backup journal (本次会话，去掉启动噪音)
+Stopping action-backup.service - DJI Action Backup Service...
+{"time":"2026-10-27T13:56:10.690418178+08:00","level":"INFO","msg":"action-backup stopped"}
+action-backup.service: Deactivated successfully.
+Stopped action-backup.service - DJI Action Backup Service.
+action-backup.service: Consumed 2.828s CPU time.
+Started action-backup.service - DJI Action Backup Service.
+{"time":"2026-10-27T13:56:10.826736682+08:00","level":"INFO","msg":"action-backup starting","version":"v0.6.0-2-g86d1168-dirty","config":"/etc/action-backup/config.yaml","mode":"dry-run","faultinject":false}
+{"time":"2026-10-27T13:56:10.836119754+08:00","level":"INFO","msg":"database ready","path":"/var/lib/action-backup/backup.db","migrations_applied":0}
+{"time":"2026-10-27T13:56:10.853374748+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:56:10.855614201+08:00","level":"WARN","msg":"storage target not ready","kind":"cifs","mount_point":"/mnt/action-backup-nas","err":"storage target unavailable: /mnt/action-backup-nas is ext4 mounted from \"/dev/mmcblk0p7\", expected cifs \"//192.168.1.100/VideoBackup\""}
+{"time":"2026-10-27T13:56:10.874134466+08:00","level":"INFO","msg":"device DJI OsmoAction5pro attached with 2 volume(s)","event":"device.attached"}
+{"time":"2026-10-27T13:56:10.882360477+08:00","level":"INFO","msg":"plan: 0 upload (0 bytes), 0 skip, 0 conflict across 2 volume(s)","event":"plan.generated"}
+{"time":"2026-10-27T13:56:10.882502229+08:00","level":"INFO","msg":"dry-run: plan generated, no transfer","device":"0506:8002:0A1B2C3D","upload_files":0,"upload_bytes":0}
+{"time":"2026-10-27T13:56:40.866432324+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:57:10.866591312+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:57:40.866426837+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:58:10.866596033+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+Stopping action-backup.service - DJI Action Backup Service...
+{"time":"2026-10-27T13:58:26.9910191+08:00","level":"INFO","msg":"action-backup stopped"}
+action-backup.service: Deactivated successfully.
+Stopped action-backup.service - DJI Action Backup Service.
+action-backup.service: Consumed 2.017s CPU time.
+Started action-backup.service - DJI Action Backup Service.
+{"time":"2026-10-27T13:58:27.102721405+08:00","level":"INFO","msg":"action-backup starting","version":"v0.6.0-2-g86d1168-dirty","config":"/etc/action-backup/config.yaml","mode":"dry-run","faultinject":false}
+{"time":"2026-10-27T13:58:27.110949458+08:00","level":"INFO","msg":"database ready","path":"/var/lib/action-backup/backup.db","migrations_applied":0}
+{"time":"2026-10-27T13:58:27.128969798+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:58:27.131395046+08:00","level":"WARN","msg":"storage target not ready","kind":"cifs","mount_point":"/mnt/action-backup-nas","err":"storage target unavailable: /mnt/action-backup-nas is ext4 mounted from \"/dev/mmcblk0p7\", expected cifs \"//192.168.1.100/VideoBackup\""}
+{"time":"2026-10-27T13:58:27.149420928+08:00","level":"INFO","msg":"device DJI OsmoAction5pro attached with 2 volume(s)","event":"device.attached"}
+{"time":"2026-10-27T13:58:27.483336658+08:00","level":"INFO","msg":"plan: 0 upload (0 bytes), 0 skip, 0 conflict across 2 volume(s)","event":"plan.generated"}
+{"time":"2026-10-27T13:58:27.483486577+08:00","level":"INFO","msg":"dry-run: plan generated, no transfer","device":"0506:8002:0A1B2C3D","upload_files":0,"upload_bytes":0}
+{"time":"2026-10-27T13:58:57.142227169+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:59:27.142968334+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T13:59:57.139010087+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: storage.credentials_file: stat /etc/action-backup/smb.credentials: no such file or directory"}
+{"time":"2026-10-27T14:00:27.14099873+08:00","level":"WARN","msg":"mount storage target failed","err":"mount helper: mount helper: parse config: yaml: unmarshal errors:\n  line 45: field allow_local_destination not found in type config.StorageConfig"}
+Stopping action-backup.service - DJI Action Backup Service...
+{"time":"2026-10-27T14:00:43.659308102+08:00","level":"INFO","msg":"action-backup stopped"}
+action-backup.service: Deactivated successfully.
+Stopped action-backup.service - DJI Action Backup Service.
+action-backup.service: Consumed 1.116s CPU time.
+Started action-backup.service - DJI Action Backup Service.
+{"time":"2026-10-27T14:00:43.797480471+08:00","level":"INFO","msg":"action-backup starting","version":"v0.6.0-2-g86d1168-dirty","config":"/etc/action-backup/config.yaml","mode":"production","faultinject":false}
+{"time":"2026-10-27T14:00:43.805660981+08:00","level":"INFO","msg":"database ready","path":"/var/lib/action-backup/backup.db","migrations_applied":0}
+{"time":"2026-10-27T14:00:43.817783431+08:00","level":"INFO","msg":"storage target ready","kind":"local","root":"/var/lib/action-backup/local-target/DJI-Action5Pro","fs":"0xef53","free_bytes":5130612736}
+{"time":"2026-10-27T14:00:43.836947415+08:00","level":"INFO","msg":"device DJI OsmoAction5pro attached with 2 volume(s)","event":"device.attached"}
+{"time":"2026-10-27T14:00:43.850172967+08:00","level":"INFO","msg":"plan: 0 upload (0 bytes), 0 skip, 0 conflict across 2 volume(s)","event":"plan.generated"}
+{"time":"2026-10-27T14:00:43.853880112+08:00","level":"INFO","msg":"backup started: 0 new, 0 re-queued, 0 conflicts (0 overwritten), 0 retry-exhausted","event":"backup.started"}
+{"time":"2026-10-27T14:00:43.854053948+08:00","level":"INFO","msg":"auto backup queued","device":"0506:8002:0A1B2C3D","created":0,"requeued":0,"conflicts":0}
+Stopping action-backup.service - DJI Action Backup Service...
+{"time":"2026-10-27T14:01:18.081500884+08:00","level":"INFO","msg":"action-backup stopped"}
+action-backup.service: Deactivated successfully.
+Stopped action-backup.service - DJI Action Backup Service.
+Started action-backup.service - DJI Action Backup Service.
+{"time":"2026-10-27T14:01:18.232668384+08:00","level":"INFO","msg":"action-backup starting","version":"v0.6.0-2-g86d1168-dirty","config":"/etc/action-backup/config.yaml","mode":"production","faultinject":false}
+{"time":"2026-10-27T14:01:18.240645891+08:00","level":"INFO","msg":"database ready","path":"/var/lib/action-backup/backup.db","migrations_applied":0}
+{"time":"2026-10-27T14:01:18.252243041+08:00","level":"INFO","msg":"storage target ready","kind":"local","root":"/var/lib/action-backup/local-target/DJI-Action5Pro","fs":"0xef53","free_bytes":5141766144}
+{"time":"2026-10-27T14:01:18.272005243+08:00","level":"INFO","msg":"device DJI OsmoAction5pro attached with 2 volume(s)","event":"device.attached"}
+{"time":"2026-10-27T14:01:18.559553082+08:00","level":"INFO","msg":"plan: 10 upload (85812651697 bytes), 0 skip, 0 conflict across 2 volume(s)","event":"plan.generated"}
+{"time":"2026-10-27T14:01:18.792391807+08:00","level":"INFO","msg":"backup started: 10 new, 0 re-queued, 0 conflicts (0 overwritten), 0 retry-exhausted","event":"backup.started"}
+{"time":"2026-10-27T14:01:18.792604727+08:00","level":"INFO","msg":"auto backup queued","device":"0506:8002:0A1B2C3D","created":10,"requeued":0,"conflicts":0}
+{"time":"2026-10-27T14:01:18.822102923+08:00","level":"INFO","msg":"transferring DCIM/DJI_002_XZH/DJI_20260802121833_0001_D.MP4 (5031028178 bytes)","event":"task.started"}
+Stopping action-backup.service - DJI Action Backup Service...
+{"time":"2026-10-27T14:02:12.069430809+08:00","level":"INFO","msg":"action-backup stopped"}
+action-backup.service: Deactivated successfully.
+Stopped action-backup.service - DJI Action Backup Service.
+action-backup.service: Consumed 19.798s CPU time.
+Started action-backup.service - DJI Action Backup Service.
+{"time":"2026-10-27T14:02:34.652014549+08:00","level":"INFO","msg":"action-backup starting","version":"v0.6.0-2-g86d1168-dirty","config":"/etc/action-backup/config.yaml","mode":"production","faultinject":false}
+{"time":"2026-10-27T14:02:34.659291169+08:00","level":"INFO","msg":"database ready","path":"/var/lib/action-backup/backup.db","migrations_applied":0}
+{"time":"2026-10-27T14:02:34.672757934+08:00","level":"INFO","msg":"storage target ready","kind":"local","root":"/var/lib/action-backup/local-target/DJI-Action5Pro","fs":"0xef53","free_bytes":5141749760}
+{"time":"2026-10-27T14:02:34.681856042+08:00","level":"WARN","msg":"1 task(s) were in progress at last shutdown, marked INTERRUPTED","event":"recovery.interrupted"}
+{"time":"2026-10-27T14:02:34.696571453+08:00","level":"WARN","msg":"interrupted DCIM/DJI_002_XZH/DJI_20260802124328_0002_D.MP4: device 0506:8002:0A1B2C3D not attached","event":"task.interrupted"}
+{"time":"2026-10-27T14:02:34.71116261+08:00","level":"WARN","msg":"interrupted DCIM/DJI_003/DJI_20261025123025_0022_D.MP4: device 0506:8002:0A1B2C3D not attached","event":"task.interrupted"}
+{"time":"2026-10-27T14:02:34.726657367+08:00","level":"WARN","msg":"interrupted DCIM/DJI_003/DJI_20261025140513_0023_D.MP4: device 0506:8002:0A1B2C3D not attached","event":"task.interrupted"}
+{"time":"2026-10-27T14:02:34.741622156+08:00","level":"WARN","msg":"interrupted DCIM/DJI_003/DJI_20261025150816_0024_D.MP4: device 0506:8002:0A1B2C3D not attached","event":"task.interrupted"}
+{"time":"2026-10-27T14:02:34.756267273+08:00","level":"WARN","msg":"interrupted DCIM/DJI_003/DJI_20261025160834_0025_D.MP4: device 0506:8002:0A1B2C3D not attached","event":"task.interrupted"}
+{"time":"2026-10-27T14:02:34.7719837+08:00","level":"WARN","msg":"interrupted DCIM/DJI_003/DJI_20261025171140_0026_D.MP4: device 0506:8002:0A1B2C3D not attached","event":"task.interrupted"}
+{"time":"2026-10-27T14:02:34.786582733+08:00","level":"WARN","msg":"interrupted DCIM/DJI_003/DJI_20261027075753_0027_D.MP4: device 0506:8002:0A1B2C3D not attached","event":"task.interrupted"}
+{"time":"2026-10-27T14:02:34.801388853+08:00","level":"WARN","msg":"interrupted DCIM/DJI_003/DJI_20261027080056_0028_D.MP4: device 0506:8002:0A1B2C3D not attached","event":"task.interrupted"}
+{"time":"2026-10-27T14:02:34.816407893+08:00","level":"WARN","msg":"interrupted DCIM/DJI_003/DJI_20261027090408_0029_D.MP4: device 0506:8002:0A1B2C3D not attached","event":"task.interrupted"}
+{"time":"2026-10-27T14:02:34.833268546+08:00","level":"INFO","msg":"device DJI OsmoAction5pro attached with 2 volume(s)","event":"device.attached"}
+{"time":"2026-10-27T14:02:51.311431671+08:00","level":"INFO","msg":"task 1 cancelled","event":"task.cancelled"}
+{"time":"2026-10-27T14:02:51.339305549+08:00","level":"INFO","msg":"task 2 cancelled","event":"task.cancelled"}
+{"time":"2026-10-27T14:02:51.365456523+08:00","level":"INFO","msg":"task 4 cancelled","event":"task.cancelled"}
+{"time":"2026-10-27T14:02:51.40974013+08:00","level":"INFO","msg":"task 5 cancelled","event":"task.cancelled"}
+{"time":"2026-10-27T14:02:51.443153433+08:00","level":"INFO","msg":"task 6 cancelled","event":"task.cancelled"}
+{"time":"2026-10-27T14:02:51.477977842+08:00","level":"INFO","msg":"task 7 cancelled","event":"task.cancelled"}
+{"time":"2026-10-27T14:02:51.512248659+08:00","level":"INFO","msg":"task 8 cancelled","event":"task.cancelled"}
+{"time":"2026-10-27T14:02:51.544192812+08:00","level":"INFO","msg":"task 9 cancelled","event":"task.cancelled"}
+{"time":"2026-10-27T14:02:51.573340711+08:00","level":"INFO","msg":"task 10 cancelled","event":"task.cancelled"}
+{"time":"2026-10-27T14:03:04.707250448+08:00","level":"INFO","msg":"task 3 re-queued","event":"task.retry"}
+{"time":"2026-10-27T14:03:04.707433618+08:00","level":"INFO","msg":"re-queued interrupted tasks","count":1}
+{"time":"2026-10-27T14:03:04.723182128+08:00","level":"INFO","msg":"transferring DCIM/DJI_003/DJI_20261025123025_0022_D.MP4 (409728 bytes)","event":"task.started"}
+{"time":"2026-10-27T14:03:04.914278289+08:00","level":"INFO","msg":"completed DCIM/DJI_003/DJI_20261025123025_0022_D.MP4","event":"backup.completed"}
+{"time":"2026-10-27T14:04:22.846492388+08:00","level":"INFO","msg":"device DJI OsmoAction5pro detached","event":"device.detached"}
+{"time":"2026-10-27T14:04:30.863454881+08:00","level":"INFO","msg":"device DJI OsmoAction5pro attached with 2 volume(s)","event":"device.attached"}
+{"time":"2026-10-27T14:04:52.065201328+08:00","level":"INFO","msg":"plan: 9 upload (85812241969 bytes), 1 skip, 0 conflict across 2 volume(s)","event":"plan.generated"}

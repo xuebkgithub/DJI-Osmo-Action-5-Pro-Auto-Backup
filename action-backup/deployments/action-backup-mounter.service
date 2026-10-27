@@ -1,0 +1,23 @@
+[Unit]
+Description=DJI Action Backup mount helper (root)
+# 以 root 运行的受限挂载守护：只按 /etc/action-backup/config.yaml 与白名单规则
+# 只读挂载相机卷到 device.mount_root、挂载 storage.share 到 storage.mount_point。
+# 主服务 action-backup.service 以 actionbackup 身份经 unix socket 请求。
+DefaultDependencies=yes
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/action-backup/action-backup mount-helper --config /etc/action-backup/config.yaml --socket /run/action-backup-mounter/helper.sock --owner actionbackup
+Restart=on-failure
+RestartSec=3
+# socket 与源卷挂载点都在这个目录下；挂载点会被相机卷占用，不能让 systemd 在停止时 rm -rf
+RuntimeDirectory=action-backup-mounter
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+# 不能加 ProtectHome / PrivateTmp / ProtectSystem 之类会创建私有挂载命名空间的选项：
+# 守护必须在宿主命名空间里挂载，主服务（slave 传播）与 SSH 排障才看得到这些挂载。实机验证过：加了之后挂载只在守护自己的命名空间里。
+LimitNOFILE=1024
+
+[Install]
+WantedBy=multi-user.target

@@ -24,3 +24,6 @@ func nativeDetector(*config.Config, *slog.Logger) (DeviceDetector, error) {
 
 func nativeMounter() VolumeMounter { return NotImplementedMounter{OS: runtime.GOOS} }
 func nativeProbe() StorageProbe    { return unsupportedProbe{} }
+
+// nativeStorageMounter 本平台没有目标挂载器。
+func nativeStorageMounter() StorageMounter { return nil }

@@ -60,7 +60,7 @@ V0.1 已实现：
 - 占位 Web 页面（V0.5 已替换为 Vue 3）。
 - fixtures 生成脚本、ARM64 构建与安装包、systemd 单元、udev 规则、install.sh。
 
-未实现（按阶段）：Linux udev / mount helper / CIFS 挂载与实机验证、性能测试、发布（V0.6）；真 NAS premounted 上传待 NAS 可达后补做。
+V0.6（2026-10-27）：Linux 检测（sysfs + udev 数据库轮询）、root 挂载守护 `action-backup mount-helper`（只读挂相机卷、`mount.cifs` 挂目标）、拔插卸载、`storage.allow_local_destination` 已实现并实机验证，含真 NAS CIFS 挂载（SMB 3.1.1）与备份。未做：性能测试（首测 24.1 MB/s）、架构文档 V1.5 回写。
 
 ## 快速开始（mac）
 
@@ -144,10 +144,13 @@ HOST=<ip> make deploy       # 换设备
    ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'journalctl -u action-backup -n 200 --no-pager'
    ```
 
-设备现状（2026-10-27 实测，证据 `../docs/evidence/20261027T0320Z-device-deploy-smb/`）：
-Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、systemd 252，`systemctl` / `udevadm` 可用，
-`cifs` 与 `exfat` 内核模块可加载，`cifs-utils 2:7.0-2`（`mount.cifs` 7.0）已安装。
-服务已部署并 enable，运行在 dry-run + 认证开启状态；`storage.share` 仍是占位值，NAS 未接。
+设备上有两个单元：`action-backup-mounter.service`（root 挂载守护，见 `deployments/mount-helper/README.md`）与 `action-backup.service`
+（`Requires=` 前者）。相机卷挂在 `/run/action-backup-mounter/source/sdX`，`ro,nosuid,nodev,noexec`，属主 `actionbackup`。
+
+设备现状（2026-10-27 实测，证据 `../docs/evidence/20261027T0320Z-device-deploy-smb/` 与 `../docs/evidence/20261027T0530Z-v06-linux-backend/`）：
+Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、systemd 252，`cifs` 与 `exfat` 内核模块可加载，`cifs-utils 2:7.0-2` 已安装。
+相机接在 USB `6-1`，`sda`=内置 48 GB、microSD 116 GB（设备名随插拔变化，实测 `sdb`→`sdc`）。服务运行在 production + 真 NAS
+（`//172.20.100.254/home`，SMB 3.1.1）、`auto_backup: true`。
 
 注意：设备上 `deb.debian.org` 不可达，装包时用了 `/tmp/aptsrc/ustc.sources` 临时镜像源
 （`apt-get -o Dir::Etc::sourcelist=/dev/null -o Dir::Etc::sourceparts=/tmp/aptsrc ...`），

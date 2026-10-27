@@ -72,3 +72,17 @@
 | 2026-10-27 | systemd 单元加 `RuntimeDirectory=action-backup` 与 `ExecStartPre=/bin/mkdir -p /run/action-backup/source` | `/run` 是 tmpfs，`install.sh` 建的目录重启即丢，单元原本没有重建逻辑 |
 | 2026-10-27 | 单元加 `ReadWritePaths=/etc/action-backup`，`install.sh` 把配置目录改为 `root:actionbackup 0770` | `ProtectSystem=strict` 下 `/etc` 对服务只读，`PATCH /config` 的「临时文件 + rename」写回必然失败；实测报 `read-only file system`，修后写回成功 |
 | 2026-10-27 | 设备首轮以 dry-run + 认证开启运行，`storage.share` 保持占位 | NAS 尚未确定；dry-run 不写目标，存储探测告警不影响服务；服务监听 0.0.0.0:8080，局域网可达，故认证先开 |
+| 2026-10-27 | Linux 检测器轮询 sysfs + `/run/udev/data`，不用 netlink uevent，2 秒一次 | 两者都是世界可读，服务无需任何特权；`/dev/sd*` 对非 root 不可读所以不碰设备节点；与 darwin 后端的轮询行为一致。证据 `docs/evidence/20261027T0530Z-v06-linux-backend/` |
+| 2026-10-27 | Linux 卷键 `uuid:<ID_FS_UUID 小写>`，缺 UUID 时 `usb:<serial>:lun<n>:<size>`；序列号从 sysfs `product` 的 `SN:` 解析；LUN 取 `h:c:t:l` 的 `l` | 实测 `sda`=LUN0 内置 `OsmoAction` 48 GB、`sdb`=LUN1 microSD 116 GB，序列号 `0A1B2C3D`，与 mac 一致；问题 1a 与 §17 对应项关闭 |
+| 2026-10-27 | 挂载走独立 root 守护 `action-backup-mounter.service`（`action-backup mount-helper` 子命令，unix socket，参数白名单），不用 sudoers | 主服务 `NoNewPrivileges=true` 下 setuid 无效；守护只按配置文件推导路径，客户端只能给 `/dev/sd[a-z]+`；权限分离与文档 §13 一致 |
+| 2026-10-27 | 守护单元不加 `PrivateTmp` / `ProtectHome` / `ProtectSystem` | 实测加了之后挂载被困在守护的私有挂载命名空间，宿主与主服务都看不到；守护必须在宿主命名空间挂载，主服务沙箱以 slave 传播可见 |
+| 2026-10-27 | 源卷挂载点 `/run/action-backup-mounter/source/<sdX>`（守护的 RuntimeDirectory，`RuntimeDirectoryPreserve=yes`），主服务不再有 RuntimeDirectory | 主服务停止时 systemd 会 rm -rf 它的 RuntimeDirectory，里面若有挂载会出问题；挂载的生命周期归守护管 |
+| 2026-10-27 | 拔出事件 → `OnDetached` → 守护 `umount-source`；残留失效挂载在下次 `mount-source` 时 statfs 失败则 `MNT_DETACH` 后重挂 | 模拟拔插实测：拔出即卸载，插回后计划重新挂载，无残留 |
+| 2026-10-27 | 新增 `storage.allow_local_destination`：显式为 true 时 dry-run / production 允许 `type: local` | NAS 不可达期间要在设备本地做真实复制；默认仍禁止，保留"不误写 NAS 挂载点底层目录"的保护。回环 Samba 方案因权限策略未做 |
+| 2026-10-27 | `deploy.sh RESTART=1` 同时重启 `action-backup-mounter` 与 `action-backup` | `Requires=` 只保证启动顺序，单元或二进制更新后守护不会自动重启，实测因此排错一轮 |
+| 2026-10-27 | 设备暂时 `device.auto_backup: false`，任务 1、2、4–10 已取消 | 本地目标只有 5 GB 余量而全量 85.8 GB；NAS 可用切回 cifs 后在设置页打开自动备份即可 |
+| 2026-10-27 | V0.6 实机验证通过：检测、只读挂载、拔插、production 真实复制（小文件 SHA-256 一致）；CIFS 挂载路径（`mount-target`）已实现但未实机验证 | 证据 `docs/evidence/20261027T0530Z-v06-linux-backend/`；架构文档 V1.5 回写待做 |
+| 2026-10-27 | 真 NAS `//172.20.100.254/home` 经守护 `mount-target` 挂载成功，SMB 3.1.1 协商，2 个文件备份后 SHA-256 一致 | 问题 2（SMB 版本）与问题 9 关闭；证据 `docs/evidence/20261027T0620Z-v06-nas-cifs-backup/` |
+| 2026-10-27 | 首次实测吞吐 24.1 MB/s（482 MB，含 fsync 与 basic 校验，千兆 + USB 3.0） | 81.1 GB 约 56 分钟，未达 30 分钟目标；性能测试要定位瓶颈（USB 读 / CIFS 写 / fsync 频率）再调 `buffer_size_mb` 与 Worker 数 |
+| 2026-10-27 | 源卷挂载点按内核设备名命名（`source/sdX`），重新插拔后名字可能变化（实测 sdb→sdc） | 检测器每轮按 sysfs 当前名字重建，守护卸载时删目录，不留残留；外部脚本不要写死 `sdb` |
+| 2026-10-27 | 设备 `device.auto_backup` 经 `PATCH /config` 重新打开，目标为真 NAS | 相机上的文件已全部备份，打开后插入即自动规划并备份 |

@@ -54,12 +54,16 @@ func Select(cfg *config.Config, mode runmode.Mode, log *slog.Logger) (*Backend, 
 		if err != nil {
 			return nil, nil, err
 		}
-		return &Backend{
+		b := &Backend{
 			Name:     runtime.GOOS,
 			Detector: nd,
 			Mounter:  MultiMounter{Fallback: nativeMounter()},
 			Probe:    nativeProbe(),
-		}, nil, nil
+		}
+		if cfg.Storage.Type == config.StorageCIFS {
+			b.Storage = nativeStorageMounter()
+		}
+		return b, nil, nil
 	}
 	return nil, nil, fmt.Errorf("unknown mode %q", mode)
 }

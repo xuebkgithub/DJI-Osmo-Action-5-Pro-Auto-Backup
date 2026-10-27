@@ -48,7 +48,13 @@ dji_backup/
 - 待办：NAS 可达后在 Finder 挂载共享并执行 `smbutil statshares -a`，确认 SMB 版本（问题 2）；
   设备上的 `storage.share` 目前仍是占位 `//192.168.1.100/VideoBackup`，`smb.credentials` 未创建。
 - 待办：设备 apt 源 `deb.debian.org` 在本网络不可达，本次用 `/tmp` 临时镜像源装的包；是否永久换成 USTC 镜像待定。
-- 下一步：V0.6 Linux 后端（udev、mount helper、CIFS）、实机 dry-run 与真备份、性能测试（任务清单见 V1.4 §16），现在可经 SSH 直接部署到设备验证。NAS 可达后补做 premounted 真实上传。
+- V0.6 Linux 后端已于 2026-10-27 实机验证通过：sysfs + udev 数据库检测相机（LUN0 内置 / LUN1 microSD、序列号 `0A1B2C3D`）、
+  root 挂载守护 `action-backup-mounter` 经 unix socket 只读挂载两卷、拔插闭环、production 模式真实复制一个 409 KB 文件到设备本地目标，SHA-256 一致。
+  证据 `docs/evidence/20261027T0530Z-v06-linux-backend/`。新增 `storage.allow_local_destination` 开关（NAS 不可达时本地目标）。
+- 真 NAS 已于 2026-10-27 接通：`//172.20.100.254/home` 经守护挂载（SMB 3.1.1），2 个文件备份后 SHA-256 一致，吞吐 24.1 MB/s，证据 `docs/evidence/20261027T0620Z-v06-nas-cifs-backup/`。
+- 设备现状：`mode: production`、`storage.type: cifs`、`auto_backup: true`（经 `PATCH /config` 打开），插入相机即自动备份到 NAS。
+- 待办：目标 mtime 是否保留（问题 8）；架构文档 V1.5 回写 V0.6。
+- 下一步：性能测试——首测 24.1 MB/s 折算 81.1 GB 约 56 分钟，未达 30 分钟目标，需定位瓶颈并调 `buffer_size_mb` / Worker 数；systemd 资源占用记录（V1.4 §17）。
 
 ## 环境探测
 

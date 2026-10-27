@@ -436,7 +436,7 @@ func (s *Scheduler) resolveSource(ctx context.Context, t repository.TaskRecord) 
 			if v.Key != t.VolumeKey {
 				continue
 			}
-			mp, err := s.mounter.MountReadOnly(ctx, platform.RawVolume{Key: v.Key, LUN: v.LUN, Label: v.Label, Filesystem: v.Filesystem, SizeBytes: v.SizeBytes, MountPath: v.MountPath})
+			mp, err := s.mounter.MountReadOnly(ctx, platform.RawVolume{Key: v.Key, LUN: v.LUN, Label: v.Label, Filesystem: v.Filesystem, SizeBytes: v.SizeBytes, DevicePath: v.DevicePath, MountPath: v.MountPath})
 			if err != nil {
 				return "", fmt.Errorf("mount volume %s: %w", v.Key, err)
 			}

@@ -48,10 +48,18 @@ type StorageProbe interface {
 	Probe(ctx context.Context, path string, expect MountExpectation) (MountInfo, error)
 }
 
+// StorageMounter 挂载 / 卸载目标存储（Linux 上经 root 挂载守护挂 CIFS）。没有实现的平台为 nil。
+type StorageMounter interface {
+	MountTarget(ctx context.Context) error
+	UnmountTarget(ctx context.Context) error
+}
+
 // Backend 一组平台实现。
 type Backend struct {
 	Name     string
 	Detector DeviceDetector
 	Mounter  VolumeMounter
 	Probe    StorageProbe
+	// Storage 目标挂载器；仅 Linux 的 cifs 类型非空。
+	Storage StorageMounter
 }

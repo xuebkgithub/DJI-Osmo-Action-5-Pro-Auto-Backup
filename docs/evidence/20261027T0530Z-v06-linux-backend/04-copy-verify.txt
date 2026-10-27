@@ -1,0 +1,29 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: SRC=/run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4; DST=/var/lib/action-backup/local-target/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4; echo "### sha256"; sha256sum "$SRC" "$DST"; echo; echo "### stat"; stat -c "%s %y %U:%G %a %n" "$SRC" "$DST"; echo; echo "### 目标目录"; find /var/lib/action-backup/local-target -type f -exec ls -l {} \; ; echo; echo "### 相机 MP4 清单（字节）"; find /run/action-backup-mounter/source -iname "*.mp4" -printf "%12s  %TY-%Tm-%Td %TH:%TM:%TS %Tz  %p\n" | sort -n; echo; echo "### df"; df -h / | tail -1
+--------------------------------
+### sha256
+e8cba9f582869fb6025dc2daff634c4c2d06af9f5f160ab2760d619e50f98d57  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+e8cba9f582869fb6025dc2daff634c4c2d06af9f5f160ab2760d619e50f98d57  /var/lib/action-backup/local-target/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+
+### stat
+409728 2026-10-25 12:30:28.260000000 +0800 actionbackup:actionbackup 700 /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+409728 2026-10-27 14:03:04.869959889 +0800 actionbackup:actionbackup 640 /var/lib/action-backup/local-target/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+
+### 目标目录
+-rw-r----- 1 actionbackup actionbackup 409728 Oct 27 14:03 /var/lib/action-backup/local-target/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+
+### 相机 MP4 清单（字节）
+      409728  2026-10-25 12:30:28.2600000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+   482234357  2026-10-27 07:59:41.4900000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4
+  3207277620  2026-10-25 15:20:05.0200000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261025150816_0024_D.MP4
+  3908024495  2026-10-25 17:26:00.8400000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261025171140_0026_D.MP4
+  5031028178  2026-08-02 12:40:40.3200000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_002_XZH/DJI_20260802121833_0001_D.MP4
+  5766584976  2026-10-27 09:25:20.4800000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261027090408_0029_D.MP4
+ 15838067008  2026-08-02 13:53:07.9700000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_002_XZH/DJI_20260802124328_0002_D.MP4
+ 17192765342  2026-10-25 15:08:17.4000000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261025140513_0023_D.MP4
+ 17193122777  2026-10-25 17:11:41.8700000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261025160834_0025_D.MP4
+ 17193137216  2026-10-27 09:04:09.2500000000 +0800  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261027080056_0028_D.MP4
+
+### df
+/dev/mmcblk0p7  6.5G  1.7G  4.8G  26% /

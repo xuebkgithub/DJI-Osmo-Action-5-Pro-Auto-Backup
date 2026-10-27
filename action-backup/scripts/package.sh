@@ -20,10 +20,10 @@ chmod +x "$STAGE/action-backup"
 case "$OS" in
   linux)
     cp configs/config.example.yaml configs/config.dryrun.yaml "$STAGE/"
-    cp deployments/action-backup.service deployments/99-action-backup.rules deployments/install.sh "$STAGE/"
+    cp deployments/action-backup.service deployments/action-backup-mounter.service deployments/99-action-backup.rules deployments/install.sh "$STAGE/"
     cp -R deployments/mount-helper "$STAGE/mount-helper"
     chmod +x "$STAGE/install.sh"
-    FILES=(action-backup config.example.yaml config.dryrun.yaml action-backup.service 99-action-backup.rules install.sh)
+    FILES=(action-backup config.example.yaml config.dryrun.yaml action-backup.service action-backup-mounter.service 99-action-backup.rules install.sh)
     ;;
   darwin)
     cp configs/config.example.yaml configs/config.mac-dryrun.yaml "$STAGE/"

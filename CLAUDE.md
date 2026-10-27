@@ -22,7 +22,10 @@ DJI Osmo Action 5 Pro → OEC-Turbo → Synology NAS 自动备份。Go 单体 + 
 - 在设备上执行**写入或破坏性操作**（安装包、`systemctl restart/stop`、删除、改 `/etc`）前先向用户确认；只读探查（`df`、`ls`、`journalctl`、`systemctl status`、`lsusb`、`udevadm info`）可直接做。
 - 设备现状：`systemctl` / `udevadm` 可用，`cifs` 与 `exfat` 内核模块可加载，`cifs-utils 2:7.0-2` 已装（2026-10-27）。
 - 设备上 `deb.debian.org` 不可达，装包要用临时镜像源：`apt-get -o Dir::Etc::sourcelist=/dev/null -o Dir::Etc::sourceparts=/tmp/aptsrc ...`（`/etc/apt/` 未改动）。
-- 部署用 `make deploy`（`action-backup/scripts/deploy.sh`）：打包 + scp + 远端 `install.sh`；`RESTART=1` 安装后重启。
+- 部署用 `make deploy`（`action-backup/scripts/deploy.sh`）：打包 + scp + 远端 `install.sh`；`RESTART=1` 安装后重启（守护与主服务一起）。
+- 设备上跑两个单元：`action-backup-mounter.service`（root 挂载守护，socket `/run/action-backup-mounter/helper.sock`，相机卷挂在 `/run/action-backup-mounter/source/sdX`）与 `action-backup.service`。守护单元**不能**加会创建私有挂载命名空间的沙箱选项。
+- 设备当前 `mode: production`、`storage.type: cifs`（`//172.20.100.254/home`，凭据在 `/etc/action-backup/smb.credentials`，用户自己填的，不要读出来写进任何地方）、`auto_backup: true`。`/proc/mounts` 里 cifs 行含 SMB 用户名，放进 evidence 前必须脱敏。
+- 相机当前接在设备上；模拟拔插用 `echo 0/1 > /sys/bus/usb/devices/6-1/authorized`（可逆）。
 
 ## 常用命令
 

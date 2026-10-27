@@ -15,7 +15,7 @@ device:
   product_id: "8002"
   auto_detect: true
   auto_backup: true
-  mount_root: "/run/action-backup/source"
+  mount_root: "/run/action-backup-mounter/source"   # 由 action-backup-mounter 守护只读挂载，<mount_root>/sdX
   readonly: true
 
 backup:
@@ -45,6 +45,10 @@ storage:
   mount_point: "/mnt/action-backup-nas"
   smb_version: "auto"           # auto = 协商 2.1 到 3.1.1；或固定 "3.1.1"
   credentials_file: "/etc/action-backup/smb.credentials"
+  # NAS 不可用时可改为本地目录目标（显式开关，默认禁止）：
+  #   type: "local"
+  #   local_root: "/var/lib/action-backup/local-target"   # 必须在服务可写路径内（见 action-backup.service ReadWritePaths）
+  #   allow_local_destination: true
   destination_root: "DJI-Action5Pro"
   destination_layout: "{volume_type}/{relative_path}"
 

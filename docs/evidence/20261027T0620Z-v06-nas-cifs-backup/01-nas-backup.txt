@@ -1,0 +1,55 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: echo "### CIFS 挂载（username 已脱敏）"; grep " cifs " /proc/mounts | sed -E "s/username=[^,]*/username=<redacted>/"; echo; echo "### df NAS"; df -h /mnt/action-backup-nas | tail -1; echo; echo "### 计划与传输日志（14:24 起）"; journalctl -u action-backup --no-pager -o cat --since "14:24" | grep -E "storage target|attached|plan|backup|task|transfer|complet|WARN|ERROR" | sed "s/.*\"time\":\"\([^\"]*\)\".*\"msg\":\"\([^\"]*\)\".*/\1 \2/"; echo; echo "### 守护日志（14:24 起）"; journalctl -u action-backup-mounter --no-pager -o cat --since "14:24" | sed "s/.*\"time\":\"\([^\"]*\)\".*\"msg\":\"\([^\"]*\)\".*\"target\":\"\([^\"]*\)\".*/\1 \2 \3/"; echo; echo "### 源卷挂载（相机在 14:24 前被重新插过，microSD 由 sdb 变为 sdc）"; grep action-backup-mounter /proc/mounts | cut -d" " -f1-4; echo; echo "### NAS 上的文件"; find /mnt/action-backup-nas/DJI-Action5Pro -type f -exec ls -l {} \; ; echo; echo "### SHA-256 源（/run/action-backup-mounter/source/sdc）vs NAS"; for f in DCIM/DJI_003/DJI_20261025123025_0022_D.MP4 DCIM/DJI_003/DJI_20261027075753_0027_D.MP4; do sha256sum "/run/action-backup-mounter/source/sdc/$f" "/mnt/action-backup-nas/DJI-Action5Pro/sdcard/$f"; done; echo; echo "### stat（源 mtime vs NAS mtime）"; stat -c "%s %y %n" /run/action-backup-mounter/source/sdc/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4 /mnt/action-backup-nas/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4; echo; echo "### 吞吐"; echo "482234357 B / (14:25:23.622 - 14:25:03.643 = 19.98 s) = 24.1 MB/s（含 fsync 与 basic 校验）"; echo; echo "### 链路"; echo "eth0 $(cat /sys/class/net/eth0/speed)Mb/s $(cat /sys/class/net/eth0/duplex); usb 6-1 speed=$(cat /sys/bus/usb/devices/6-1/speed)Mb/s; nproc=$(nproc); loadavg=$(cat /proc/loadavg)"
+--------------------------------
+### CIFS 挂载（username 已脱敏）
+//172.20.100.254/home /mnt/action-backup-nas cifs rw,nosuid,nodev,noexec,relatime,vers=3.1.1,cache=strict,username=<redacted>,uid=999,forceuid,gid=995,forcegid,addr=172.20.100.254,file_mode=0660,dir_mode=0770,iocharset=utf8,soft,nounix,serverino,mapposix,rsize=4194304,wsize=4194304,bsize=1048576,echo_interval=60,actimeo=1,closetimeo=1 0 0
+
+### df NAS
+//172.20.100.254/home   21T  5.5T   16T  27% /mnt/action-backup-nas
+
+### 计划与传输日志（14:24 起）
+action-backup.service: Main process exited, code=exited, status=1/FAILURE
+action-backup.service: Failed with result 'exit-code'.
+Stopped action-backup.service - DJI Action Backup Service.
+action-backup.service: Consumed 4.237s CPU time.
+Started action-backup.service - DJI Action Backup Service.
+2026-10-27T14:24:06.244435238+08:00 action-backup starting
+2026-10-27T14:24:06.251913694+08:00 database ready
+2026-10-27T14:24:06.268145795+08:00 storage target ready
+2026-10-27T14:24:06.288401795+08:00 device DJI OsmoAction5pro attached with 2 volume(s)
+2026-10-27T14:24:35.887360419+08:00 plan: 2 upload (482644085 bytes), 0 skip, 0 conflict across 2 volume(s)
+2026-10-27T14:25:03.000143842+08:00 plan: 2 upload (482644085 bytes), 0 skip, 0 conflict across 2 volume(s)
+2026-10-27T14:25:03.047050739+08:00 backup started: 2 new, 0 re-queued, 0 conflicts (0 overwritten), 0 retry-exhausted
+2026-10-27T14:25:03.078004665+08:00 transferring DCIM/DJI_003/DJI_20261025123025_0022_D.MP4 (409728 bytes)
+2026-10-27T14:25:03.616670821+08:00 completed DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+2026-10-27T14:25:03.643728599+08:00 transferring DCIM/DJI_003/DJI_20261027075753_0027_D.MP4 (482234357 bytes)
+2026-10-27T14:25:23.622557844+08:00 completed DCIM/DJI_003/DJI_20261027075753_0027_D.MP4
+
+### 守护日志（14:24 起）
+2026-10-27T14:24:35.525756636+08:00 source mounted read-only /run/action-backup-mounter/source/sda
+2026-10-27T14:24:35.864149204+08:00 source mounted read-only /run/action-backup-mounter/source/sdc
+
+### 源卷挂载（相机在 14:24 前被重新插过，microSD 由 sdb 变为 sdc）
+/dev/sda /run/action-backup-mounter/source/sda exfat ro,nosuid,nodev,noexec,relatime,uid=999,gid=995,fmask=0077,dmask=0077,iocharset=utf8,errors=remount-ro
+/dev/sdc /run/action-backup-mounter/source/sdc exfat ro,nosuid,nodev,noexec,relatime,uid=999,gid=995,fmask=0077,dmask=0077,iocharset=utf8,errors=remount-ro
+
+### NAS 上的文件
+-rw-rw---- 1 actionbackup actionbackup 409728 Oct 27 14:25 /mnt/action-backup-nas/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+-rw-rw---- 1 actionbackup actionbackup 482234357 Oct 27 14:25 /mnt/action-backup-nas/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4
+
+### SHA-256 源（/run/action-backup-mounter/source/sdc）vs NAS
+e8cba9f582869fb6025dc2daff634c4c2d06af9f5f160ab2760d619e50f98d57  /run/action-backup-mounter/source/sdc/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+e8cba9f582869fb6025dc2daff634c4c2d06af9f5f160ab2760d619e50f98d57  /mnt/action-backup-nas/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261025123025_0022_D.MP4
+90782c7746e31e397589a344f8569a38f811bedaced6370e57b79ad95fe61fcf  /run/action-backup-mounter/source/sdc/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4
+90782c7746e31e397589a344f8569a38f811bedaced6370e57b79ad95fe61fcf  /mnt/action-backup-nas/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4
+
+### stat（源 mtime vs NAS mtime）
+482234357 2026-10-27 07:59:41.490000000 +0800 /run/action-backup-mounter/source/sdc/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4
+482234357 2026-10-27 14:25:03.651711600 +0800 /mnt/action-backup-nas/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4
+
+### 吞吐
+482234357 B / (14:25:23.622 - 14:25:03.643 = 19.98 s) = 24.1 MB/s（含 fsync 与 basic 校验）
+
+### 链路
+eth0 1000Mb/s full; usb 6-1 speed=5000Mb/s; nproc=4; loadavg=0.44 0.20 0.09 1/170 23921

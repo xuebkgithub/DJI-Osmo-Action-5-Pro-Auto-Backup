@@ -1,6 +1,17 @@
-# mount-helper（V0.6）
+# mount-helper（V0.6，已实现）
 
-受限 root helper：只接受固定的 DJI 相机块设备路径和 `/run/action-backup/source/<volume>` 挂载点，
-以 `ro,nosuid,nodev,noexec` 挂载 exFAT，以及按 `/etc/action-backup/config.yaml` 的 `storage.share`
-与凭据文件挂载 CIFS 到 `storage.mount_point`。通过 sudoers 规则授权 `actionbackup` 用户调用，
-参数一律白名单校验，不接受任意路径。实现放在 V0.6。
+`action-backup mount-helper` 是同一二进制的子命令，由 `action-backup-mounter.service` 以 root 运行，
+监听 `/run/action-backup-mounter/helper.sock`（root:actionbackup 0660）。主服务以 `actionbackup`
+身份连接，一次连接一个 JSON 请求：
+
+| op | 参数 | 行为 |
+| --- | --- | --- |
+| `mount-source` | `device: /dev/sdX` | 校验 sdX 属于配置 VID/PID 的相机、文件系统为 exfat/vfat，以 `ro,nosuid,nodev,noexec,uid=actionbackup,umask=0077` 挂到 `<device.mount_root>/sdX`；残留的失效挂载先延迟卸载 |
+| `umount-source` | `device` | 卸载并删除挂载点目录 |
+| `mount-target` | 无 | 按 `storage.*` 调 `mount.cifs`（`credentials=`、`uid/gid`、`nosuid,nodev,noexec`、可选 `vers=`；SMB1 拒绝） |
+| `umount-target` | 无 | 卸载 `storage.mount_point` |
+| `ping` | 无 | 存活 |
+
+不用 sudo 的原因：主服务单元 `NoNewPrivileges=true` 下 setuid 无效；独立 root 守护保持了权限分离，
+且挂载发生在宿主命名空间，`ProtectSystem=strict` 的主服务沙箱以 slave 传播看到这些挂载。
+规则实现在 `internal/platform/linux/helper_rules.go`，单元测试覆盖拒绝用例。

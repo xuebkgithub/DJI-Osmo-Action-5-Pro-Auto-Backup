@@ -53,6 +53,11 @@ func build(mode string, auth bool, hash, sim, storage, root, layout, faults stri
 
 func sprintf(f string, a ...any) string { return fmtSprintf(f, a...) }
 
+// withLocalOptIn 在 storage 段加 allow_local_destination: true。
+func withLocalOptIn(yaml string) string {
+	return strings.Replace(yaml, "local_root: \"./dev/nas\"", "local_root: \"./dev/nas\"\n  allow_local_destination: true", 1)
+}
+
 func TestDefaultsAndNormalization(t *testing.T) {
 	cfg, err := Parse([]byte(build("simulation", false, "", simBlock, "local", "X-TEST", "{volume_type}/{relative_path}", "")))
 	if err != nil {
@@ -102,6 +107,8 @@ func TestModeCombinations(t *testing.T) {
 		{"auth needs bcrypt", build("production", true, "plain", "", "cifs", "DJI", "{volume_type}/{relative_path}", ""), false, "bcrypt"},
 		{"dry-run ok", build("dry-run", false, "", "", "cifs", "DJI", "{volume_type}/{relative_path}", ""), false, ""},
 		{"dry-run forbids local", build("dry-run", false, "", "", "local", "DJI", "{volume_type}/{relative_path}", ""), false, "forbids storage.type local"},
+		{"production local with opt-in ok", withLocalOptIn(build("production", true, bcrypt, "", "local", "DJI", "{volume_type}/{relative_path}", "")), false, ""},
+		{"dry-run local with opt-in ok", withLocalOptIn(build("dry-run", false, "", "", "local", "DJI", "{volume_type}/{relative_path}", "")), false, ""},
 		{"simulation needs block", build("simulation", false, "", "", "local", "X-TEST", "{volume_type}/{relative_path}", ""), true, "requires the simulation section"},
 		{"simulation real share needs -TEST", build("simulation", false, "", simBlock, "premounted", "DJI", "{volume_type}/{relative_path}", ""), true, "-TEST"},
 		{"simulation premounted -TEST ok", build("simulation", false, "", simBlock, "premounted", "DJI-TEST", "{volume_type}/{relative_path}", ""), true, ""},

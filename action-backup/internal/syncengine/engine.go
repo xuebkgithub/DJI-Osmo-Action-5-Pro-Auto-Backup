@@ -96,7 +96,7 @@ func (e *Engine) Plan(ctx context.Context) (*domain.Plan, error) {
 				continue
 			}
 			plan.Volumes++
-			mountPath, err := e.mounter.MountReadOnly(ctx, platform.RawVolume{Key: vol.Key, LUN: vol.LUN, Label: vol.Label, Filesystem: vol.Filesystem, SizeBytes: vol.SizeBytes, MountPath: vol.MountPath})
+			mountPath, err := e.mounter.MountReadOnly(ctx, platform.RawVolume{Key: vol.Key, LUN: vol.LUN, Label: vol.Label, Filesystem: vol.Filesystem, SizeBytes: vol.SizeBytes, DevicePath: vol.DevicePath, MountPath: vol.MountPath})
 			if err != nil {
 				plan.Warnings = append(plan.Warnings, fmt.Sprintf("volume %s (%s): mount failed: %v", vol.Label, vol.Type, err))
 				continue

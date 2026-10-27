@@ -1,14 +1,10 @@
 //go:build linux
 
-// Package linux 提供 Linux 平台实现。
 package linux
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"os"
-	"strings"
 
 	"golang.org/x/sys/unix"
 
@@ -63,33 +59,5 @@ func mountType(path string) string {
 
 // mountEntry 在 /proc/self/mountinfo 中找精确等于 path 的挂载点。
 func mountEntry(path string) (source, fstype string, found bool) {
-	f, err := os.Open("/proc/self/mountinfo")
-	if err != nil {
-		return "", "", false
-	}
-	defer f.Close()
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		fields := strings.Fields(sc.Text())
-		// 36 35 98:0 /mnt1 /mnt2 rw,noatime master:1 - ext3 /dev/root rw
-		sep := -1
-		for i, f := range fields {
-			if f == "-" {
-				sep = i
-				break
-			}
-		}
-		if sep < 0 || len(fields) < sep+3 || len(fields) < 5 {
-			continue
-		}
-		if unescape(fields[4]) == path {
-			return unescape(fields[sep+2]), fields[sep+1], true
-		}
-	}
-	return "", "", false
-}
-
-func unescape(s string) string {
-	r := strings.NewReplacer(`\040`, " ", `\011`, "\t", `\012`, "\n", `\134`, `\`)
-	return r.Replace(s)
+	return mountEntryIn(DefaultMountInfo, path)
 }

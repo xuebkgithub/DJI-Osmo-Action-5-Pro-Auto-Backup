@@ -31,6 +31,8 @@ type Volume struct {
 	Label      string
 	LUN        int
 	SizeBytes  int64
+	// DevicePath 平台块设备路径（Linux /dev/sda），不入库，供拔出后卸载。
+	DevicePath string
 	MountPath  string
 	LastSeenAt time.Time
 }

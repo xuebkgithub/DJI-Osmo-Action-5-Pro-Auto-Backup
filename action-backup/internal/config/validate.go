@@ -135,15 +135,15 @@ func (c *Config) Validate(faultInjectBuild bool) error {
 		if c.Faults != nil && c.Faults.Enabled {
 			add("mode production forbids faults.enabled")
 		}
-		if c.Storage.Type == StorageLocal {
-			add("mode production forbids storage.type local")
+		if c.Storage.Type == StorageLocal && !c.Storage.AllowLocalDestination {
+			add("mode production forbids storage.type local unless storage.allow_local_destination: true")
 		}
 		if !c.Server.Auth.Enabled {
 			add("mode production requires server.auth.enabled: true")
 		}
 	case runmode.DryRun:
-		if c.Storage.Type == StorageLocal {
-			add("mode dry-run forbids storage.type local")
+		if c.Storage.Type == StorageLocal && !c.Storage.AllowLocalDestination {
+			add("mode dry-run forbids storage.type local unless storage.allow_local_destination: true")
 		}
 	case runmode.Simulation:
 		if c.Simulation == nil {

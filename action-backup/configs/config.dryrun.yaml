@@ -15,7 +15,7 @@ device:
   product_id: "8002"
   auto_detect: true
   auto_backup: true
-  mount_root: "/run/action-backup/source"
+  mount_root: "/run/action-backup-mounter/source"   # 由 action-backup-mounter 守护只读挂载，<mount_root>/sdX
   readonly: true
 
 backup:

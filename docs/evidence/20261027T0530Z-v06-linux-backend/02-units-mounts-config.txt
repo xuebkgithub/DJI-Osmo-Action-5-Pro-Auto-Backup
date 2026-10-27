@@ -1,0 +1,73 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: echo "### units"; systemctl --no-pager -l status action-backup-mounter action-backup | grep -E "●|Loaded|Active|Main PID"; echo; echo "### mounter unit"; cat /etc/systemd/system/action-backup-mounter.service; echo; echo "### main unit (diff-relevant lines)"; grep -E "Requires|After|ReadWritePaths|NoNewPrivileges|ProtectSystem" /etc/systemd/system/action-backup.service; echo; echo "### socket"; ls -la /run/action-backup-mounter/; echo; echo "### mounts"; grep action-backup-mounter /proc/mounts; echo; echo "### config (非敏感字段)"; grep -nE "^mode:|^  type:|local_root|allow_local|mount_root|auto_backup|auto_detect|^  share:" /etc/action-backup/config.yaml; echo; echo "### version"; /opt/action-backup/action-backup --version
+--------------------------------
+### units
+● action-backup-mounter.service - DJI Action Backup mount helper (root)
+     Loaded: loaded (/etc/systemd/system/action-backup-mounter.service; disabled; preset: enabled)
+     Active: active (running) since Tue 2026-10-27 14:01:18 CST; 4min 33s ago
+   Main PID: 19867 (action-backup)
+● action-backup.service - DJI Action Backup Service
+     Loaded: loaded (/etc/systemd/system/action-backup.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2026-10-27 14:02:34 CST; 3min 16s ago
+   Main PID: 20391 (action-backup)
+
+### mounter unit
+[Unit]
+Description=DJI Action Backup mount helper (root)
+# 以 root 运行的受限挂载守护：只按 /etc/action-backup/config.yaml 与白名单规则
+# 只读挂载相机卷到 device.mount_root、挂载 storage.share 到 storage.mount_point。
+# 主服务 action-backup.service 以 actionbackup 身份经 unix socket 请求。
+DefaultDependencies=yes
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/action-backup/action-backup mount-helper --config /etc/action-backup/config.yaml --socket /run/action-backup-mounter/helper.sock --owner actionbackup
+Restart=on-failure
+RestartSec=3
+# socket 与源卷挂载点都在这个目录下；挂载点会被相机卷占用，不能让 systemd 在停止时 rm -rf
+RuntimeDirectory=action-backup-mounter
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+# 不能加 ProtectHome / PrivateTmp / ProtectSystem 之类会创建私有挂载命名空间的选项：
+# 守护必须在宿主命名空间里挂载，主服务（slave 传播）与 SSH 排障才看得到这些挂载。实机验证过：加了之后挂载只在守护自己的命名空间里。
+LimitNOFILE=1024
+
+[Install]
+WantedBy=multi-user.target
+
+### main unit (diff-relevant lines)
+After=network-online.target action-backup-mounter.service
+Requires=action-backup-mounter.service
+NoNewPrivileges=true
+ProtectSystem=strict
+# /config 在线修改要写回 config.yaml，ProtectSystem=strict 下必须显式放开
+ReadWritePaths=/etc/action-backup
+ReadWritePaths=/var/lib/action-backup
+ReadWritePaths=/run/action-backup-mounter
+ReadWritePaths=/mnt/action-backup-nas
+
+### socket
+total 0
+drwxr-x---  3 root actionbackup  80 Oct 27 14:01 .
+drwxr-xr-x 31 root root         900 Oct 27 14:05 ..
+srw-rw----  1 root actionbackup   0 Oct 27 14:01 helper.sock
+drwxr-xr-x  4 root root          80 Oct 27 14:04 source
+
+### mounts
+/dev/sda /run/action-backup-mounter/source/sda exfat ro,nosuid,nodev,noexec,relatime,uid=999,gid=995,fmask=0077,dmask=0077,iocharset=utf8,errors=remount-ro 0 0
+/dev/sdb /run/action-backup-mounter/source/sdb exfat ro,nosuid,nodev,noexec,relatime,uid=999,gid=995,fmask=0077,dmask=0077,iocharset=utf8,errors=remount-ro 0 0
+
+### config (非敏感字段)
+2:mode: "production" # 实机首轮验证：只扫描、规划，不写 NAS
+14:  auto_detect: true
+15:  auto_backup: false
+16:  mount_root: "/run/action-backup-mounter/source"
+39:  type: "local" # cifs | premounted | local
+40:  share: "//192.168.1.100/VideoBackup"
+44:  local_root: "/var/lib/action-backup/local-target"
+45:  allow_local_destination: true
+
+### version
+action-backup v0.6.0-2-g86d1168-dirty (commit 86d1168, built 2026-10-27T05:59:51Z, faultinject=false)

@@ -20,3 +20,6 @@ func nativeDetector(cfg *config.Config, log *slog.Logger) (DeviceDetector, error
 
 func nativeMounter() VolumeMounter { return darwin.Mounter{} }
 func nativeProbe() StorageProbe    { return darwin.Probe{} }
+
+// nativeStorageMounter 本平台没有目标挂载器。
+func nativeStorageMounter() StorageMounter { return nil }

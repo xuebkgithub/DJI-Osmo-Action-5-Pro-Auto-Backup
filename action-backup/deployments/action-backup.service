@@ -1,18 +1,16 @@
 [Unit]
 Description=DJI Action Backup Service
-After=network-online.target
+After=network-online.target action-backup-mounter.service
 Wants=network-online.target
+# 相机卷与 CIFS 由 root 挂载守护完成；主服务无特权
+Requires=action-backup-mounter.service
 
 [Service]
 Type=simple
 User=actionbackup
 Group=actionbackup
-ExecStartPre=/bin/mkdir -p /run/action-backup/source
 ExecStart=/opt/action-backup/action-backup --config /etc/action-backup/config.yaml
 WorkingDirectory=/var/lib/action-backup
-# /run 是 tmpfs，重启后消失；交给 systemd 每次启动重建，属主为 User=
-RuntimeDirectory=action-backup
-RuntimeDirectoryMode=0750
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=45
@@ -23,7 +21,8 @@ PrivateTmp=true
 # /config 在线修改要写回 config.yaml，ProtectSystem=strict 下必须显式放开
 ReadWritePaths=/etc/action-backup
 ReadWritePaths=/var/lib/action-backup
-ReadWritePaths=/run/action-backup
+# 连接挂载守护的 socket；源卷挂载点 /run/action-backup-mounter/source/<dev> 只读，由守护挂载并传播进本沙箱
+ReadWritePaths=/run/action-backup-mounter
 ReadWritePaths=/mnt/action-backup-nas
 LimitNOFILE=8192
 

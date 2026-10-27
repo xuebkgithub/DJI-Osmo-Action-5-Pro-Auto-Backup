@@ -111,14 +111,17 @@ type BackupConfig struct {
 
 // StorageConfig 目标存储。
 type StorageConfig struct {
-	Type              string `yaml:"type" json:"type"`
-	Share             string `yaml:"share" json:"share"`
-	MountPoint        string `yaml:"mount_point" json:"mount_point"`
-	SMBVersion        string `yaml:"smb_version" json:"smb_version"`
-	CredentialsFile   string `yaml:"credentials_file" json:"credentials_file"`
-	LocalRoot         string `yaml:"local_root" json:"local_root"`
-	DestinationRoot   string `yaml:"destination_root" json:"destination_root"`
-	DestinationLayout string `yaml:"destination_layout" json:"destination_layout"`
+	Type            string `yaml:"type" json:"type"`
+	Share           string `yaml:"share" json:"share"`
+	MountPoint      string `yaml:"mount_point" json:"mount_point"`
+	SMBVersion      string `yaml:"smb_version" json:"smb_version"`
+	CredentialsFile string `yaml:"credentials_file" json:"credentials_file"`
+	LocalRoot       string `yaml:"local_root" json:"local_root"`
+	// AllowLocalDestination 在 dry-run / production 下显式允许 type local（NAS 不可用时把备份写到设备本地目录）。
+	// 默认 false：防止把 NAS 挂载点下的本地底层目录误当目标。
+	AllowLocalDestination bool   `yaml:"allow_local_destination" json:"allow_local_destination"`
+	DestinationRoot       string `yaml:"destination_root" json:"destination_root"`
+	DestinationLayout     string `yaml:"destination_layout" json:"destination_layout"`
 }
 
 // FaultsConfig 故障注入。

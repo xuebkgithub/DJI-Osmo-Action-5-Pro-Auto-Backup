@@ -55,7 +55,8 @@ SSHPASS="$PASS" sshpass -e scp -P "$PORT" \
 
 # 5. 可选重启
 if [ "$RESTART" = "1" ]; then
-  "$CMD_IP" "$HOST" "systemctl restart action-backup && sleep 2 && systemctl --no-pager -l status action-backup | head -20"
+  # 挂载守护的单元或二进制也更新了，必须一起重启；Requires= 只保证启动顺序，不会因文件变化自动重启
+  "$CMD_IP" "$HOST" "systemctl restart action-backup-mounter action-backup && sleep 2 && systemctl --no-pager -l status action-backup-mounter action-backup | head -40"
 else
   echo "未自动重启。服务已 enable 时用 RESTART=1 重新执行，或手动："
   echo "  $CMD_IP $HOST 'systemctl restart action-backup'"

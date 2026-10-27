@@ -1,0 +1,51 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: echo "### lsusb"; lsusb | grep 0506; echo; echo "### lsblk"; lsblk -o NAME,KNAME,TYPE,SIZE,FSTYPE,LABEL,UUID,SERIAL,VENDOR,MODEL,TRAN | grep -E "^NAME|^sd"; echo; echo "### usb sysfs 6-1"; for a in idVendor idProduct serial manufacturer product; do printf "%s=%s\n" $a "$(cat /sys/bus/usb/devices/6-1/$a)"; done; echo; echo "### scsi luns"; for s in /sys/bus/scsi/devices/1:0:0:0 /sys/bus/scsi/devices/1:0:0:1; do echo "$s type=$(cat $s/type) block=$(ls $s/block)"; done; echo; echo "### udev db b8:0 / b8:16 (E: 行)"; grep -E "^E:(ID_VENDOR_ID|ID_MODEL_ID|ID_SERIAL_SHORT|ID_FS_TYPE|ID_FS_UUID|ID_FS_LABEL|UDISKS)" /run/udev/data/b8:0; echo "--"; grep -E "^E:(ID_VENDOR_ID|ID_MODEL_ID|ID_SERIAL_SHORT|ID_FS_TYPE|ID_FS_UUID|ID_FS_LABEL|UDISKS)" /run/udev/data/b8:16; echo; echo "### 非 root 可读性"; sudo -u actionbackup bash -c "head -c1 /dev/sda >/dev/null 2>&1 && echo DEV_READABLE || echo DEV_NOT_READABLE; head -1 /run/udev/data/b8:0 >/dev/null && echo UDEV_DB_READABLE"; echo; echo "### exfat module"; grep -c exfat /proc/filesystems; modinfo exfat | head -1
+--------------------------------
+### lsusb
+Bus 006 Device 004: ID 0506:8002 3Com Corp. OsmoAction5pro_SN:0A1B2C3D
+
+### lsblk
+NAME         KNAME        TYPE   SIZE FSTYPE LABEL       UUID                                 SERIAL          VENDOR   MODEL            TRAN
+sda          sda          disk    48G exfat  OsmoAction  F59D-F69A                            123456789ABCDEF Linux    File-Stor Gadget usb
+sdb          sdb          disk 116.1G exfat              0123-4567                            123456789ABCDEF Linux    File-Stor Gadget usb
+
+### usb sysfs 6-1
+idVendor=0506
+idProduct=8002
+serial=123456789ABCDEF
+manufacturer=DJI
+product=OsmoAction5pro_SN:0A1B2C3D
+
+### scsi luns
+/sys/bus/scsi/devices/1:0:0:0 type=0 block=sda
+/sys/bus/scsi/devices/1:0:0:1 type=0 block=sdb
+
+### udev db b8:0 / b8:16 (E: 行)
+E:ID_MODEL_ID=8002
+E:ID_SERIAL_SHORT=123456789ABCDEF
+E:ID_VENDOR_ID=0506
+E:ID_FS_LABEL=OsmoAction
+E:ID_FS_LABEL_ENC=OsmoAction
+E:ID_FS_UUID=F59D-F69A
+E:ID_FS_UUID_ENC=F59D-F69A
+E:ID_FS_TYPE=exfat
+E:UDISKS_IGNORE=1
+E:UDISKS_AUTO=0
+--
+E:ID_MODEL_ID=8002
+E:ID_SERIAL_SHORT=123456789ABCDEF
+E:ID_VENDOR_ID=0506
+E:ID_FS_UUID=0123-4567
+E:ID_FS_UUID_ENC=0123-4567
+E:ID_FS_TYPE=exfat
+E:UDISKS_IGNORE=1
+E:UDISKS_AUTO=0
+
+### 非 root 可读性
+DEV_NOT_READABLE
+UDEV_DB_READABLE
+
+### exfat module
+1
+filename:       /lib/modules/6.1.99-rk35xx-ophub/kernel/fs/exfat/exfat.ko
