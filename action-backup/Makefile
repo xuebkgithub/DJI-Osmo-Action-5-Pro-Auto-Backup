@@ -89,8 +89,8 @@ tag: ## 打发布 tag 并推送，触发 GitHub Release 工作流：make tag V=0
 	git tag -a "v$(V)" -m "action-backup $(V)"
 	git push origin "v$(V)"
 
-deploy: ## 预留：OEC-Turbo 可 SSH 后实现
-	@echo "deploy 尚未实现：设备可 SSH 后在 scripts/deploy.sh 中补充 scp + install.sh + systemctl restart"; exit 1
+deploy: ## 部署到 OEC-Turbo：打包 + scp + install.sh；HOST= 指定主机，RESTART=1 安装后重启
+	HOST=$(HOST) RESTART=$(RESTART) bash scripts/deploy.sh
 
 clean:
 	rm -rf $(DIST) dev

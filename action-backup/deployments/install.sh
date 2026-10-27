@@ -13,7 +13,9 @@ sha256sum -c SHA256SUMS
 
 id -u actionbackup >/dev/null 2>&1 || useradd --system --home /var/lib/action-backup --shell /usr/sbin/nologin actionbackup
 install -d -o actionbackup -g actionbackup -m 0750 /var/lib/action-backup /run/action-backup /run/action-backup/source
-install -d -m 0755 /opt/action-backup /etc/action-backup /mnt/action-backup-nas
+install -d -m 0755 /opt/action-backup /mnt/action-backup-nas
+# 配置目录给 actionbackup 组写权限：PATCH /config 以临时文件 + rename 方式写回 config.yaml
+install -d -o root -g actionbackup -m 0770 /etc/action-backup
 install -m 0755 action-backup /opt/action-backup/action-backup
 [ -f /etc/action-backup/config.yaml ] || install -m 0640 -o root -g actionbackup config.dryrun.yaml /etc/action-backup/config.yaml
 install -m 0644 config.example.yaml /etc/action-backup/config.example.yaml

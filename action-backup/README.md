@@ -110,30 +110,48 @@ Go 模块代理：本机默认 `goproxy.cn` 不可用时，用 `GOPROXY=https://
 
 设备 `172.20.31.6` 已可 SSH，统一走 `~/MyMac/scripts/cmd_ip.sh`（用法见仓库根 `README.md` 的「远程设备 SSH」）。
 
-1. `make package`。
-2. 把包拷到设备并解压：
+一条命令完成打包、上传、安装：
+
+```bash
+make deploy                 # = bash scripts/deploy.sh，安装后不自动启动
+make deploy RESTART=1       # 服务已 enable 时，安装后重启并打印状态
+HOST=<ip> make deploy       # 换设备
+```
+
+`scripts/deploy.sh` 做四件事：`make package` → scp 到 `/root/action-backup-install/` → 解压 →
+以 root 执行 `install.sh`（校验 SHA256、拒绝测试构建、建用户与目录、注册 systemd 与 udev 规则，不自动启动）。
+远程命令全部经 `cmd_ip.sh`；它不提供文件拷贝，所以只有 scp 一步在脚本内直接调 `sshpass`，
+口令从 `cmd_ip.conf` 读取并经 `SSHPASS` 环境变量传入，不出现在命令行。
+
+首次安装后：
+
+1. 设置登录口令（会写 `password_hash`，但**不会**自动把 `server.auth.enabled` 置 true，需自行改）：
 
    ```bash
-   SSHPASS=$(awk -F';' '$1=="172.20.31.6"{print $2}' ~/MyMac/scripts/cmd_ip.conf) \
-     sshpass -e scp dist/action-backup-<version>-linux-arm64.tar.gz root@172.20.31.6:/tmp/
-   ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'cd /tmp && tar xzf action-backup-<version>-linux-arm64.tar.gz'
+   ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 \
+     '/opt/action-backup/action-backup passwd --config /etc/action-backup/config.yaml --username admin'
    ```
 
-3. 以 root 执行 `install.sh`：校验 SHA256、拒绝测试构建、创建用户与目录、注册 systemd，不自动启动。
+   该命令是交互式的，本地终端里用 `! ` 前缀执行；脚本场景可用 `--stdin` 从管道读一行。
+
+2. 编辑 `/etc/action-backup/config.yaml` 的 `storage.share`，并建 `/etc/action-backup/smb.credentials`（`username=` / `password=`，`chmod 0600`）。
+3. 校验与启动：
 
    ```bash
-   ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'cd /tmp/action-backup-<version>-linux-arm64 && ./install.sh'
-   ```
-
-4. 编辑 `/etc/action-backup/config.yaml`，执行 `action-backup passwd --config /etc/action-backup/config.yaml` 设置登录口令，先以 dry-run 启动验证。
-5. 查看运行状态与日志：
-
-   ```bash
+   ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 '/opt/action-backup/action-backup --config /etc/action-backup/config.yaml --check'
+   ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'systemctl enable --now action-backup'
    ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'systemctl status action-backup'
    ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'journalctl -u action-backup -n 200 --no-pager'
    ```
 
-设备现状（2026-10-27 实测）：Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、`systemctl` 与 `udevadm` 可用、`cifs` 内核模块可加载；**缺 `cifs-utils`（无 `mount.cifs`）**，V0.6 挂载 NAS 前需先装。
+设备现状（2026-10-27 实测，证据 `../docs/evidence/20261027T0320Z-device-deploy-smb/`）：
+Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、systemd 252，`systemctl` / `udevadm` 可用，
+`cifs` 与 `exfat` 内核模块可加载，`cifs-utils 2:7.0-2`（`mount.cifs` 7.0）已安装。
+服务已部署并 enable，运行在 dry-run + 认证开启状态；`storage.share` 仍是占位值，NAS 未接。
+
+注意：设备上 `deb.debian.org` 不可达，装包时用了 `/tmp/aptsrc/ustc.sources` 临时镜像源
+（`apt-get -o Dir::Etc::sourcelist=/dev/null -o Dir::Etc::sourceparts=/tmp/aptsrc ...`），
+`/etc/apt/` 未改动；以后在设备上装包需同样处理，或永久换源。
 
 ## 持续集成与发布
 

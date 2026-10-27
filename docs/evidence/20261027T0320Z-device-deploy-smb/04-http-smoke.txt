@@ -1,0 +1,28 @@
+### GET / （Web UI）
+http 200  434 bytes  text/html; charset=utf-8
+
+### 未登录 GET /api/v1/system/status
+http 401
+
+### 未登录 GET /api/v1/system/health（免认证路径）
+{"data":{"status":"degraded","database":{"ok":true},"storage":{"ok":false,"kind":"cifs","mount_point":"/mnt/action-backup-nas","root":"/mnt/action-backup-nas/DJI-Action5Pro","fs_type":"ext4","source":"/dev/mmcblk0p7","free_bytes":5173485568,"error":"storage target unavailable: /mnt/action-backup-nas is ext4 mounted from \"/dev/mmcblk0p7\", expected cifs \"//192.168.1.100/VideoBackup\"","checked_at":"2026-10-27T03:20:48Z"},"devices":{"ok":true,"attached":0},"checked_at":"2026-10-27T03:20:48Z"}}
+
+
+### POST /api/v1/auth/login（口令经 --data @file 传入，不进命令行）
+{"data":{"auth_enabled":true,"authenticated":true,"username":"admin","csrf_token":"<redacted>","expires_at":"2026-10-28T03:20:49Z"}}
+
+
+### 登录后 GET /api/v1/system/status
+{"data":{"version":"v0.6.0-1-g6ff44ad-dirty","mode":"dry-run","platform":"linux","started_at":"2026-10-27T03:19:45Z","uptime_seconds":64,"schema_version":1,"devices_attached":0,"tasks":{"CANCELLED":0,"COMPLETED":0,"FAILED":0,"INTERRUPTED":0,"PENDING":0,"QUEUED":0,"SKIPPED":0,"TRANSFERRING":0,"VERIFYING":0},"storage":{"kind":"cifs","root":"/mnt/action-backup-nas/DJI-Action5Pro"},"scheduler":{"running":false,"paused":false},"auth":{"active_sessions":2,"enabled":true}}}
+
+
+### PATCH /api/v1/config logging.level=debug（验证 ProtectSystem=strict 下的写回）
+写回成功，"level":"debug"
+
+### 改回 info
+写回成功，"level":"info"
+
+
+### POST /api/v1/auth/logout
+{"data":{"ok":true}}
+

@@ -66,3 +66,9 @@
 | 2026-10-23 | 发布架构文档 V1.4 | 回写 V0.5 实现：§9 认证与 SSE 细节、§10 白名单、§11.2、§14、§16 |
 | 2026-10-23 | V0.5 Web UI 以 Chrome（chrome-devtools-mcp）逐页核对，curl 不替代浏览器验收 | 真实 SSE 渲染、按钮状态与表单关联只有浏览器能验证；核对发现 3 处修正（标题 CSS 大写、登录 label 关联、设置控件 name），记录 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/ui-browser-check.md` |
 | 2026-10-23 | 前端验收规则：每个阶段的 UI 改动都在浏览器核对并留记录与截图，放进该阶段证据目录 | 与“验证输出放 evidence、文档只引用”的约定一致；chrome-devtools-mcp 可在隔离上下文复现 |
+| 2026-10-27 | 设备 apt 改用 USTC 镜像，但只放 `/tmp/aptsrc/ustc.sources` 临时源，不动 `/etc/apt/sources.list.d/debian.sources` | `deb.debian.org` 在该网络不可达（IPv6 无路由、IPv4 超时），装不上 `cifs-utils`；永久换源属于改设备基础配置，留给用户决定。证据 `docs/evidence/20261027T0320Z-device-deploy-smb/` |
+| 2026-10-27 | 设备装 `cifs-utils 2:7.0-2`（`mount.cifs` 7.0），`cifs` 模块可加载 | V0.6 挂载 NAS 的前置依赖，问题「设备缺 mount.cifs」就此关闭 |
+| 2026-10-27 | `scripts/deploy.sh` 落地，`make deploy` 接上 | 远程命令走 `cmd_ip.sh`；它不支持文件拷贝，只有 scp 一步在脚本内调 `sshpass`，口令从 `cmd_ip.conf` 读取经 `SSHPASS` 传入，不进命令行 |
+| 2026-10-27 | systemd 单元加 `RuntimeDirectory=action-backup` 与 `ExecStartPre=/bin/mkdir -p /run/action-backup/source` | `/run` 是 tmpfs，`install.sh` 建的目录重启即丢，单元原本没有重建逻辑 |
+| 2026-10-27 | 单元加 `ReadWritePaths=/etc/action-backup`，`install.sh` 把配置目录改为 `root:actionbackup 0770` | `ProtectSystem=strict` 下 `/etc` 对服务只读，`PATCH /config` 的「临时文件 + rename」写回必然失败；实测报 `read-only file system`，修后写回成功 |
+| 2026-10-27 | 设备首轮以 dry-run + 认证开启运行，`storage.share` 保持占位 | NAS 尚未确定；dry-run 不写目标，存储探测告警不影响服务；服务监听 0.0.0.0:8080，局域网可达，故认证先开 |

@@ -40,8 +40,14 @@ dji_backup/
 - V0.5 已于 2026-10-23 完成：`action-backup passwd`、用户名密码会话认证与 CSRF、登录限速、SSE、`/config` 在线修改、`/storage/test`、Vue 3 Web UI（含模式横幅与测试面板）；未登录 401 全路由测试、curl 实测与 Chrome 逐页核对（登录、SSE 实时进度、暂停 / 恢复 / 取消、设置写回、存储测试、测试面板、退出）通过，证据在 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`。
 - 发布流程已于 2026-10-23 接入 GitHub Actions：push 与 PR 跑 CI，打 `v*` tag 自动交叉编译 linux / darwin × arm64 / amd64 四个平台、打包并发布到 Releases（`make tag V=0.6.0`），细节见 `action-backup/README.md`。
 - 设备 SSH 已于 2026-10-27 打通：`172.20.31.6`，Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、root 登录，systemd / udev / cifs 内核模块就绪；连接方式见下文「远程设备 SSH」。
-- 待办：NAS 可达后在 Finder 挂载共享并执行 `smbutil statshares -a`，确认 SMB 版本（问题 2）。
-- 待办：设备上缺 `cifs-utils`（无 `mount.cifs`），V0.6 挂载 NAS 前需先安装。
+- 设备已于 2026-10-27 完成环境初始化与首次部署：装 `cifs-utils 2:7.0-2`（`mount.cifs` 7.0，`cifs` 模块可加载），
+  `v0.6.0-1-g6ff44ad` production 包经 `scripts/deploy.sh` 安装，systemd `action-backup.service` 已 enable 并运行在
+  dry-run + 认证开启状态，`http://172.20.31.6:8080` 可登录。证据 `docs/evidence/20261027T0320Z-device-deploy-smb/`。
+  同时修掉两个部署缺陷：`/run` 目录重启丢失（单元补 `RuntimeDirectory`）、`PATCH /config` 在 `ProtectSystem=strict`
+  下写回失败（单元补 `ReadWritePaths=/etc/action-backup`，配置目录改 `root:actionbackup 0770`）。
+- 待办：NAS 可达后在 Finder 挂载共享并执行 `smbutil statshares -a`，确认 SMB 版本（问题 2）；
+  设备上的 `storage.share` 目前仍是占位 `//192.168.1.100/VideoBackup`，`smb.credentials` 未创建。
+- 待办：设备 apt 源 `deb.debian.org` 在本网络不可达，本次用 `/tmp` 临时镜像源装的包；是否永久换成 USTC 镜像待定。
 - 下一步：V0.6 Linux 后端（udev、mount helper、CIFS）、实机 dry-run 与真备份、性能测试（任务清单见 V1.4 §16），现在可经 SSH 直接部署到设备验证。NAS 可达后补做 premounted 真实上传。
 
 ## 环境探测

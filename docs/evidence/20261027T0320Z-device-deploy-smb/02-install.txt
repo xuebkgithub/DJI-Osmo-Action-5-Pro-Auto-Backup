@@ -1,0 +1,63 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: echo "### 安装产物"; ls -l /opt/action-backup /etc/action-backup /etc/systemd/system/action-backup.service /etc/udev/rules.d/99-action-backup.rules; ls -ld /var/lib/action-backup /run/action-backup /run/action-backup/source /mnt/action-backup-nas; id actionbackup; echo; echo "### version"; /opt/action-backup/action-backup --version; echo; echo "### config --check"; /opt/action-backup/action-backup --config /etc/action-backup/config.yaml --check; echo; echo "### unit"; cat /etc/systemd/system/action-backup.service; echo; echo "### systemd-analyze verify"; systemd-analyze verify /etc/systemd/system/action-backup.service && echo ok
+--------------------------------
+### 安装产物
+-rw-r--r-- 1 root root          896 Oct 27 11:19 /etc/systemd/system/action-backup.service
+-rw-r--r-- 1 root root          448 Oct 27 11:19 /etc/udev/rules.d/99-action-backup.rules
+
+/etc/action-backup:
+total 8
+-rw-r--r-- 1 root         root         1406 Oct 27 11:19 config.example.yaml
+-rw-r----- 1 actionbackup actionbackup 1464 Oct 27 11:19 config.yaml
+
+/opt/action-backup:
+total 10692
+-rwxr-xr-x 1 root root 10944696 Oct 27 11:19 action-backup
+drwxr-xr-x 2 root         root         4096 Oct 27 11:09 /mnt/action-backup-nas
+drwxr-x--- 3 actionbackup actionbackup   60 Oct 27 11:19 /run/action-backup
+drwxr-xr-x 2 actionbackup actionbackup   40 Oct 27 11:19 /run/action-backup/source
+drwxr-x--- 2 actionbackup actionbackup 4096 Oct 27 11:19 /var/lib/action-backup
+uid=999(actionbackup) gid=995(actionbackup) groups=995(actionbackup)
+
+### version
+action-backup v0.6.0-1-g6ff44ad-dirty (commit 6ff44ad, built 2026-10-27T03:19:27Z, faultinject=false)
+
+### config --check
+config ok: /etc/action-backup/config.yaml (mode dry-run)
+
+### unit
+[Unit]
+Description=DJI Action Backup Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=actionbackup
+Group=actionbackup
+ExecStartPre=/bin/mkdir -p /run/action-backup/source
+ExecStart=/opt/action-backup/action-backup --config /etc/action-backup/config.yaml
+WorkingDirectory=/var/lib/action-backup
+# /run 是 tmpfs，重启后消失；交给 systemd 每次启动重建，属主为 User=
+RuntimeDirectory=action-backup
+RuntimeDirectoryMode=0750
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+# /config 在线修改要写回 config.yaml，ProtectSystem=strict 下必须显式放开
+ReadWritePaths=/etc/action-backup
+ReadWritePaths=/var/lib/action-backup
+ReadWritePaths=/run/action-backup
+ReadWritePaths=/mnt/action-backup-nas
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target
+
+### systemd-analyze verify
+ok

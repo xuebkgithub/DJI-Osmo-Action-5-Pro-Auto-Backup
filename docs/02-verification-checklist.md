@@ -22,7 +22,7 @@ bash scripts/probe-mac-env.sh
 | 2 | NAS 型号与 SMB 版本 | `smbutil statshares -a`（需先在 Finder 挂载共享） | `SMB_VERSION` 协商结果、`SERVER_NAME`；型号已从同级目录 `DSM_api` 推断为 Synology DSM 7.1 @ 192.168.1.100，请确认 |
 | 2a | NAS 445 端口可达 | `nc -z -v -w 3 192.168.1.100 445` | 连通性 |
 | 3 | 工具链版本 | 已确认 | Go 1.25.5、Node 25.5.0、pnpm 10.33.0、golangci-lint 2.15.0 |
-| 4 | OEC-Turbo 固件状态与 SSH 时间 | 设备有 IP 后：`OEC_HOST=<ip> bash scripts/probe-mac-env.sh`；设备上（若有串口或本地终端）：`uname -a; cat /proc/filesystems \| grep -i exfat; modinfo cifs \| head -3; systemctl --version \| head -1` | 内核版本、exfat 是否内核原生、cifs 模块、systemd 版本 |
+| 4 | OEC-Turbo 固件状态与 SSH 时间（已确认，2026-10-27：Armbian 25.05 bookworm、内核 6.1.99 aarch64、systemd 252、exfat 内核模块可加载（exfat.ko，未默认加载）、cifs 模块就绪、`cifs-utils 7.0` 已装） | 设备有 IP 后：`OEC_HOST=<ip> bash scripts/probe-mac-env.sh`；设备上（若有串口或本地终端）：`uname -a; cat /proc/filesystems \| grep -i exfat; modinfo cifs \| head -3; systemctl --version \| head -1` | 内核版本、exfat 是否内核原生、cifs 模块、systemd 版本 |
 | 5 | mac 只读重挂载 | 已确认 | 不需要 |
 | 6 | NAS 目标目录分层 | 已确认 | 默认布局 + `destination_layout` 模板自定义 |
 | 7 | Web 认证方式 | 已确认 | 用户名密码 |

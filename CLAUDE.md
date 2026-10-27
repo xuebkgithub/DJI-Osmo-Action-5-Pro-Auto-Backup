@@ -20,7 +20,9 @@ DJI Osmo Action 5 Pro → OEC-Turbo → Synology NAS 自动备份。Go 单体 + 
 - 默认用户 `root`，用 `SSH_USER=` 覆盖；配置路径用 `CONFIG_FILE=` 覆盖。
 - **禁止**把密码写进命令、文档、提交信息或 `docs/evidence/`；需要引用口令时从 `cmd_ip.conf` 读取。
 - 在设备上执行**写入或破坏性操作**（安装包、`systemctl restart/stop`、删除、改 `/etc`）前先向用户确认；只读探查（`df`、`ls`、`journalctl`、`systemctl status`、`lsusb`、`udevadm info`）可直接做。
-- 设备现状：`systemctl` / `udevadm` 可用，`cifs` 内核模块可加载，但**缺 `cifs-utils`（无 `mount.cifs`）**。
+- 设备现状：`systemctl` / `udevadm` 可用，`cifs` 与 `exfat` 内核模块可加载，`cifs-utils 2:7.0-2` 已装（2026-10-27）。
+- 设备上 `deb.debian.org` 不可达，装包要用临时镜像源：`apt-get -o Dir::Etc::sourcelist=/dev/null -o Dir::Etc::sourceparts=/tmp/aptsrc ...`（`/etc/apt/` 未改动）。
+- 部署用 `make deploy`（`action-backup/scripts/deploy.sh`）：打包 + scp + 远端 `install.sh`；`RESTART=1` 安装后重启。
 
 ## 常用命令
 

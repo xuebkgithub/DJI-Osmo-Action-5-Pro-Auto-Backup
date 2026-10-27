@@ -1,0 +1,45 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: echo "### mount.cifs"; which mount.cifs; mount.cifs -V; echo; echo "### dpkg"; dpkg -l cifs-utils | tail -2; echo; echo "### lsmod"; lsmod | grep -E "^cifs"; echo; echo "### apt sources (/etc 未改动，仍指向不可达的 deb.debian.org)"; cat /etc/apt/sources.list.d/debian.sources; echo; echo "### 临时镜像源（本次安装用）"; cat /tmp/aptsrc/ustc.sources
+--------------------------------
+### mount.cifs
+/usr/sbin/mount.cifs
+mount.cifs version: 7.0
+
+### dpkg
++++-==============-============-============-=====================================
+ii  cifs-utils     2:7.0-2      arm64        Common Internet File System utilities
+
+### lsmod
+cifs                  626688  0
+cifs_arc4              16384  1 cifs
+cifs_md4               16384  1 cifs
+
+### apt sources (/etc 未改动，仍指向不可达的 deb.debian.org)
+Types: deb
+URIs: http://deb.debian.org/debian
+Suites: bookworm bookworm-updates bookworm-backports
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb
+URIs: http://security.debian.org/
+Suites: bookworm-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+### 临时镜像源（本次安装用）
+Types: deb
+URIs: http://mirrors.ustc.edu.cn/debian
+Suites: bookworm bookworm-updates
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+服务器: 172.20.31.6
+端口: 22
+执行命令: echo "### exfat"; grep -i exfat /proc/filesystems || echo "(未加载，/proc/filesystems 无 exfat)"; modinfo exfat | head -3
+--------------------------------
+### exfat
+(未加载，/proc/filesystems 无 exfat)
+filename:       /lib/modules/6.1.99-rk35xx-ophub/kernel/fs/exfat/exfat.ko
+author:         Samsung Electronics Co., Ltd.
+description:    exFAT filesystem support

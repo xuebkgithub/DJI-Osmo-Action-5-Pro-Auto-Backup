@@ -1,0 +1,40 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: systemctl is-enabled action-backup; systemctl --no-pager -l status action-backup | head -14; echo; journalctl -u action-backup --no-pager -n 20 -o cat
+--------------------------------
+enabled
+● action-backup.service - DJI Action Backup Service
+     Loaded: loaded (/etc/systemd/system/action-backup.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2026-10-27 11:19:45 CST; 48s ago
+    Process: 11179 ExecStartPre=/bin/mkdir -p /run/action-backup/source (code=exited, status=0/SUCCESS)
+   Main PID: 11180 (action-backup)
+      Tasks: 8 (limit: 4642)
+     Memory: 2.8M
+        CPU: 1.048s
+     CGroup: /system.slice/action-backup.service
+             └─11180 /opt/action-backup/action-backup --config /etc/action-backup/config.yaml
+
+Oct 27 11:19:45 armbian action-backup[11180]: {"time":"2026-10-27T11:19:45.423104731+08:00","level":"INFO","msg":"database ready","path":"/var/lib/action-backup/backup.db","migrations_applied":0}
+Oct 27 11:19:45 armbian action-backup[11180]: {"time":"2026-10-27T11:19:45.423961369+08:00","level":"INFO","msg":"authentication enabled","username":"admin","session_ttl_hours":24}
+Oct 27 11:19:45 armbian action-backup[11180]: {"time":"2026-10-27T11:19:45.431791865+08:00","level":"INFO","msg":"service started","event":"system.started"}
+
+{"time":"2026-10-27T11:18:48.25510677+08:00","level":"INFO","msg":"login succeeded","event":"auth.login"}
+Stopping action-backup.service - DJI Action Backup Service...
+{"time":"2026-10-27T11:19:45.197536749+08:00","level":"INFO","msg":"service stopping","event":"system.stopping"}
+{"time":"2026-10-27T11:19:45.210717369+08:00","level":"INFO","msg":"action-backup stopped"}
+action-backup.service: Deactivated successfully.
+Stopped action-backup.service - DJI Action Backup Service.
+action-backup.service: Consumed 1.141s CPU time.
+Starting action-backup.service - DJI Action Backup Service...
+Started action-backup.service - DJI Action Backup Service.
+{"time":"2026-10-27T11:19:45.41493123+08:00","level":"INFO","msg":"action-backup starting","version":"v0.6.0-1-g6ff44ad-dirty","config":"/etc/action-backup/config.yaml","mode":"dry-run","faultinject":false}
+{"time":"2026-10-27T11:19:45.423104731+08:00","level":"INFO","msg":"database ready","path":"/var/lib/action-backup/backup.db","migrations_applied":0}
+{"time":"2026-10-27T11:19:45.423961369+08:00","level":"INFO","msg":"authentication enabled","username":"admin","session_ttl_hours":24}
+{"time":"2026-10-27T11:19:45.431791865+08:00","level":"INFO","msg":"service started","event":"system.started"}
+{"time":"2026-10-27T11:19:45.434193777+08:00","level":"WARN","msg":"storage target not ready","kind":"cifs","mount_point":"/mnt/action-backup-nas","err":"storage target unavailable: /mnt/action-backup-nas is ext4 mounted from \"/dev/mmcblk0p7\", expected cifs \"//192.168.1.100/VideoBackup\""}
+{"time":"2026-10-27T11:19:45.435577465+08:00","level":"WARN","msg":"device detector not available on this platform yet","err":"linux device detector: not implemented"}
+{"time":"2026-10-27T11:19:45.456459954+08:00","level":"INFO","msg":"http listening","addr":"[::]:8080","mode":"dry-run","platform":"linux"}
+{"time":"2026-10-27T11:19:58.928075729+08:00","level":"INFO","msg":"login succeeded","event":"auth.login"}
+{"time":"2026-10-27T11:19:58.997181963+08:00","level":"INFO","msg":"configuration changed: logging.level","event":"config.changed"}
+{"time":"2026-10-27T11:19:58.999064992+08:00","level":"DEBUG","msg":"http","method":"PATCH","path":"/api/v1/config","status":200,"duration_ms":18,"remote":"172.20.31.1:51924"}
+{"time":"2026-10-27T11:19:59.027279802+08:00","level":"INFO","msg":"configuration changed: logging.level","event":"config.changed"}
