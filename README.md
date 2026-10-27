@@ -39,8 +39,10 @@ dji_backup/
 - V0.4 已于 2026-10-23 完成：故障注入规则引擎、自动重试与重连、冲突策略、恢复测试框架（11 个场景含进程崩溃重启）全绿，证据在 `docs/evidence/20261023T0330Z-recovery-suite/`。
 - V0.5 已于 2026-10-23 完成：`action-backup passwd`、用户名密码会话认证与 CSRF、登录限速、SSE、`/config` 在线修改、`/storage/test`、Vue 3 Web UI（含模式横幅与测试面板）；未登录 401 全路由测试、curl 实测与 Chrome 逐页核对（登录、SSE 实时进度、暂停 / 恢复 / 取消、设置写回、存储测试、测试面板、退出）通过，证据在 `docs/evidence/20261023T0400Z-v05-auth-sse-smoke/`。
 - 发布流程已于 2026-10-23 接入 GitHub Actions：push 与 PR 跑 CI，打 `v*` tag 自动交叉编译 linux / darwin × arm64 / amd64 四个平台、打包并发布到 Releases（`make tag V=0.6.0`），细节见 `action-backup/README.md`。
+- 设备 SSH 已于 2026-10-27 打通：`172.20.31.6`，Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、root 登录，systemd / udev / cifs 内核模块就绪；连接方式见下文「远程设备 SSH」。
 - 待办：NAS 可达后在 Finder 挂载共享并执行 `smbutil statshares -a`，确认 SMB 版本（问题 2）。
-- 下一步：V0.6 Linux 后端（udev、mount helper、CIFS）、实机 dry-run 与真备份、性能测试（任务清单见 V1.4 §16）。NAS 可达后补做 premounted 真实上传。
+- 待办：设备上缺 `cifs-utils`（无 `mount.cifs`），V0.6 挂载 NAS 前需先安装。
+- 下一步：V0.6 Linux 后端（udev、mount helper、CIFS）、实机 dry-run 与真备份、性能测试（任务清单见 V1.4 §16），现在可经 SSH 直接部署到设备验证。NAS 可达后补做 premounted 真实上传。
 
 ## 环境探测
 
@@ -52,3 +54,34 @@ OEC_HOST=192.168.1.x bash scripts/probe-mac-env.sh
 ```
 
 脚本只执行读取类命令，输出目录路径会打印在最后一行。
+
+## 远程设备 SSH（OEC-Turbo）
+
+设备已可 SSH。统一走封装脚本 `cmd_ip.sh`，它从配置文件读取密码与端口，用 `sshpass` 免交互登录，不需要在命令里写密码。
+
+```bash
+# 脚本与配置（在仓库之外，机器本地）
+~/MyMac/scripts/cmd_ip.sh        # 脚本
+~/MyMac/scripts/cmd_ip.conf      # 配置，格式 IP;密码;端口
+
+# 用法
+cmd_ip.sh <IP>              # 交互式登录
+cmd_ip.sh <IP> '<命令>'     # 执行远程命令后返回
+cmd_ip.sh list              # 列出已配置的 IP 与端口
+cmd_ip.sh help              # 帮助
+```
+
+示例：
+
+```bash
+~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'df -h'
+~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'systemctl status action-backup'
+~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'journalctl -u action-backup -n 100 --no-pager'
+```
+
+说明：
+
+- 依赖 `sshpass`（`brew install sshpass`）；默认用户 `root`，可用 `SSH_USER=xxx` 覆盖，配置文件路径可用 `CONFIG_FILE=` 覆盖。
+- 多条命令用 `&&` 或 `;` 串在一个参数里：`cmd_ip.sh 172.20.31.6 'cd /opt && ls -la'`。
+- 密码只存在于 `cmd_ip.conf`，不要写进命令行、文档、提交或 `docs/evidence/` 的输出里。
+- 当前设备：`172.20.31.6`，Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、root 登录、systemd 与 udev 可用。

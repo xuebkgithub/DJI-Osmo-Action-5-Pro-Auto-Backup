@@ -106,12 +106,34 @@ Go 模块代理：本机默认 `goproxy.cn` 不可用时，用 `GOPROXY=https://
 
 校验配置：`action-backup --config <file> --check`。
 
-## 部署到 OEC-Turbo（当前无 SSH）
+## 部署到 OEC-Turbo
+
+设备 `172.20.31.6` 已可 SSH，统一走 `~/MyMac/scripts/cmd_ip.sh`（用法见仓库根 `README.md` 的「远程设备 SSH」）。
 
 1. `make package`。
-2. 把 `dist/action-backup-<version>-linux-arm64.tar.gz` 拷到设备并解压。
+2. 把包拷到设备并解压：
+
+   ```bash
+   SSHPASS=$(awk -F';' '$1=="172.20.31.6"{print $2}' ~/MyMac/scripts/cmd_ip.conf) \
+     sshpass -e scp dist/action-backup-<version>-linux-arm64.tar.gz root@172.20.31.6:/tmp/
+   ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'cd /tmp && tar xzf action-backup-<version>-linux-arm64.tar.gz'
+   ```
+
 3. 以 root 执行 `install.sh`：校验 SHA256、拒绝测试构建、创建用户与目录、注册 systemd，不自动启动。
+
+   ```bash
+   ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'cd /tmp/action-backup-<version>-linux-arm64 && ./install.sh'
+   ```
+
 4. 编辑 `/etc/action-backup/config.yaml`，执行 `action-backup passwd --config /etc/action-backup/config.yaml` 设置登录口令，先以 dry-run 启动验证。
+5. 查看运行状态与日志：
+
+   ```bash
+   ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'systemctl status action-backup'
+   ~/MyMac/scripts/cmd_ip.sh 172.20.31.6 'journalctl -u action-backup -n 200 --no-pager'
+   ```
+
+设备现状（2026-10-27 实测）：Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、`systemctl` 与 `udevadm` 可用、`cifs` 内核模块可加载；**缺 `cifs-utils`（无 `mount.cifs`）**，V0.6 挂载 NAS 前需先装。
 
 ## 持续集成与发布
 
