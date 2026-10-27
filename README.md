@@ -14,7 +14,8 @@ dji_backup/
 │   ├── Action_Backup_软件架构设计_V1.1.md   # mac 开发环境 + 测试模式
 │   ├── Action_Backup_软件架构设计_V1.2.md   # 落实决策 3 至 7
 │   ├── Action_Backup_软件架构设计_V1.3.md   # 回写 V0.1 至 V0.4 实现偏差
-│   ├── Action_Backup_软件架构设计_V1.4.md   # 当前基线：回写 V0.5 Web UI / 认证 / SSE
+│   ├── Action_Backup_软件架构设计_V1.4.md   # 回写 V0.5 Web UI / 认证 / SSE
+│   ├── Action_Backup_软件架构设计_V1.5.md   # 当前基线：回写 V0.6 Linux 后端 / 挂载守护 / 实机结论
 │   ├── 02-verification-checklist.md         # 待确认问题 → 对应命令 → 核对方法
 │   ├── 03-decisions.md                      # 已确认的决策与依据（随问题回答更新）
 │   └── evidence/                            # 命令原始输出，按 <UTC时间>-<主题>/ 分目录
@@ -32,7 +33,7 @@ dji_backup/
 
 ## 当前阶段
 
-- 架构基线：V1.4（`docs/Action_Backup_软件架构设计_V1.4.md`），已与 V0.5 代码一致。
+- 架构基线：V1.5（`docs/Action_Backup_软件架构设计_V1.5.md`），已回写 V0.6 实现与实机结论。
 - V0.1 基座已于 2026-10-23 完成：mac 上 `make dev` 以 simulation 启动，单元 / 集成测试、lint 全绿，ARM64 安装包可产出。
 - V0.2 已于 2026-10-23 完成：扫描器、Sync Engine、计划 API、darwin 真相机后端；mac 接真相机 dry-run 实测通过，证据在 `docs/evidence/20261023T0249Z-mac-dryrun-real-camera/`。
 - V0.3 已于 2026-10-23 完成：流式传输、`.part`、断点、basic / sha256 校验、单 Worker 调度、任务 API；5 GB 模拟备份含中断续传实测通过，证据在 `docs/evidence/20261023T0305Z-sim-5gb-sha256-resume/`。真 NAS 上传因 NAS 不可达未做。
@@ -53,8 +54,8 @@ dji_backup/
   证据 `docs/evidence/20261027T0530Z-v06-linux-backend/`。新增 `storage.allow_local_destination` 开关（NAS 不可达时本地目标）。
 - 真 NAS 已于 2026-10-27 接通：`//172.20.100.254/home` 经守护挂载（SMB 3.1.1），2 个文件备份后 SHA-256 一致，吞吐 24.1 MB/s，证据 `docs/evidence/20261027T0620Z-v06-nas-cifs-backup/`。
 - 设备现状：`mode: production`、`storage.type: cifs`、`auto_backup: true`（经 `PATCH /config` 打开），插入相机即自动备份到 NAS。
-- 待办：目标 mtime 是否保留（问题 8）；架构文档 V1.5 回写 V0.6。
-- 下一步：性能测试——首测 24.1 MB/s 折算 81.1 GB 约 56 分钟，未达 30 分钟目标，需定位瓶颈并调 `buffer_size_mb` / Worker 数；systemd 资源占用记录（V1.4 §17）。
+- V0.7 已于 2026-10-27 完成：读写流水线、检查点默认 30 s / 512 MB（每个检查点的 fsync 曾把吞吐压到 24.1 MB/s）、归档后保留源 mtime、`scripts/test-performance.sh`；实测 66–70 MB/s（裸 CIFS 写 72），81.1 GB 折算约 20 分钟，证据 `docs/evidence/20261027T0700Z-v07-performance/`。
+- 下一步：相机放回全量素材后跑 81.1 GB 端到端实测；24 小时稳定性与资源占用记录（V1.5 §16）。
 
 ## 环境探测
 

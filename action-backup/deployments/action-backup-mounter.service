@@ -11,11 +11,10 @@ User=root
 ExecStart=/opt/action-backup/action-backup mount-helper --config /etc/action-backup/config.yaml --socket /run/action-backup-mounter/helper.sock --owner actionbackup
 Restart=on-failure
 RestartSec=3
-# socket 与源卷挂载点都在这个目录下；挂载点会被相机卷占用，不能让 systemd 在停止时 rm -rf
-RuntimeDirectory=action-backup-mounter
-RuntimeDirectoryMode=0750
-RuntimeDirectoryPreserve=yes
-# 不能加 ProtectHome / PrivateTmp / ProtectSystem 之类会创建私有挂载命名空间的选项：
+# /run/action-backup-mounter（socket 与源卷挂载点 source/sdX）由守护自己创建并设为 root:actionbackup 0750。
+# 不能用 RuntimeDirectory=：实机验证过，目录下有只读 exFAT 挂载时 systemd 启动前的递归 chown 会报
+# "Read-only file system"（status=233/RUNTIME_DIRECTORY）进入崩溃循环；停止时的 rm -rf 也会碰到挂载点。
+# 也不能加 ProtectHome / PrivateTmp / ProtectSystem 之类会创建私有挂载命名空间的选项：
 # 守护必须在宿主命名空间里挂载，主服务（slave 传播）与 SSH 排障才看得到这些挂载。实机验证过：加了之后挂载只在守护自己的命名空间里。
 LimitNOFILE=1024
 

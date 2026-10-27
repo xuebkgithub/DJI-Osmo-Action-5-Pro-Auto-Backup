@@ -56,7 +56,7 @@ make tag V=0.6.0       # 打 tag 触发 GitHub Release
 
 ## 文档约定
 
-- 架构文档按版本号另存（`docs/Action_Backup_软件架构设计_V1.x.md`），**不覆盖旧版**；当前基线 V1.4。
+- 架构文档按版本号另存（`docs/Action_Backup_软件架构设计_V1.x.md`），**不覆盖旧版**；当前基线 V1.5。
 - 每次实机 / mac 验证，把命令原始输出放进 `docs/evidence/<UTC时间>-<主题>/`，结论写进 `docs/03-decisions.md`，架构文档里只引用不复制。
 - 待确认问题记在 `docs/02-verification-checklist.md`，答案确认后搬进 `03-decisions.md`。
 - 阶段进展更新仓库根 `README.md` 的「当前阶段」。

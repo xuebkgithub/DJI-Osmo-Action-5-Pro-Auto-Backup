@@ -172,7 +172,6 @@ func (w *Worker) run(ctx context.Context, job Job) (Outcome, error) {
 		return out, fmt.Errorf("%w: seek part: %v", errDest, err)
 	}
 
-	buf := make([]byte, w.opts.BufferSize)
 	written := offset
 	lastCheckpoint := time.Now()
 	sinceCheckpoint := int64(0)
@@ -182,6 +181,10 @@ func (w *Worker) run(ctx context.Context, job Job) (Outcome, error) {
 		}
 	}
 	report()
+	// 读写流水线：预读 goroutine 读下一块时主循环写当前块，让 USB 读与 CIFS 写重叠。
+	// 实机（2026-10-27）串行读写只有 24 MB/s，而 USB 读 ~110 MB/s、CIFS 写 ~70 MB/s，串行上限 1/(1/110+1/70) ≈ 43 MB/s。
+	chunks, release, stopRead := w.readAhead(ctx, src)
+	defer stopRead()
 	for written < ident.size {
 		if err := ctx.Err(); err != nil {
 			_ = w.checkpoint(context.WithoutCancel(ctx), t, part, written, hasher)
@@ -195,29 +198,37 @@ func (w *Worker) run(ctx context.Context, job Job) (Outcome, error) {
 			_ = w.checkpoint(context.WithoutCancel(ctx), t, part, written, hasher)
 			return out, fmt.Errorf("%w: %v", errSource, err)
 		}
-		n, rerr := src.Read(buf)
-		if n > 0 {
+		c, ok := <-chunks
+		if !ok {
+			// 预读因 ctx 取消而结束
+			_ = w.checkpoint(context.WithoutCancel(ctx), t, part, written, hasher)
+			return out, context.Cause(ctx)
+		}
+		if c.n > 0 {
 			if err := w.d.Inject.Hit(ctx, faultinject.DestWrite, faultinject.HitMeta{TaskID: t.ID, RelativePath: t.RelativePath, Bytes: written}); err != nil {
+				release(c.buf)
 				_ = w.checkpoint(context.WithoutCancel(ctx), t, part, written, hasher)
 				return out, fmt.Errorf("%w: %v", errDest, err)
 			}
-			if _, err := part.Write(buf[:n]); err != nil {
+			if _, err := part.Write(c.buf[:c.n]); err != nil {
+				release(c.buf)
 				_ = w.checkpoint(context.WithoutCancel(ctx), t, part, written, hasher)
 				return out, fmt.Errorf("%w: write: %v", errDest, err)
 			}
 			if hasher != nil {
-				hasher.Write(buf[:n])
+				hasher.Write(c.buf[:c.n])
 			}
-			written += int64(n)
-			sinceCheckpoint += int64(n)
+			written += int64(c.n)
+			sinceCheckpoint += int64(c.n)
 			out.Bytes = written
 		}
-		if rerr != nil {
-			if rerr == io.EOF {
+		release(c.buf)
+		if c.err != nil {
+			if c.err == io.EOF {
 				break
 			}
 			_ = w.checkpoint(context.WithoutCancel(ctx), t, part, written, hasher)
-			return out, fmt.Errorf("%w: read: %v", errSource, rerr)
+			return out, fmt.Errorf("%w: read: %v", errSource, c.err)
 		}
 		if sinceCheckpoint >= w.opts.CheckpointBytes || time.Since(lastCheckpoint) >= w.opts.CheckpointInterval {
 			if err := w.checkpoint(ctx, t, part, written, hasher); err != nil {
@@ -264,10 +275,62 @@ func (w *Worker) run(ctx context.Context, job Job) (Outcome, error) {
 		}
 		return out, fmt.Errorf("%w: %v", errDest, err)
 	}
+	// 保留源文件修改时间；失败只告警（NAS 不支持 utimes 时不影响备份结果）
+	if t.ModTimeNs > 0 {
+		if err := w.d.Target.SetModTime(ctx, t.DestinationPath, time.Unix(0, t.ModTimeNs)); err != nil {
+			w.d.Log.Warn("preserve destination mtime failed", "task", t.ID, "err", err)
+		}
+	}
 	if err := w.d.Checkpoints.Delete(ctx, t.ID); err != nil {
 		w.d.Log.Warn("delete checkpoint failed", "task", t.ID, "err", err)
 	}
 	return out, nil
+}
+
+// chunk 预读得到的一块数据；err 为 io.EOF 表示源已读完。
+type chunk struct {
+	buf []byte
+	n   int
+	err error
+}
+
+// readAhead 启动预读 goroutine：两块缓冲轮转，一块在写时另一块在读。
+// 返回数据通道、归还缓冲的函数与停止函数；停止后 goroutine 立即退出，通道关闭。
+func (w *Worker) readAhead(ctx context.Context, src io.Reader) (<-chan chunk, func([]byte), func()) {
+	const depth = 2
+	pool := make(chan []byte, depth)
+	for i := 0; i < depth; i++ {
+		pool <- make([]byte, w.opts.BufferSize)
+	}
+	chunks := make(chan chunk, depth)
+	readCtx, stop := context.WithCancel(ctx)
+	go func() {
+		defer close(chunks)
+		for {
+			var buf []byte
+			select {
+			case <-readCtx.Done():
+				return
+			case buf = <-pool:
+			}
+			n, err := src.Read(buf)
+			select {
+			case chunks <- chunk{buf: buf, n: n, err: err}:
+			case <-readCtx.Done():
+				return
+			}
+			if err != nil {
+				return
+			}
+		}
+	}()
+	release := func(buf []byte) {
+		select {
+		case pool <- buf:
+		default:
+		}
+	}
+	return chunks, release, stop
 }
 
 // identify 复核源文件身份：大小与归一化修改时间必须与任务记录一致。

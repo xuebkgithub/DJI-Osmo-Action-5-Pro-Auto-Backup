@@ -60,7 +60,7 @@ V0.1 已实现：
 - 占位 Web 页面（V0.5 已替换为 Vue 3）。
 - fixtures 生成脚本、ARM64 构建与安装包、systemd 单元、udev 规则、install.sh。
 
-V0.6（2026-10-27）：Linux 检测（sysfs + udev 数据库轮询）、root 挂载守护 `action-backup mount-helper`（只读挂相机卷、`mount.cifs` 挂目标）、拔插卸载、`storage.allow_local_destination` 已实现并实机验证，含真 NAS CIFS 挂载（SMB 3.1.1）与备份。未做：性能测试（首测 24.1 MB/s）、架构文档 V1.5 回写。
+V0.6（2026-10-27）：Linux 检测（sysfs + udev 数据库轮询）、root 挂载守护 `action-backup mount-helper`（只读挂相机卷、`mount.cifs` 挂目标）、拔插卸载、`storage.allow_local_destination` 已实现并实机验证，含真 NAS CIFS 挂载（SMB 3.1.1）与备份。V0.7（2026-10-27）：读写流水线、检查点默认 30 s / 512 MB、归档后保留源 mtime、`scripts/test-performance.sh`，实测 66–70 MB/s。架构基线 V1.5。
 
 ## 快速开始（mac）
 

@@ -172,6 +172,21 @@ func (t *Target) Commit(ctx context.Context, rel string) error {
 	return nil
 }
 
+// SetModTime 把正式文件的修改时间设为源文件的修改时间（归档后调用，失败不影响任务结果）。
+func (t *Target) SetModTime(ctx context.Context, rel string, modTime time.Time) error {
+	if err := t.checkWrite(ctx); err != nil {
+		return err
+	}
+	abs, err := t.Resolve(rel)
+	if err != nil {
+		return err
+	}
+	if err := os.Chtimes(abs, modTime, modTime); err != nil {
+		return fmt.Errorf("set destination mtime: %w", err)
+	}
+	return nil
+}
+
 // RemovePart 删除 rel 的 .part 文件；不存在不算错误。
 func (t *Target) RemovePart(ctx context.Context, rel string) error {
 	if err := t.checkWrite(ctx); err != nil {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"action-backup/internal/config"
 	"action-backup/internal/domain"
@@ -43,11 +44,21 @@ func TestWriteCycle(t *testing.T) {
 	if _, err := os.Stat(want + PartSuffix); err != nil {
 		t.Fatalf("part file missing: %v", err)
 	}
+	wantTime := time.Unix(1700000000, 0)
+	if err := tg.SetModTime(ctx, rel, wantTime); err == nil {
+		t.Fatal("SetModTime before Commit must fail: final file does not exist yet")
+	}
 	if err := tg.Commit(ctx, rel); err != nil {
 		t.Fatal(err)
 	}
 	if st, err := tg.Stat(rel); err != nil || st.Size() != 5 {
 		t.Fatalf("final file: %v", err)
+	}
+	if err := tg.SetModTime(ctx, rel, wantTime); err != nil {
+		t.Fatal(err)
+	}
+	if st, _ := tg.Stat(rel); !st.ModTime().Equal(wantTime) {
+		t.Fatalf("mtime %v, want %v", st.ModTime(), wantTime)
 	}
 	if err := tg.RemovePart(ctx, rel); err != nil {
 		t.Fatalf("remove missing part must be ok: %v", err)
@@ -64,6 +75,9 @@ func TestDryRunDeniesWrites(t *testing.T) {
 		t.Fatalf("want ErrModeReadOnly, got %v", err)
 	}
 	if err := tg.RemovePart(ctx, "x/y.MP4"); !errors.Is(err, domain.ErrModeReadOnly) {
+		t.Fatalf("want ErrModeReadOnly, got %v", err)
+	}
+	if err := tg.SetModTime(ctx, "x/y.MP4", time.Unix(1700000000, 0)); !errors.Is(err, domain.ErrModeReadOnly) {
 		t.Fatalf("want ErrModeReadOnly, got %v", err)
 	}
 	entries, _ := os.ReadDir(root)

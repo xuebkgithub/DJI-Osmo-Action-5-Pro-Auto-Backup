@@ -86,3 +86,9 @@
 | 2026-10-27 | 首次实测吞吐 24.1 MB/s（482 MB，含 fsync 与 basic 校验，千兆 + USB 3.0） | 81.1 GB 约 56 分钟，未达 30 分钟目标；性能测试要定位瓶颈（USB 读 / CIFS 写 / fsync 频率）再调 `buffer_size_mb` 与 Worker 数 |
 | 2026-10-27 | 源卷挂载点按内核设备名命名（`source/sdX`），重新插拔后名字可能变化（实测 sdb→sdc） | 检测器每轮按 sysfs 当前名字重建，守护卸载时删目录，不留残留；外部脚本不要写死 `sdb` |
 | 2026-10-27 | 设备 `device.auto_backup` 经 `PATCH /config` 重新打开，目标为真 NAS | 相机上的文件已全部备份，打开后插入即自动规划并备份 |
+| 2026-10-27 | 检查点默认 `checkpoint_interval_sec` 5 → 30、`checkpoint_bytes_mb` 64 → 512 | 每个检查点 fsync 是 CIFS 吞吐瓶颈：实测 24.1 → 65.9 MB/s；最多丢 512 MB 进度（约 8 s）可接受。证据 `docs/evidence/20261027T0700Z-v07-performance/` |
+| 2026-10-27 | Worker 改读写流水线（预读 goroutine + 两块缓冲） | 串行读写上限 ≈ 43 MB/s（USB 110 / CIFS 72），流水线后 66–70 MB/s；恢复测试套件全绿 |
+| 2026-10-27 | `buffer_size_mb` 默认保持 4 | 16 MB 无增益（66.2 vs 69.6 MB/s），CIFS wsize 即 4 MiB |
+| 2026-10-27 | 归档后保留源 mtime（`Target.SetModTime`，经门禁，失败只告警） | 问题 8 关闭；dry-run 拒绝用例已加 |
+| 2026-10-27 | `scripts/test-performance.sh` 实现：删 NAS 副本 → `POST /backups/start` → 采样 → journald 纳秒时间戳算吞吐 → SHA-256 | 口令只走 `LOGIN_JSON` 文件；远程命令经 `cmd_ip.sh` 并重试 3 次（sshd 偶发拒绝密码） |
+| 2026-10-27 | 发布架构文档 V1.5 | 回写 V0.6 实现与实机结论、V0.7 性能数据；守护单元两条禁忌（命名空间沙箱、RuntimeDirectory）写进 §13 |

@@ -15,7 +15,7 @@ DIST := dist
 PLATFORMS := linux-arm64 linux-amd64 darwin-arm64 darwin-amd64
 
 .PHONY: tools fixtures dev web-install web-dev web-build lint fmt vet test test-integration test-recovery \
-        build build-arm64 build-arm64-test build-all package package-all tag deploy check-config clean
+        build build-arm64 build-arm64-test build-all package package-all tag deploy perf check-config clean
 # 注意：build-% / package-% 的具体目标不能列进 .PHONY，GNU make 不会为 phony 目标套用模式规则。
 
 tools: ## 检查工具链
@@ -91,6 +91,10 @@ tag: ## 打发布 tag 并推送，触发 GitHub Release 工作流：make tag V=0
 
 deploy: ## 部署到 OEC-Turbo：打包 + scp + install.sh；HOST= 指定主机，RESTART=1 安装后重启
 	HOST=$(HOST) RESTART=$(RESTART) bash scripts/deploy.sh
+
+perf: ## 实机性能测试：LOGIN_JSON=<登录 JSON> make perf [HOST=] [DEST=] [LABEL=]；输出重定向进 docs/evidence/
+	@[ -n "$(LOGIN_JSON)" ] || { echo "用法: LOGIN_JSON=/path/login.json make perf"; exit 2; }
+	LOGIN_JSON=$(LOGIN_JSON) bash scripts/test-performance.sh $(if $(HOST),--host $(HOST)) $(if $(DEST),--dest $(DEST)) $(if $(LABEL),--label "$(LABEL)")
 
 clean:
 	rm -rf $(DIST) dev

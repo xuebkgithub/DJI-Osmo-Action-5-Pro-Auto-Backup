@@ -34,8 +34,8 @@ backup:
   worker_count: 1
   buffer_size_mb: 4
   retry_count: 3
-  checkpoint_interval_sec: 5
-  checkpoint_bytes_mb: 64
+  checkpoint_interval_sec: 30   # 每个检查点 fsync 一次；实机 CIFS 上 5 s / 64 MB 把吞吐压到 24 MB/s，512 MB 为 66 MB/s
+  checkpoint_bytes_mb: 512
   verify_mode: "basic"
   delete_source: false
 

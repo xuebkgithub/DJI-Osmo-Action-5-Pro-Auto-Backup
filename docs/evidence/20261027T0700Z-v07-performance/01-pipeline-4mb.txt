@@ -1,0 +1,24 @@
+### 性能测试 2026-10-27T06:58:25Z  host=172.20.31.6  dest=sdcard/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4  label=pipeline buffer=4MB checkpoint=512MB/30s verify=basic (run 2)
+### 服务配置（backup 段）
+  worker_count: 1
+  buffer_size_mb: 4
+  checkpoint_interval_sec: 30
+  checkpoint_bytes_mb: 512
+  verify_mode: "basic"
+### 版本
+action-backup v0.6.0-3-gd2619ad-dirty (commit d2619ad, built 2026-10-27T06:56:08Z, faultinject=false)
+### 删除 NAS 副本
+removed
+### POST /backups/start @ 14:58:36
+{"data":{"plan":{"generated_at":"2026-10-27T06:58:36.55947316Z","mode":"production","devices":1,"volumes":2,"scanned_files":2,"target_checked":true,"upload":{"files":1,"bytes":482234357},"skip":{"files":1,"bytes":409728},"conflict":{"files":0,"bytes":0},"items":[...],"warnings":[],"duration_ms":21},"tasks_created":1,"tasks_requeued":0,"tasks_enqueued":1,"conflicts":0,"tasks_retry_exhausted":0,"con
+### 采样（每 2 秒：时间 状态计数 RSS(KB) %CPU loadavg）
+  14:58:39 rss_kb/cpu=6160 0.0 load=0.56 0.29 0.16  active=1
+  14:58:43 rss_kb/cpu=6160 0.0 load=0.68 0.32 0.17  active=1
+  14:58:47 rss_kb/cpu=6160 0.0 load=0.62 0.32 0.17  active=0
+### journald 时间戳与吞吐
+2026-10-27T14:58:36.626419641+08:00 transferring DCIM/DJI_003/DJI_20261027075753_0027_D.MP4 (482234357 bytes)
+2026-10-27T14:58:43.558365527+08:00 completed DCIM/DJI_003/DJI_20261027075753_0027_D.MP4
+### 结果：482234357 B / 6.93 s = 69.6 MB/s
+### 校验（源 vs NAS SHA-256）
+90782c7746e31e39f  /run/action-backup-mounter/source/sdb/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4
+90782c7746e31e39f  /mnt/action-backup-nas/DJI-Action5Pro/sdcard/DCIM/DJI_003/DJI_20261027075753_0027_D.MP4

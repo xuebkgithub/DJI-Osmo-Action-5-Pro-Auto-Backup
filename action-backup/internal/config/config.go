@@ -225,10 +225,10 @@ func (c *Config) applyDefaults() {
 		c.Backup.RetryCount = 3
 	}
 	if c.Backup.CheckpointIntervalSec == 0 {
-		c.Backup.CheckpointIntervalSec = 5
+		c.Backup.CheckpointIntervalSec = 30
 	}
 	if c.Backup.CheckpointBytesMB == 0 {
-		c.Backup.CheckpointBytesMB = 64
+		c.Backup.CheckpointBytesMB = 512
 	}
 	if c.Backup.VerifyMode == "" {
 		c.Backup.VerifyMode = "basic"
