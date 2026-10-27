@@ -166,6 +166,7 @@ function startStream() {
         store.progress = p
       }
       if (type === 'plan.generated') refreshPlan().catch(() => {})
+      if (/^storage\./.test(type)) refreshHealth().catch(() => {})
       scheduleRefresh()
     }
   })

@@ -99,4 +99,8 @@
 | 2026-10-27 | 通知分发不阻塞总线：订阅缓冲 256，事件只做分类后入队（队列 64，满则丢并记日志），发送在独立 goroutine 串行进行；失败 3 次后记 `notify.failed` 事件且该事件不再触发通知 | 进度事件高频经同一总线分发；通知服务外部不可控，不能拖慢备份也不能形成失败循环 |
 | 2026-10-27 | `notifications.enabled: true` 但无渠道启用时校验拒绝 | 避免"打开了却收不到"的静默配置；网页一次 PATCH 提交所有改动，不影响操作 |
 | 2026-10-27 | V0.7 通知功能 mac 验证通过 | 假 MeoW 服务收到测试 / 开始备份 / 备份完成 / 相机已插入四条中文消息，写回配置保留注释，`make test`、`test-integration`、`lint` 全绿。证据 `docs/evidence/20261027T0720Z-v07-notifications/` |
-
+| 2026-10-27 | `mountEntryIn` 取 mountinfo 里**最后一条**匹配路径的记录（栈顶），不再取第一条 | 实机重启复现：主服务比守护早 1 秒启动，`ReadWritePaths=/mnt/action-backup-nas` 先把本地 ext4 目录绑定进沙箱，CIFS 随后传播叠在上面；`statfs` 报 cifs 而旧解析取到底层 `/dev/mmcblk0p7`，健康 `degraded`、任务全部 `interrupted`，「重新检查」也无效。同一路径多层挂载时 mountinfo 后者在上，与 statfs 一致。证据 `docs/evidence/20261027T0745Z-reboot-stacked-mount/` |
+| 2026-10-27 | 主服务单元**保留** `ReadWritePaths=/mnt/action-backup-nas`；"去掉它消除叠层"的方案 B 实测否决 | `ProtectSystem=strict` 对沙箱建立时已存在的挂载递归只读：服务重启时 CIFS 已挂着，沙箱内变 `ro`，`mkdir` 报 `read-only file system`；只有"服务先起、CIFS 后传播进来"的情形才是 rw。证据 `docs/evidence/20261027T0745Z-reboot-stacked-mount/02-option-b-readonly-failure.txt` |
+| 2026-10-27 | Linux 探测补查 `statfs` 的 `ST_RDONLY`：挂载来源正确但只读时报 `is mounted read-only`，健康 degraded | 方案 B 失败时探测仍报 ready，任务到 mkdir 才失败；只读应在探测阶段就暴露 |
+| 2026-10-27 | `deploy.sh` 不指定 `PKG` 时始终重新 `make package` | `git describe` 的 `-dirty` 版本号不随工作区内容变化，复用旧包把过时二进制和单元装上了设备，排错一轮 |
+| 2026-10-27 | 网页手工恢复：`POST /storage/{mount,remount,unmount}`、`POST /backups/retry-failed`，总览页健康卡片与控制卡片加按钮；无挂载器的平台 501 且按钮隐藏（`mode.storage_mount_control`）；卸载在有任务传输时 409 | 用户 2026-10-27 要求出问题后在界面上操作而不是上命令行。挂载逻辑与启动 / 周期重挂共用 `App.mountTarget`，事件 `storage.mounted / unmounted / mount_failed` 进总线，前端收到 `storage.*` 即刷新健康 |

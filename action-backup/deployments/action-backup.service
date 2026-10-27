@@ -23,6 +23,9 @@ ReadWritePaths=/etc/action-backup
 ReadWritePaths=/var/lib/action-backup
 # 连接挂载守护的 socket；源卷挂载点 /run/action-backup-mounter/source/<dev> 只读，由守护挂载并传播进本沙箱
 ReadWritePaths=/run/action-backup-mounter
+# NAS 挂载点必须保留在 ReadWritePaths：ProtectSystem=strict 对沙箱建立时已存在的挂载递归只读，
+# 服务重启时 CIFS 若已挂着就会变成 ro（2026-10-27 实测 mkdir 报 read-only file system）。
+# 代价是服务先于挂载启动时底层本地目录会被绑定进来、与后到的 CIFS 叠层，探测按 mountinfo 栈顶判定已能正确处理。
 ReadWritePaths=/mnt/action-backup-nas
 LimitNOFILE=8192
 

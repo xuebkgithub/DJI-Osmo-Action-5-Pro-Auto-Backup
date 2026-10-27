@@ -44,6 +44,11 @@ func (Probe) Probe(_ context.Context, path string, expect fsinfo.Expectation) (f
 	if !info.Matched {
 		return info, fmt.Errorf("%s is %s mounted from %q, expected %s %q", path, info.FSType, info.Source, expect.Kind, expect.Share)
 	}
+	// 沙箱（ProtectSystem=strict）可能把挂载设成只读，mountinfo 与 share 都对但写不进去，这里提前报出来
+	if st.Flags&unix.ST_RDONLY != 0 {
+		info.Matched = false
+		return info, fmt.Errorf("%s (%s %s) is mounted read-only", path, info.FSType, info.Source)
+	}
 	return info, nil
 }
 

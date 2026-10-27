@@ -1,0 +1,71 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: echo "## uptime"; uptime; echo; echo "## /proc/1/mountinfo (host) action-backup-nas"; grep action-backup-nas /proc/1/mountinfo; echo; echo "## /proc/$(systemctl show -p MainPID --value action-backup.service)/mountinfo (action-backup.service sandbox) action-backup-nas"; grep action-backup-nas /proc/$(systemctl show -p MainPID --value action-backup.service)/mountinfo; echo; echo "## stat -f"; stat -f -c "%T %n" /mnt/action-backup-nas; echo; echo "## unit"; cat /etc/systemd/system/action-backup.service; echo; echo "## journal action-backup-mounter -b"; journalctl -u action-backup-mounter.service -b --no-pager -o cat; echo; echo "## journal action-backup -b (head)"; journalctl -u action-backup.service -b --no-pager -o cat | head -12
+--------------------------------
+## uptime
+ 15:47:14 up 7 min,  1 user,  load average: 0.08, 0.15, 0.12
+
+## /proc/1/mountinfo (host) action-backup-nas
+614 30 0:50 / /mnt/action-backup-nas rw,nosuid,nodev,noexec,relatime shared:306 - cifs //172.20.100.254/home rw,vers=3.1.1,cache=strict,username=REDACTED,uid=999,forceuid,gid=995,forcegid,addr=172.20.100.254,file_mode=0660,dir_mode=0770,iocharset=utf8,soft,nounix,serverino,mapposix,rsize=4194304,wsize=4194304,bsize=1048576,echo_interval=60,actimeo=1,closetimeo=1
+
+## /proc/1238/mountinfo (action-backup.service sandbox) action-backup-nas
+609 616 179:7 /mnt/action-backup-nas /mnt/action-backup-nas rw,nosuid,noatime,nodiratime shared:328 master:1 - ext4 /dev/mmcblk0p7 rw,errors=remount-ro,commit=600,data=writeback
+617 609 0:50 / /mnt/action-backup-nas rw,nosuid,nodev,noexec,relatime shared:333 master:306 - cifs //172.20.100.254/home rw,vers=3.1.1,cache=strict,username=REDACTED,uid=999,forceuid,gid=995,forcegid,addr=172.20.100.254,file_mode=0660,dir_mode=0770,iocharset=utf8,soft,nounix,serverino,mapposix,rsize=4194304,wsize=4194304,bsize=1048576,echo_interval=60,actimeo=1,closetimeo=1
+616 577 0:50 / /mnt/action-backup-nas rw,nosuid,nodev,noexec,relatime shared:332 master:306 - cifs //172.20.100.254/home rw,vers=3.1.1,cache=strict,username=REDACTED,uid=999,forceuid,gid=995,forcegid,addr=172.20.100.254,file_mode=0660,dir_mode=0770,iocharset=utf8,soft,nounix,serverino,mapposix,rsize=4194304,wsize=4194304,bsize=1048576,echo_interval=60,actimeo=1,closetimeo=1
+
+## stat -f
+smb2 /mnt/action-backup-nas
+
+## unit
+[Unit]
+Description=DJI Action Backup Service
+After=network-online.target action-backup-mounter.service
+Wants=network-online.target
+# 相机卷与 CIFS 由 root 挂载守护完成；主服务无特权
+Requires=action-backup-mounter.service
+
+[Service]
+Type=simple
+User=actionbackup
+Group=actionbackup
+ExecStart=/opt/action-backup/action-backup --config /etc/action-backup/config.yaml
+WorkingDirectory=/var/lib/action-backup
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+# /config 在线修改要写回 config.yaml，ProtectSystem=strict 下必须显式放开
+ReadWritePaths=/etc/action-backup
+ReadWritePaths=/var/lib/action-backup
+# 连接挂载守护的 socket；源卷挂载点 /run/action-backup-mounter/source/<dev> 只读，由守护挂载并传播进本沙箱
+ReadWritePaths=/run/action-backup-mounter
+ReadWritePaths=/mnt/action-backup-nas
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target
+
+## journal action-backup-mounter -b
+Started action-backup-mounter.service - DJI Action Backup mount helper (root).
+{"time":"2026-10-27T15:39:47.912323993+08:00","level":"INFO","msg":"mount-helper starting","version":"v0.7.0","config":"/etc/action-backup/config.yaml","socket":"/run/action-backup-mounter/helper.sock","owner":"actionbackup"}
+{"time":"2026-10-27T15:39:47.929650745+08:00","level":"INFO","msg":"mount helper listening","socket":"/run/action-backup-mounter/helper.sock","owner_uid":999,"owner_gid":995,"config":"/etc/action-backup/config.yaml"}
+{"time":"2026-10-27T15:39:57.690039722+08:00","level":"INFO","msg":"target mounted","share":"//172.20.100.254/home","mount_point":"/mnt/action-backup-nas","vers":""}
+{"time":"2026-10-27T15:42:05.702524521+08:00","level":"INFO","msg":"source mounted read-only","source":"/dev/sda","target":"/run/action-backup-mounter/source/sda","fstype":"exfat"}
+{"time":"2026-10-27T15:42:05.89758676+08:00","level":"INFO","msg":"source mounted read-only","source":"/dev/sdb","target":"/run/action-backup-mounter/source/sdb","fstype":"exfat"}
+
+## journal action-backup -b (head)
+Started action-backup.service - DJI Action Backup Service.
+{"time":"2026-10-27T15:39:56.161657442+08:00","level":"INFO","msg":"action-backup starting","version":"v0.7.0","config":"/etc/action-backup/config.yaml","mode":"production","faultinject":false}
+{"time":"2026-10-27T15:39:56.209193461+08:00","level":"INFO","msg":"database ready","path":"/var/lib/action-backup/backup.db","migrations_applied":0}
+{"time":"2026-10-27T15:39:56.209573801+08:00","level":"INFO","msg":"notifications configured","enabled":false,"channels":[]}
+{"time":"2026-10-27T15:39:56.211795462+08:00","level":"INFO","msg":"authentication enabled","username":"admin","session_ttl_hours":24}
+{"time":"2026-10-27T15:39:56.224334415+08:00","level":"INFO","msg":"service started","event":"system.started"}
+{"time":"2026-10-27T15:39:57.698771488+08:00","level":"WARN","msg":"storage target not ready","kind":"cifs","mount_point":"/mnt/action-backup-nas","err":"storage target unavailable: /mnt/action-backup-nas is cifs mounted from \"/dev/mmcblk0p7\", expected cifs \"//172.20.100.254/home\""}
+{"time":"2026-10-27T15:39:57.732738955+08:00","level":"INFO","msg":"http listening","addr":"[::]:8080","mode":"production","platform":"linux"}
+{"time":"2026-10-27T15:41:13.223509676+08:00","level":"INFO","msg":"login succeeded","event":"auth.login"}
+{"time":"2026-10-27T15:41:44.887842064+08:00","level":"INFO","msg":"notifications configured","enabled":true,"channels":["meow"]}
+{"time":"2026-10-27T15:41:44.894261681+08:00","level":"INFO","msg":"configuration changed: notifications.enabled","event":"config.changed"}
+{"time":"2026-10-27T15:42:03.602691216+08:00","level":"INFO","msg":"camera present but volumes not ready yet","device":"5-1","reason":"no scsi lun yet: block device not ready"}

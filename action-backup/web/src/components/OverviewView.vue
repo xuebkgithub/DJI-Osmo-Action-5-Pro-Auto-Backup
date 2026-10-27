@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { store, refreshStatus, refreshHealth, notify, errorText } from '../store.js'
+import { store, refreshStatus, refreshHealth, refreshDevices, notify, errorText } from '../store.js'
 import { post } from '../api.js'
 import { bytes, speed, percent, duration, ago } from '../format.js'
 
@@ -15,6 +15,9 @@ const current = computed(() => {
 })
 const taskCounts = computed(() => (store.status && store.status.tasks) || {})
 const active = computed(() => ['QUEUED', 'TRANSFERRING', 'VERIFYING'].reduce((n, k) => n + (taskCounts.value[k] || 0), 0))
+const retryable = computed(() => (taskCounts.value.FAILED || 0) + (taskCounts.value.INTERRUPTED || 0))
+const mountControl = computed(() => !!(store.mode && store.mode.storage_mount_control))
+const transferring = computed(() => !!(sched.value && sched.value.current))
 
 async function act(name, path, okMsg) {
   busy.value = name
@@ -33,9 +36,44 @@ const pause = () => act('pause', '/api/v1/backups/pause', () => '已暂停')
 const resume = () => act('resume', '/api/v1/backups/resume', () => '已恢复')
 const plan = () => act('plan', '/api/v1/backups/plan', (r) => `计划：上传 ${r.upload.files} 个（${bytes(r.upload.bytes)}），跳过 ${r.skip.files}，冲突 ${r.conflict.files}`)
 async function health() {
-  await refreshHealth()
-  notify('健康检查已刷新')
+  busy.value = 'health'
+  try {
+    await refreshHealth()
+    notify(store.health && store.health.status === 'ok' ? '健康检查已刷新：正常' : '健康检查已刷新：仍有异常', store.health && store.health.status === 'ok' ? 'info' : 'error')
+  } finally {
+    busy.value = ''
+  }
 }
+// 目标存储挂载控制：失败响应（503）里也带 health，直接用它刷新目标存储一栏
+async function storageAct(name, path, okMsg, confirmMsg) {
+  if (confirmMsg && !window.confirm(confirmMsg)) return
+  busy.value = name
+  try {
+    await post(path)
+    notify(okMsg)
+  } catch (e) {
+    notify(errorText(e), 'error')
+  } finally {
+    await refreshHealth()
+    busy.value = ''
+  }
+}
+const mount = () => storageAct('mount', '/api/v1/storage/mount', 'NAS 已挂载')
+const remount = () => storageAct('remount', '/api/v1/storage/remount', 'NAS 已重新挂载', transferring.value ? '有任务正在传输，重新挂载会中断它（之后可重试）。继续？' : '')
+const unmount = () => storageAct('unmount', '/api/v1/storage/unmount', 'NAS 已卸载', '卸载后备份无法写入，直到重新挂载。继续？')
+async function rescan() {
+  busy.value = 'rescan'
+  try {
+    store.devices = await post('/api/v1/devices/rescan')
+    notify(`已重新检测设备：${store.devices.length} 台在位`)
+    await Promise.all([refreshStatus(), refreshHealth()])
+  } catch (e) {
+    notify(errorText(e), 'error')
+  } finally {
+    busy.value = ''
+  }
+}
+const retryFailed = () => act('retryFailed', '/api/v1/backups/retry-failed', (r) => `已重新入队 ${r.retried} 个失败 / 中断任务${r.skipped ? '，跳过 ' + r.skipped : ''}`)
 </script>
 
 <template>
@@ -65,7 +103,15 @@ async function health() {
           </dd>
           <dt>设备</dt><dd>{{ store.health.devices ? store.health.devices.attached : 0 }} 台在位</dd>
         </dl>
-        <div class="row"><button class="small" @click="health">重新检查</button><span class="muted">{{ ago(store.health.checked_at) }}</span></div>
+        <div class="row">
+          <button class="small" @click="health" :disabled="busy !== ''">重新检查</button>
+          <template v-if="mountControl">
+            <button class="small" @click="mount" :disabled="busy !== '' || (store.health.storage && store.health.storage.ok)" title="按配置挂载 NAS（已挂载且正常时无需操作）">挂载 NAS</button>
+            <button class="small" @click="remount" :disabled="busy !== ''" title="先卸载再挂载：NAS 掉线残留、只读或改了凭据后用">重新挂载</button>
+            <button class="small danger" @click="unmount" :disabled="busy !== '' || transferring" title="有任务在传输时不可卸载">卸载</button>
+          </template>
+          <span class="muted">{{ ago(store.health.checked_at) }}</span>
+        </div>
       </template>
     </div>
     <div class="card">
@@ -87,6 +133,10 @@ async function health() {
         <button @click="resume" :disabled="!writable || busy !== '' || !sched || !sched.paused">恢复</button>
       </div>
       <p v-if="sched" class="muted">调度器：{{ sched.running ? '运行' : '停止' }}{{ sched.paused ? '，已暂停' : '' }}</p>
+      <div class="row">
+        <button class="small" @click="rescan" :disabled="busy !== ''" title="重新枚举相机与卷（插上没反应时用）">重新检测设备</button>
+        <button class="small" @click="retryFailed" :disabled="!writable || busy !== '' || !retryable" title="把全部 FAILED / INTERRUPTED 任务重新入队，含已用尽自动重试的">重试失败任务{{ retryable ? `（${retryable}）` : '' }}</button>
+      </div>
     </div>
   </div>
 

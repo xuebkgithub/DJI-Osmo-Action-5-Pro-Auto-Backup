@@ -54,6 +54,15 @@ type Queue interface {
 	State() scheduler.State
 }
 
+// StorageControl 目标存储的手工挂载控制（Linux cifs 经 root 挂载守护）。
+// 平台不支持时方法返回 domain.ErrNotImplemented。
+type StorageControl interface {
+	Supported() bool
+	Mount(ctx context.Context) (storage.Health, error)
+	Remount(ctx context.Context) (storage.Health, error)
+	Unmount(ctx context.Context) (storage.Health, error)
+}
+
 // Notifier 通知测试发送。
 type Notifier interface {
 	Test(ctx context.Context, channel string) notify.TestResult
@@ -70,6 +79,7 @@ type Deps struct {
 	StartedAt    time.Time
 	DB           *database.DB
 	Target       *storage.Target
+	Storage      StorageControl
 	Devices      DeviceSource
 	Events       repository.Events
 	Tasks        repository.Tasks
@@ -108,6 +118,9 @@ func NewRouter(d Deps) http.Handler {
 	mux.HandleFunc("GET /api/v1/config", h.configGet)
 	mux.HandleFunc("PATCH /api/v1/config", h.configPatch)
 	mux.HandleFunc("POST /api/v1/storage/test", h.storageTest)
+	mux.HandleFunc("POST /api/v1/storage/mount", h.storageMount)
+	mux.HandleFunc("POST /api/v1/storage/remount", h.storageRemount)
+	mux.HandleFunc("POST /api/v1/storage/unmount", h.storageUnmount)
 	mux.HandleFunc("POST /api/v1/notifications/test", h.notifyTest)
 	mux.HandleFunc("POST /api/v1/backups/plan", h.planRun)
 	mux.HandleFunc("GET /api/v1/backups/plan", h.planLast)
@@ -115,6 +128,7 @@ func NewRouter(d Deps) http.Handler {
 	mux.HandleFunc("POST /api/v1/backups/pause", h.backupPause)
 	mux.HandleFunc("POST /api/v1/backups/resume", h.backupResume)
 	mux.HandleFunc("GET /api/v1/backups/history", h.backupHistory)
+	mux.HandleFunc("POST /api/v1/backups/retry-failed", h.backupRetryFailed)
 	mux.HandleFunc("GET /api/v1/tasks", h.tasksList)
 	mux.HandleFunc("GET /api/v1/tasks/{id}", h.taskGet)
 	mux.HandleFunc("POST /api/v1/tasks/{id}/cancel", h.taskCancel)

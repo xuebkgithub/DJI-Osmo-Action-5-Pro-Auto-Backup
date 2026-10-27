@@ -10,6 +10,8 @@ import (
 const DefaultMountInfo = "/proc/self/mountinfo"
 
 // mountEntryIn 在挂载表（通常 /proc/self/mountinfo）中找精确等于 path 的挂载点。
+// 同一路径可能叠多层挂载（如 systemd ReadWritePaths 先把本地目录绑定进沙箱，CIFS 随后传播进来叠在上面），
+// mountinfo 按挂载先后列出，最后一条才是进程实际看到的栈顶，必须与 statfs 的结果一致。
 func mountEntryIn(mountinfo, path string) (source, fstype string, found bool) {
 	f, err := os.Open(mountinfo)
 	if err != nil {
@@ -31,10 +33,10 @@ func mountEntryIn(mountinfo, path string) (source, fstype string, found bool) {
 			continue
 		}
 		if unescape(fields[4]) == path {
-			return unescape(fields[sep+2]), fields[sep+1], true
+			source, fstype, found = unescape(fields[sep+2]), fields[sep+1], true
 		}
 	}
-	return "", "", false
+	return source, fstype, found
 }
 
 func unescape(s string) string {

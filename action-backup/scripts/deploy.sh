@@ -26,7 +26,8 @@ command -v sshpass >/dev/null 2>&1 || { echo "未安装 sshpass：brew install s
 if [ -z "${PKG:-}" ]; then
   VERSION="$(git describe --tags --always --dirty 2>/dev/null || echo 0.1.0-dev)"
   PKG="dist/action-backup-${VERSION}-linux-arm64.tar.gz"
-  [ -f "$PKG" ] || make package
+  # 始终重新打包：-dirty 版本号不随工作区内容变化，复用旧包会把过时的二进制 / 单元文件装上去（2026-10-27 踩过）
+  make package
 fi
 [ -f "$PKG" ] || { echo "安装包不存在: $PKG"; exit 1; }
 NAME="$(basename "$PKG")"

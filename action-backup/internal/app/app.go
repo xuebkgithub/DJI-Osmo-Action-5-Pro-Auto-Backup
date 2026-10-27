@@ -168,7 +168,7 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Opti
 		Backups: service,
 		Queue:   sched,
 		Guard:   guard, PlatformName: backend.Name, Version: version.Version, StartedAt: a.started,
-		DB: db, Target: target, Devices: devices,
+		DB: db, Target: target, Storage: (*storageControl)(a), Devices: devices,
 		Events: repository.Events{DB: db.DB}, Tasks: repository.Tasks{DB: db.DB},
 		Static: web.Dist(), AuthEnabled: cfg.Server.Auth.Enabled, Auth: authMgr, Bus: bus, Config: (*configStore)(a), Notify: notifier, Log: log,
 	}
@@ -222,13 +222,74 @@ func (a *App) ensureTargetMounted(ctx context.Context) {
 	if h := a.target.Health(ctx); h.OK {
 		return
 	}
-	if err := a.backend.Storage.MountTarget(ctx); err != nil {
+	if _, err := a.mountTarget(ctx); err != nil {
 		a.log.Warn("mount storage target failed", "err", err)
-		return
 	}
-	if h := a.target.Health(ctx); h.OK {
-		a.bus.Publish(ctx, events.Event{Level: "info", Type: "storage.mounted", Message: "storage target mounted", Data: map[string]any{"root": h.Root, "fs": h.FSType}})
+}
+
+// mountTarget 经平台挂载器挂载目标并复查健康；成功发 storage.mounted，失败发 storage.mount_failed。
+func (a *App) mountTarget(ctx context.Context) (storage.Health, error) {
+	if err := a.backend.Storage.MountTarget(ctx); err != nil {
+		a.bus.Publish(ctx, events.Event{Level: "warn", Type: "storage.mount_failed", Message: "storage target mount failed: " + err.Error(), Data: map[string]any{"error": err.Error()}})
+		return a.target.Health(ctx), err
 	}
+	h := a.target.Health(ctx)
+	if !h.OK {
+		err := fmt.Errorf("mounted but probe failed: %s", h.Error)
+		a.bus.Publish(ctx, events.Event{Level: "warn", Type: "storage.mount_failed", Message: "storage target mount failed: " + err.Error(), Data: map[string]any{"error": h.Error}})
+		return h, err
+	}
+	a.bus.Publish(ctx, events.Event{Level: "info", Type: "storage.mounted", Message: "storage target mounted", Data: map[string]any{"root": h.Root, "fs": h.FSType}})
+	return h, nil
+}
+
+// unmountTarget 经平台挂载器卸载目标，发 storage.unmounted。
+func (a *App) unmountTarget(ctx context.Context) (storage.Health, error) {
+	if err := a.backend.Storage.UnmountTarget(ctx); err != nil {
+		return a.target.Health(ctx), err
+	}
+	h := a.target.Health(ctx)
+	a.bus.Publish(ctx, events.Event{Level: "info", Type: "storage.unmounted", Message: "storage target unmounted", Data: map[string]any{"mount_point": h.MountPoint}})
+	return h, nil
+}
+
+// storageControl 把 App 的目标挂载操作暴露给 API（api.StorageControl）；
+// 平台无挂载器（mac、simulation、premounted / local）时 Supported 为 false，方法返回 ErrNotImplemented。
+type storageControl App
+
+func (c *storageControl) app() *App { return (*App)(c) }
+
+// Supported 本平台是否有目标挂载器。
+func (c *storageControl) Supported() bool { return c.app().backend.Storage != nil }
+
+// Mount 挂载目标（已挂且健康时守护直接返回）。
+func (c *storageControl) Mount(ctx context.Context) (storage.Health, error) {
+	a := c.app()
+	if a.backend.Storage == nil {
+		return a.target.Health(ctx), domain.ErrNotImplemented
+	}
+	return a.mountTarget(ctx)
+}
+
+// Remount 先卸载再挂载；卸载失败（例如根本没挂）不阻止随后的挂载。
+func (c *storageControl) Remount(ctx context.Context) (storage.Health, error) {
+	a := c.app()
+	if a.backend.Storage == nil {
+		return a.target.Health(ctx), domain.ErrNotImplemented
+	}
+	if err := a.backend.Storage.UnmountTarget(ctx); err != nil {
+		a.log.Warn("remount: unmount step failed, continuing", "err", err)
+	}
+	return a.mountTarget(ctx)
+}
+
+// Unmount 卸载目标。
+func (c *storageControl) Unmount(ctx context.Context) (storage.Health, error) {
+	a := c.app()
+	if a.backend.Storage == nil {
+		return a.target.Health(ctx), domain.ErrNotImplemented
+	}
+	return a.unmountTarget(ctx)
 }
 
 // superviseTarget 目标不可用时每 reconcile 周期重试挂载（NAS 开机晚于设备、掉线恢复）。

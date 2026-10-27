@@ -1,0 +1,19 @@
+服务器: 172.20.31.6
+端口: 22
+执行命令: P=$(systemctl show -p MainPID --value action-backup.service); echo "## unit (without ReadWritePaths=/mnt/action-backup-nas)"; grep -n ReadWritePaths /etc/systemd/system/action-backup.service; echo; echo "## /proc/$P/mountinfo action-backup-nas"; grep action-backup-nas /proc/$P/mountinfo; echo; echo "## journal action-backup (this start)"; journalctl -u action-backup.service --no-pager -o cat --since "15:53:40" | grep -E "task.failed|storage target|backup.finished"
+--------------------------------
+## unit (without ReadWritePaths=/mnt/action-backup-nas)
+22:ReadWritePaths=/etc/action-backup
+23:ReadWritePaths=/var/lib/action-backup
+25:ReadWritePaths=/run/action-backup-mounter
+26:# NAS 挂载点不要写进 ReadWritePaths：守护挂的 CIFS 以 slave 传播进本沙箱时自带 rw，
+27:# 而 ReadWritePaths 会在服务启动（早于挂载）时把底层本地目录绑定进来，与后到的 CIFS 叠层，
+
+## /proc/3494/mountinfo action-backup-nas
+580 547 0:50 / /mnt/action-backup-nas ro,nosuid,nodev,noexec,relatime shared:311 master:306 - cifs //172.20.100.254/home rw,vers=3.1.1,cache=strict,username=REDACTED,uid=999,forceuid,gid=995,forcegid,addr=172.20.100.254,file_mode=0660,dir_mode=0770,iocharset=utf8,soft,nounix,serverino,mapposix,rsize=4194304,wsize=4194304,bsize=1048576,echo_interval=60,actimeo=1,closetimeo=1
+
+## journal action-backup (this start)
+{"time":"2026-10-27T15:53:49.079516921+08:00","level":"INFO","msg":"storage target ready","kind":"cifs","root":"/mnt/action-backup-nas/DJI-Action5Pro","fs":"cifs","free_bytes":17014692651008}
+{"time":"2026-10-27T15:53:49.171221705+08:00","level":"ERROR","msg":"failed DCIM/DJI_003/DJI_20261025123025_0022_D.MP4: destination error: create destination directory: mkdir /mnt/action-backup-nas/DJI-Action5Pro: read-only file system","event":"task.failed"}
+{"time":"2026-10-27T15:53:49.201879606+08:00","level":"ERROR","msg":"failed DCIM/DJI_003/DJI_20261027075753_0027_D.MP4: destination error: create destination directory: mkdir /mnt/action-backup-nas/DJI-Action5Pro: read-only file system","event":"task.failed"}
+{"time":"2026-10-27T15:53:49.208068004+08:00","level":"WARN","msg":"backup finished: 0 completed, 2 failed, 0 interrupted, 0 cancelled, 0 bytes in 0s","event":"backup.finished"}

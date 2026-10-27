@@ -15,4 +15,6 @@ var (
 	ErrPathEscapesRoot = errors.New("path escapes destination root")
 	// ErrDeviceNotFound 设备不存在。
 	ErrDeviceNotFound = errors.New("device not found")
+	// ErrStorageBusy 目标存储正被任务使用，拒绝卸载。
+	ErrStorageBusy = errors.New("storage target is in use by a running task")
 )

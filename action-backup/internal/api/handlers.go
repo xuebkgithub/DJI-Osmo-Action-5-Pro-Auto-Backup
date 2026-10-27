@@ -115,6 +115,8 @@ type modeResponse struct {
 	DestinationWriteAllowed bool   `json:"destination_write_allowed"`
 	TestEndpointsEnabled    bool   `json:"test_endpoints_enabled"`
 	AuthEnabled             bool   `json:"auth_enabled"`
+	// StorageMountControl 本平台是否支持网页手工挂载 / 卸载目标（Linux cifs）。
+	StorageMountControl bool `json:"storage_mount_control"`
 }
 
 func (h *handlers) mode(w http.ResponseWriter, _ *http.Request) {
@@ -127,6 +129,7 @@ func (h *handlers) mode(w http.ResponseWriter, _ *http.Request) {
 		DestinationWriteAllowed: h.d.Guard.AllowDestinationWrite(),
 		TestEndpointsEnabled:    h.d.Guard.TestEndpointsEnabled(),
 		AuthEnabled:             h.authEnabled(),
+		StorageMountControl:     h.d.Storage != nil && h.d.Storage.Supported(),
 	})
 }
 

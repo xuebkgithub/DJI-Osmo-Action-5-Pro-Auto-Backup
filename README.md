@@ -60,6 +60,7 @@ dji_backup/
 - 设备现状：`mode: production`、`storage.type: cifs`、`auto_backup: true`（经 `PATCH /config` 打开），插入相机即自动备份到 NAS。
 - V0.7 已于 2026-10-27 完成：读写流水线、检查点默认 30 s / 512 MB（每个检查点的 fsync 曾把吞吐压到 24.1 MB/s）、归档后保留源 mtime、`scripts/test-performance.sh`；实测 66–70 MB/s（裸 CIFS 写 72），81.1 GB 折算约 20 分钟，证据 `docs/evidence/20261027T0700Z-v07-performance/`。
 - 下一步：相机放回全量素材后跑 81.1 GB 端到端实测；24 小时稳定性与资源占用记录（V1.5 §16）。
+- 2026-10-27 实机重启复现 NAS 误判（沙箱内 `ReadWritePaths` 绑定与传播进来的 CIFS 叠层，旧解析取到底层 ext4）：`mountEntryIn` 改取栈顶、探测补查只读标志；同日新增网页手工恢复（挂载 / 重新挂载 / 卸载 NAS、重新检测设备、重试失败任务），证据 `docs/evidence/20261027T0745Z-reboot-stacked-mount/`。
 
 ## 环境探测
 
