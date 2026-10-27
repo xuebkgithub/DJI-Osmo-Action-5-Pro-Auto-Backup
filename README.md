@@ -103,3 +103,7 @@ cmd_ip.sh help              # 帮助
 - 多条命令用 `&&` 或 `;` 串在一个参数里：`cmd_ip.sh 172.20.31.6 'cd /opt && ls -la'`。
 - 密码只存在于 `cmd_ip.conf`，不要写进命令行、文档、提交或 `docs/evidence/` 的输出里。
 - 当前设备：`172.20.31.6`，Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、root 登录、systemd 与 udev 可用。
+
+## 许可证
+
+本项目以 [MIT License](LICENSE) 开源。
