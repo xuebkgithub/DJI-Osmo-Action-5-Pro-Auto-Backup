@@ -201,6 +201,10 @@ func (d *Dispatcher) handle(e events.Event) {
 		if cfg.On.NotifyBackupFinished() {
 			d.enqueue(formatBackupFinished(e, cfg.SiteURL))
 		}
+	case "update.available":
+		if cfg.On.NotifyUpdateAvailable() {
+			d.enqueue(formatUpdateAvailable(e, cfg.SiteURL))
+		}
 	case "task.failed", "task.interrupted":
 		if cfg.On.NotifyBackupFailed() {
 			d.coalesceFailure(e, cfg.SiteURL)

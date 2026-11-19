@@ -64,10 +64,14 @@ func (c *configStore) Patch(ctx context.Context, p config.Patch) (config.Config,
 
 // applyRuntime 把修改同步到已装配的组件。
 func (a *App) applyRuntime(next *config.Config, p config.Patch) {
-	notifyChanged := false
+	notifyChanged, updateChanged := false, false
 	for k := range p {
 		if strings.HasPrefix(k, "notifications.") {
 			notifyChanged = true
+			continue
+		}
+		if strings.HasPrefix(k, "update.") {
+			updateChanged = true
 			continue
 		}
 		switch k {
@@ -87,6 +91,9 @@ func (a *App) applyRuntime(next *config.Config, p config.Patch) {
 	}
 	if notifyChanged && a.notify != nil {
 		a.notify.Configure(next.Notifications)
+	}
+	if updateChanged && a.update != nil {
+		a.update.Configure(next.Update)
 	}
 }
 

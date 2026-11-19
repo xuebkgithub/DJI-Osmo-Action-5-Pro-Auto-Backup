@@ -44,6 +44,11 @@ export const TYPE_LABELS = {
   'recovery.interrupted': '启动恢复',
   'config.changed': '配置修改',
   'notify.failed': '通知发送失败',
+  'update.available': '有新版本',
+  'update.check_failed': '检查更新失败',
+  'update.requested': '更新已就绪',
+  'update.installed': '更新完成',
+  'update.failed': '更新失败',
   'auth.login': '登录',
   'auth.logout': '退出登录',
   'auth.login_failed': '登录失败',
@@ -106,6 +111,18 @@ const MESSAGES = {
   'recovery.interrupted': (d) => (has(d, 'count') ? `上次停止时有 ${d.count} 个任务正在进行，已标记为中断` : null),
   'config.changed': (d) => (d.changes ? `配置已修改：${Object.keys(d.changes).join('、')}` : null),
   'notify.failed': (d) => (has(d, 'channel') ? `通知经 ${d.channel} 发送失败${d.error ? `：${d.error}` : ''}` : null),
+  'update.available': (d) =>
+    has(d, 'version') ? `发现新版本 ${d.version}${d.prerelease ? '（预发布）' : ''}${d.current ? `，当前 ${d.current}` : ''}` : null,
+  'update.check_failed': (d) => `检查更新失败${d.error ? `：${d.error}` : ''}`,
+  'update.requested': (d) => (has(d, 'to') ? `v${d.to} 已下载并通过签名校验，等待安装任务接手（服务将重启）` : null),
+  'update.installed': (d) => (has(d, 'to') ? `已从 v${d.from || '?'} 更新到 v${d.to}` : null),
+  'update.failed': (d) => {
+    if (!has(d, 'step')) return null
+    const steps = { prepare: '准备', download: '下载', verify: '校验', wait_idle: '等待空闲', request: '提交请求', stage: '取包', extract: '解包', inspect: '检查安装包', stop: '停止服务', backup: '备份', install: '执行 install.sh', restart: '重启服务', health: '健康检查', recover: '恢复被打断的安装' }
+    let s = `更新${d.to ? `到 v${d.to} ` : ''}失败（${steps[d.step] || d.step}）${d.error ? `：${d.error}` : ''}`
+    if (d.rolled_back) s += d.rollback_error ? `；回滚未完成：${d.rollback_error}` : '；已回滚到原版本'
+    return s
+  },
   'auth.login': (d) => `${d.username || '用户'} 登录成功${d.ip ? `（${d.ip}）` : ''}`,
   'auth.logout': (d) => `${d.username || '用户'} 已退出登录`,
   'auth.login_failed': (d) => `登录失败${d.username ? `：用户名 ${d.username}` : ''}${d.ip ? `（${d.ip}）` : ''}`,

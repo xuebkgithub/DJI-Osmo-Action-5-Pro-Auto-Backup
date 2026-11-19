@@ -1,4 +1,5 @@
 // SSE 客户端：订阅 /api/v1/events/stream，按事件类型分发；断线自动重连（浏览器内置）。
+// EventSource 只能按名字逐个监听，所以后端新增事件类型时必须在 TYPES 里登记，否则页面收不到。
 const TYPES = [
   'hello',
   'backup.progress', 'backup.started', 'backup.completed',
@@ -6,6 +7,8 @@ const TYPES = [
   'plan.generated', 'device.attached', 'device.detached',
   'fault.hit', 'config.changed', 'recovery.interrupted', 'system.started', 'system.stopping',
   'auth.login', 'auth.logout', 'auth.login_failed', 'auth.login_rate_limited',
+  'backup.finished', 'storage.mounted', 'storage.unmounted', 'storage.mount_failed', 'notify.failed',
+  'update.available', 'update.check_failed', 'update.progress', 'update.requested', 'update.installed', 'update.failed',
 ]
 
 export function connect(handler) {

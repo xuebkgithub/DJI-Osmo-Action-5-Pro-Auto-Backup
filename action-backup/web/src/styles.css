@@ -125,6 +125,14 @@ form.notify label.check { flex-direction: row; flex-wrap: wrap; align-items: cen
 form.notify label.check > span:first-of-type { color: var(--text); }
 form.notify label.check > .muted { flex-basis: 100%; }
 details summary { cursor: pointer; color: var(--muted); }
+button.update-badge { color: var(--warn); border-color: currentColor; border-radius: 999px; font-weight: 600; }
+.update-headline { font-size: 15px; font-weight: 600; margin: 0 0 8px; }
+pre.notes { white-space: pre-wrap; word-break: break-word; max-height: 320px; }
+.overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.overlay .card { max-width: 460px; width: 100%; padding: 18px 20px; }
+.bar.indeterminate > i { width: 35%; animation: bar-slide 1.4s ease-in-out infinite; }
+@keyframes bar-slide { 0% { margin-left: -35%; } 100% { margin-left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .bar.indeterminate > i { animation: none; width: 100%; opacity: .5; } }
 pre { background: var(--bg); padding: 8px; border-radius: 6px; overflow: auto; font-size: 12px; margin: 6px 0; }
 .empty { color: var(--muted); padding: 16px; text-align: center; }
 @media (max-width: 640px) {

@@ -1,0 +1,11 @@
+[Unit]
+Description=DJI Action Backup self-update poll (every minute)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+Unit=action-backup-update.service
+
+[Install]
+WantedBy=timers.target

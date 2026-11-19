@@ -59,6 +59,7 @@ notifications:                  # 推送通知；网页「设置 → 通知」�
     backup_started: true
     backup_finished: true       # 一批任务全部结束后发一条汇总
     backup_failed: true         # 失败 / 中断，30 秒内合并
+    update_available: true      # 检查到新版本，每个版本只发一次
   meow:                         # https://www.chuckfang.com/MeoW/ ；设备可直连 api.chuckfang.com
     enabled: false
     nickname: ""
@@ -67,6 +68,11 @@ notifications:                  # 推送通知；网页「设置 → 通知」�
     bot_token: ""
     chat_id: ""
     proxy_url: ""               # http://host:port 或 socks5://host:port
+
+update:                         # 新版本检查（GitHub Releases）；只检查与提示，不自动安装。网页「设置 → 软件更新」可在线修改
+  check_enabled: true           # 定期检查；关闭后仍可在网页手动检查
+  check_interval_hours: 12      # 1–720
+  channel: stable               # stable 只看正式版 | prerelease 含 rc / beta
 
 logging:
   level: "info"

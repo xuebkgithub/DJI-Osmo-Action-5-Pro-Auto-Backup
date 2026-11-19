@@ -88,6 +88,20 @@ func formatBackupFinished(e events.Event, siteURL string) Message {
 	return Message{Title: t, Body: strings.Join(parts, "，"), URL: siteURL}
 }
 
+func formatUpdateAvailable(e events.Event, siteURL string) Message {
+	b := fmt.Sprintf("发现新版本 %s", str(e.Data, "version"))
+	if cur := str(e.Data, "current"); cur != "" {
+		b += fmt.Sprintf("，当前 %s", cur)
+	}
+	if boolean(e.Data, "prerelease") {
+		b += "（预发布）"
+	}
+	if u := str(e.Data, "url"); u != "" {
+		b += "\n" + u
+	}
+	return Message{Title: title("有新版本"), Body: b, URL: siteURL}
+}
+
 func formatFailures(n int, last, siteURL string) Message {
 	b := fmt.Sprintf("%d 个文件备份失败或中断", n)
 	if last != "" {

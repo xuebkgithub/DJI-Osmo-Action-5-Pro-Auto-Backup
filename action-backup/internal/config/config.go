@@ -25,6 +25,8 @@ type Config struct {
 	Logging    LoggingConfig     `yaml:"logging" json:"logging"`
 	// Notifications 推送通知（MeoW / Telegram）；省略即关闭。
 	Notifications NotificationsConfig `yaml:"notifications" json:"notifications"`
+	// Update 新版本检查（GitHub Releases）；省略即按默认每 12 小时检查 stable 通道。
+	Update UpdateConfig `yaml:"update" json:"update"`
 
 	// Path 配置文件绝对路径，加载时填充。
 	Path string `yaml:"-" json:"-"`
@@ -162,7 +164,33 @@ type NotifyOnConfig struct {
 	BackupStarted  *bool `yaml:"backup_started" json:"backup_started"`
 	BackupFinished *bool `yaml:"backup_finished" json:"backup_finished"`
 	BackupFailed   *bool `yaml:"backup_failed" json:"backup_failed"`
+	// UpdateAvailable 检查到新版本时通知，每个版本只发一次。
+	UpdateAvailable *bool `yaml:"update_available" json:"update_available"`
 }
+
+// UpdateConfig 新版本检查。只检查与提示，不下载不安装（安装属于后续阶段）。
+type UpdateConfig struct {
+	// CheckEnabled 是否定期检查；省略时默认 true。关闭后仍可在网页手动检查。
+	CheckEnabled *bool `yaml:"check_enabled" json:"check_enabled"`
+	// CheckIntervalHours 定期检查间隔（小时），默认 12。
+	CheckIntervalHours int `yaml:"check_interval_hours" json:"check_interval_hours"`
+	// Channel 更新通道：stable（默认，只看正式版）| prerelease（含 rc / beta 等预发布）。
+	Channel string `yaml:"channel" json:"channel"`
+	// APIBaseURL 默认 https://api.github.com；仅测试时改。发布仓库写死在代码里，不可配置。
+	APIBaseURL string `yaml:"api_base_url" json:"api_base_url"`
+}
+
+// 更新通道。
+const (
+	UpdateChannelStable     = "stable"
+	UpdateChannelPrerelease = "prerelease"
+)
+
+// DefaultUpdateAPIBaseURL GitHub API 地址。
+const DefaultUpdateAPIBaseURL = "https://api.github.com"
+
+// ChecksEnabled 是否定期检查新版本（指针省略即 true）。
+func (u UpdateConfig) ChecksEnabled() bool { return on(u.CheckEnabled) }
 
 // MeoWConfig MeoW 推送（https://www.chuckfang.com/MeoW/）。昵称即密钥，没有其它凭据。
 type MeoWConfig struct {
@@ -300,7 +328,7 @@ func (c *Config) applyDefaults() {
 		c.Logging.Format = "json"
 	}
 	n := &c.Notifications
-	for _, p := range []**bool{&n.On.DeviceAttached, &n.On.BackupStarted, &n.On.BackupFinished, &n.On.BackupFailed} {
+	for _, p := range []**bool{&n.On.DeviceAttached, &n.On.BackupStarted, &n.On.BackupFinished, &n.On.BackupFailed, &n.On.UpdateAvailable, &c.Update.CheckEnabled} {
 		if *p == nil {
 			*p = boolPtr(true)
 		}
@@ -310,6 +338,15 @@ func (c *Config) applyDefaults() {
 	}
 	if n.Telegram.BaseURL == "" {
 		n.Telegram.BaseURL = DefaultTelegramBaseURL
+	}
+	if c.Update.CheckIntervalHours == 0 {
+		c.Update.CheckIntervalHours = 12
+	}
+	if c.Update.Channel == "" {
+		c.Update.Channel = UpdateChannelStable
+	}
+	if c.Update.APIBaseURL == "" {
+		c.Update.APIBaseURL = DefaultUpdateAPIBaseURL
 	}
 	if c.Simulation != nil {
 		if c.Simulation.DeviceSource == "" {
@@ -399,3 +436,6 @@ func (n NotifyOnConfig) NotifyBackupFinished() bool { return on(n.BackupFinished
 
 // NotifyBackupFailed 备份失败是否通知。
 func (n NotifyOnConfig) NotifyBackupFailed() bool { return on(n.BackupFailed) }
+
+// NotifyUpdateAvailable 有新版本是否通知。
+func (n NotifyOnConfig) NotifyUpdateAvailable() bool { return on(n.UpdateAvailable) }

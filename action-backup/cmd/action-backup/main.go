@@ -32,6 +32,9 @@ func run(args []string) error {
 	if len(args) > 0 && args[0] == "mount-helper" {
 		return runMountHelper(args[1:], os.Stderr)
 	}
+	if len(args) > 0 && args[0] == "self-update" {
+		return runSelfUpdate(args[1:], os.Stderr)
+	}
 	fs := flag.NewFlagSet("action-backup", flag.ContinueOnError)
 	cfgPath := fs.String("config", "/etc/action-backup/config.yaml", "配置文件路径")
 	showVersion := fs.Bool("version", false, "打印版本并退出")

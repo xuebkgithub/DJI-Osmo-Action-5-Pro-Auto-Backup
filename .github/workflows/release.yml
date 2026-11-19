@@ -88,6 +88,26 @@ jobs:
           ( cd dist && sha256sum action-backup-"$VERSION"-*.tar.gz > SHA256SUMS )
           cat dist/SHA256SUMS
 
+      # 设备上的自动更新只安装签名对得上的包（internal/update，公钥内嵌在二进制里）。
+      # 私钥在仓库 Secrets 的 RELEASE_SIGNING_KEY（ed25519 PKCS#8 PEM），只在这一步落到临时文件，用完即删。
+      - name: 签名 SHA256SUMS（ed25519）
+        env:
+          RELEASE_SIGNING_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RELEASE_SIGNING_KEY:-}" ]; then
+            echo "::error::缺少仓库 Secret RELEASE_SIGNING_KEY，无法签名；没有签名的版本设备不会自动安装"
+            exit 1
+          fi
+          KEY="$RUNNER_TEMP/release-signing.pem"
+          trap 'rm -f "$KEY"' EXIT
+          ( umask 077 && printf '%s\n' "$RELEASE_SIGNING_KEY" > "$KEY" )
+          openssl pkeyutl -sign -inkey "$KEY" -rawin -in dist/SHA256SUMS -out dist/SHA256SUMS.sig
+          # 用仓库里的公钥（与二进制内嵌的是同一个文件）验一遍，保证公私钥成对
+          openssl pkeyutl -verify -pubin -inkey internal/update/release-signing.pub.pem \
+            -rawin -in dist/SHA256SUMS -sigfile dist/SHA256SUMS.sig
+          [ "$(stat -c %s dist/SHA256SUMS.sig)" = 64 ]
+
       - name: 生成发布说明
         env:
           TAG: ${{ steps.meta.outputs.tag }}
@@ -145,7 +165,7 @@ jobs:
             echo
             echo "### 校验"
             echo
-            echo "附件 \`SHA256SUMS\` 覆盖全部四个包（包内另有一份覆盖包内各文件的 \`SHA256SUMS\`）："
+            echo "附件 \`SHA256SUMS\` 覆盖全部四个包（包内另有一份覆盖包内各文件的 \`SHA256SUMS\`），\`SHA256SUMS.sig\` 是它的 ed25519 签名，设备自动更新时用内嵌公钥验证："
             echo
             echo '```'
             echo "$(sha linux-arm64)  action-backup-${VERSION}-linux-arm64.tar.gz"
@@ -164,7 +184,7 @@ jobs:
           PRERELEASE: ${{ steps.meta.outputs.prerelease }}
         run: |
           set -euo pipefail
-          ASSETS=(dist/action-backup-"$VERSION"-*.tar.gz dist/SHA256SUMS)
+          ASSETS=(dist/action-backup-"$VERSION"-*.tar.gz dist/SHA256SUMS dist/SHA256SUMS.sig)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "action-backup ${VERSION}" \
               --notes-file dist/RELEASE_NOTES.md --prerelease="$PRERELEASE"

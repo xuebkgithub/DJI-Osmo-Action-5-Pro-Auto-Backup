@@ -109,3 +109,26 @@
 | 2026-11-19 | 事件中文显示在前端做：`web/src/eventText.js` 按 `type + data` 生成中文，未登记类型或 data 不足时回退后端原文；事件页可切「中文 / 原文」（默认中文，记 localStorage），总览页跟随；新增按类型筛选 | 用户 2026-11-19 要求。库里存的是英文 message + 结构化 data，前端渲染对历史事件同样生效、不用改表；日志（journalctl）保持英文便于检索。新增事件类型时要同步在 `eventText.js` 登记 |
 | 2026-11-19 | `task.retry` 事件补 `data.path`，排队中取消的 `task.cancelled` 补 `data.queued` | 原先这两条没有 data，中文消息拼不出文件名 |
 | 2026-11-19 | V0.8 mac simulation 验证通过；Linux 实机待设备上线后核对 | 证据 `docs/evidence/20261119T0227Z-v08-usb-version-events-zh/`；基于 GitHub Releases 的自动更新已调研，用户决定暂不做 |
+| 2026-11-19 | 软件更新自己实现，不用 `creativeprojects/go-selfupdate` | 用户 2026-11-19 决定。核对 v1.7.1 源码：资产命名、包内二进制、`SHA256SUMS` 都能对上，但 `UpdateTo` 把下载 / 校验 / 替换绑在一起只能整体放 root 侧，只换单个二进制（单元与 udev 规则不更新），下载无进度无续传，依赖重（go-github / gitea / gitlab SDK），v1.7.x 要 Go 1.26。详见架构 V1.6 §19.2 |
+| 2026-11-19 | 更新分两个角色：无特权主服务检查与下载，root oneshot 单元验签、安装、重启、回滚；挂载守护不参与 | 主服务在 `ProtectSystem=strict` 下写不了 `/opt` 也调不了 `systemctl`；不给守护加联网与自重启；不把 `/opt/action-backup` 放开给 `actionbackup`（等于可替换 root 执行的二进制）。V1.6 §19.3 |
+| 2026-11-19 | 发布包从第二阶段起做 ed25519 签名（对 `SHA256SUMS` 签），公钥嵌进二进制 | 用户确认。包由无特权服务下载，只靠同目录校验和时主服务被攻破即可伪造整套、提权到 root；签名后 root 只信公钥，镜像源也因此可用。密钥由用户生成，私钥放 GitHub Secrets（核对清单问题 12） |
+| 2026-11-19 | root 侧安装由 systemd timer 每分钟触发 `action-backup self-update --apply`，验签通过后执行包内 `install.sh` | 用户提出用系统定时任务 + `install.sh`。选 systemd timer 而非 crontab（日志进 journal、不依赖 cron）；`ConditionPathExists=` 无请求时不启动进程；定时任务不得直接执行下载目录里的脚本。复用 `install.sh` 使手动与自动安装同一份逻辑、单元文件随包更新。V1.6 §19.6 |
+| 2026-11-19 | 默认只提示，自动安装做成开关且默认关；只在没有任务传输时安装 | 用户确认。V1.6 §19.6.6、§19.7 |
+| 2026-11-19 | 发布仓库为公开仓库，检查与下载不带 token；仓库地址是代码常量，`update.api_base_url` 不进 PATCH 白名单 | 用户确认仓库公开。更新源不可经网页修改，避免被指到别处 |
+| 2026-11-19 | 分三阶段，先做第一阶段：检查 + 页面提示（V0.9） | 用户确认。第一阶段只发 HTTPS GET、不写文件、不涉及权限，可先上线观察设备到 GitHub 的可达性，再决定第三阶段是否做代理 / 镜像 |
+| 2026-11-19 | 开发构建（版本串无法解析、带 `-dirty` / `-dev`、或 git describe 的 `<提交数>-g<哈希>` 后缀）不做定期检查，也不判定有新版本 | `v0.8.0-dirty` 在语义化版本里小于 `v0.8.0`，直接比较会把同一份代码提示成有更新；默认版本串 `0.1.0-dev` 属于此类，所以 `make dev` 与测试不会访问 GitHub |
+| 2026-11-19 | 版本比较用 `golang.org/x/mod/semver`，新增为直接依赖 | 预发布排序规则（`rc.10 > rc.2`、`0.9.0-rc.1 < 0.9.0`）不手写；该模块要求 Go 1.25.0，与本项目一致 |
+| 2026-11-19 | `update.available` 同一版本只发一次（内存去重，重启后会重发）；`update.check_failed` 只在成功转失败时发一次 | 避免 12 小时一次的检查在断网时刷屏；去重不持久化是因为服务很少重启，不值得为此加表 |
+| 2026-11-19 | V0.9 第一阶段 mac 验证通过；Linux 实机待设备上线后核对 | 证据 `docs/evidence/20261119T0411Z-v09-update-check/`：对真实仓库查到 v0.8.0，定期检查、事件去重、页面徽标与卡片正常 |
+| 2026-11-19 | 签名密钥已生成：公钥 `internal/update/release-signing.pub.pem` 用 `go:embed` 嵌进二进制，私钥由用户保管并存入 GitHub Secrets `RELEASE_SIGNING_KEY` | 用户在本机生成 ed25519 密钥对（`~/.action-backup-release/`，仓库之外）。私钥没有经过 Claude，也不在仓库里。发布流水线签名后立即用仓库里的公钥验一遍，Secret 缺失时发布失败 |
+| 2026-11-19 | 签名格式：`openssl pkeyutl -sign -rawin` 对 `SHA256SUMS` 产出 64 字节原始签名 `SHA256SUMS.sig`，Go 侧 `crypto/ed25519` 验证 | 用临时密钥实测互通，篡改后验签失败（OpenSSL 3.6.3） |
+| 2026-11-19 | 第二阶段实现：主服务 `Apply` 下载（Range 续传）→ 验签 → 等备份空闲 → 写 `request` 标记；root 定时任务执行 `self-update --apply` | 架构 V1.6 §19.6。主服务侧也验签，而且先验签再下安装包，签名不对不浪费流量 |
+| 2026-11-19 | root 侧装什么只由验过签的 `SHA256SUMS` 决定（包名、版本都取自清单），不读请求标记的内容；版本必须严格高于当前 | 请求标记与下载目录归无特权用户所有，是不可信输入；版本检查防降级与重放旧包 |
+| 2026-11-19 | 安装结果写 `/opt/action-backup/update-result.json`，不写进更新目录（与最初设计不同） | 更新目录归 `actionbackup` 所有，root 往里写文件可能被符号链接利用；`/opt/action-backup` 只有 root 可写、主服务可读 |
+| 2026-11-19 | 更新单元用两个 `ConditionPathExists=|...`：有请求标记，或有 `prev/installing` 标记（上次安装被打断） | 只判请求标记的话，断电后的回滚没有机会运行 |
+| 2026-11-19 | 重启后的健康判定：两个单元 active + 健康接口应答且 `database.ok`；不看 HTTP 状态码 | NAS 不在线时健康接口是 503，那不是更新造成的，按状态码判会误回滚 |
+| 2026-11-19 | 回滚连数据库一起恢复；回滚确认健康才清 `installing` 标记，否则保留并在下次触发时重做 | 迁移只能向前；回滚本身也可能失败，保留现场比假装成功安全 |
+| 2026-11-19 | 请求标记在开始处理时即删除，每个请求只处理一次 | 失败的安装不应每分钟重试并刷结果；用户看到失败原因后自己决定是否重试 |
+| 2026-11-19 | `install_supported` 条件：Linux、非 simulation、非 faultinject、非开发构建、存在 `/etc/systemd/system/action-backup-update.timer` | 没装过定时任务的设备提交请求也没人处理；第一个带更新功能的版本需手动 `make deploy` 一次 |
+| 2026-11-19 | `web/src/sse.js` 的 `TYPES` 补登记 `update.*`、`backup.finished`、`storage.*`、`notify.failed` | EventSource 只能按名字监听。第一阶段漏登记，徽标不会实时出现；后四类是此前就漏的，`store.js` 里对 `storage.*` 的处理一直没生效 |
+| 2026-11-19 | 第二阶段在 mac 上验证通过（单元测试、假系统操作、真实安装包解包、浏览器流程）；root 侧安装未实机验证 | 证据 `docs/evidence/20261119T0530Z-v09-update-install/`。设备不在线，上线后按核对清单问题 13 执行 |

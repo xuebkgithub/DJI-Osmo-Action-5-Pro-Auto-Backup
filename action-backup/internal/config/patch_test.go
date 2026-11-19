@@ -191,3 +191,65 @@ func TestNotificationPatchAndSecret(t *testing.T) {
 		t.Fatalf("written: %+v", got.Notifications)
 	}
 }
+
+func TestUpdateConfigDefaultsPatchAndValidate(t *testing.T) {
+	const base = "mode: simulation\nsimulation: {device_source: fixtures, fixtures: {devices: [{key: a, serial: s, volumes: [{type: sdcard, path: /tmp/x}]}]}, allow_local_destination: true}\nstorage: {type: local, local_root: /tmp/nas, destination_root: X}\ndatabase: {path: /tmp/t.db}\n"
+	cfg, err := Parse([]byte(base))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u := cfg.Update; !u.ChecksEnabled() || u.CheckIntervalHours != 12 || u.Channel != UpdateChannelStable || u.APIBaseURL != DefaultUpdateAPIBaseURL {
+		t.Fatalf("defaults: %+v", u)
+	}
+	if !cfg.Notifications.On.NotifyUpdateAvailable() {
+		t.Fatal("notifications.on.update_available must default to true")
+	}
+	p, err := NormalizePatch(map[string]any{"update.check_enabled": false, "update.check_interval_hours": float64(24), "update.channel": "prerelease", "notifications.on.update_available": false})
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := cfg.Apply(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u := out.Update; u.ChecksEnabled() || u.CheckIntervalHours != 24 || u.Channel != UpdateChannelPrerelease || out.Notifications.On.NotifyUpdateAvailable() {
+		t.Fatalf("apply: %+v", u)
+	}
+	if err := out.Validate(true); err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.Update.ChecksEnabled() {
+		t.Fatal("original must be untouched")
+	}
+	// 白名单只放开三项：更新源地址不能经 PATCH 修改
+	for _, bad := range []map[string]any{
+		{"update.api_base_url": "https://evil.example"},
+		{"update.repository": "someone/else"},
+		{"update.channel": "nightly"},
+		{"update.check_interval_hours": float64(0)},
+		{"update.check_interval_hours": float64(721)},
+	} {
+		if _, err := NormalizePatch(bad); err == nil {
+			t.Fatalf("expected error for %v", bad)
+		}
+	}
+	// 文件里写错的值由 Validate 拦下
+	for yml, want := range map[string]string{
+		"update: {check_interval_hours: 1000}\n":  "update.check_interval_hours",
+		"update: {channel: nightly}\n":            "update.channel",
+		"update: {api_base_url: \"ftp://x\"}\n":   "update.api_base_url",
+		"update: {check_interval_hours: -1}\n":    "update.check_interval_hours",
+		"update: {api_base_url: \"not a url\"}\n": "update.api_base_url",
+	} {
+		c, err := Parse([]byte(base + yml))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := c.Validate(true); err == nil || !strings.Contains(err.Error(), want) {
+			t.Fatalf("%q: expected %s error, got %v", yml, want, err)
+		}
+	}
+	if _, err := Parse([]byte(base + "update: {repository: x/y}\n")); err == nil {
+		t.Fatal("unknown update key must be rejected by KnownFields")
+	}
+}

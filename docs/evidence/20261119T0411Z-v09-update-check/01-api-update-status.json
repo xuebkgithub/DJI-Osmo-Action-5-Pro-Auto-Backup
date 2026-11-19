@@ -1,0 +1,30 @@
+{
+    "data": {
+        "current_version": "0.7.0",
+        "dev_build": false,
+        "platform": "darwin-arm64",
+        "repository": "xuebkgithub/DJI-Osmo-Action-5-Pro-Auto-Backup",
+        "check_enabled": true,
+        "check_interval_hours": 12,
+        "channel": "stable",
+        "checking": false,
+        "checked_at": "2026-11-19T04:11:36Z",
+        "next_check_at": "2026-11-19T16:11:36Z",
+        "latest": {
+            "version": "0.8.0",
+            "tag": "v0.8.0",
+            "name": "action-backup 0.8.0",
+            "url": "https://github.com/xuebkgithub/DJI-Osmo-Action-5-Pro-Auto-Backup/releases/tag/v0.8.0",
+            "notes": "## action-backup 0.8.0\n\nproduction 构建，不含 faultinject，CGO 关闭。\n\n| 平台 | 文件 | 说明 |\n| --- | --- | --- |\n| Linux ARM64 | `action-backup-0.8.0-linux-arm64.tar.gz` | OEC-Turbo，含 `install.sh` / systemd / udev |\n| Linux x86_64 | `action-backup-0.8.0-linux-amd64.tar.gz` | 同上，x86 机器 |\n| macOS Apple Silicon | `action-backup-0.8.0-darwin-arm64.tar.gz` | M 系列 mac，含 `README-macos.md` |\n| macOS Intel | `action-backup-0.8.0-darwin-amd64.tar.gz` | Intel mac，同上 |\n\n### 自 v0.7.1 以来的变更\n\n- action-backup: V0.8 USB 协议版本显示与事件中文显示 (76121de)\n- 添加 MIT 许可证 (0f5d1c5)\n\n### 安装（Linux）\n\n```bash\ntar -xzf action-backup-0.8.0-linux-arm64.tar.gz\ncd action-backup-0.8.0-linux-arm64\nsudo ./install.sh\n```\n\n安装后编辑 `/etc/action-backup/config.yaml`（默认 dry-run 模板）与 `/etc/action-backup/smb.credentials`，\n用 `action-backup passwd --config /etc/action-backup/config.yaml` 设置登录口令，再 `systemctl enable --now action-backup`。\n\n### 运行（macOS）\n\n二进制未签名未公证，下载后需解除隔离属性：\n\n```bash\ntar -xzf action-backup-0.8.0-darwin-arm64.tar.gz\ncd action-backup-0.8.0-darwin-arm64\nshasum -a 256 -c SHA256SUMS\nxattr -dr com.apple.quarantine ./action-backup\n./action-backup --config config.mac-dryrun.yaml --check\n```\n\n详见包内 `README-macos.md`。\n\n### 校验\n\n附件 `SHA256SUMS` 覆盖全部四个包（包内另有一份覆盖包内各文件的 `SHA256SUMS`）：\n\n```\n6b548bfb41d6b0ad210084229a05c27cf373e5158ad9fa1c027c76fb1247e7e6  action-backup-0.8.0-linux-arm64.tar.gz\n11ab3dddd83052e5569f7732ef0439251afc9aebd2e2a0e2acaab977060fa625  action-backup-0.8.0-linux-amd64.tar.gz\ndde22d8526b03a887ba1eea18aa1bb0371aaeea2b07159bde29ade66210a402f  action-backup-0.8.0-darwin-arm64.tar.gz\nb0ba58d421e2427983acf2f2903b07428fce354754a6d956b0655597a0555a87  action-backup-0.8.0-darwin-amd64.tar.gz\n```\n",
+            "prerelease": false,
+            "published_at": "2026-11-19T02:40:21Z",
+            "asset": {
+                "name": "action-backup-0.8.0-darwin-arm64.tar.gz",
+                "size": 5011380,
+                "url": "https://github.com/xuebkgithub/DJI-Osmo-Action-5-Pro-Auto-Backup/releases/download/v0.8.0/action-backup-0.8.0-darwin-arm64.tar.gz"
+            }
+        },
+        "update_available": true,
+        "install_supported": false
+    }
+}

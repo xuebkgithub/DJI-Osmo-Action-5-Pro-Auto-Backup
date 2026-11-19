@@ -113,6 +113,21 @@ Go 模块代理：本机默认 `goproxy.cn` 不可用时，用 `GOPROXY=https://
 
 推送通知（V0.7）：配置段 `notifications`（MeoW 昵称、Telegram `bot_token` / `chat_id` / `proxy_url`、四类事件开关、`site_url`）全部可在网页「设置 → 通知」修改并立即生效；`POST /api/v1/notifications/test` 发测试消息。实现在 `internal/notify`，消息来源是事件总线上的 `device.attached`、`backup.started`、`backup.finished`（批次汇总）、`task.failed / task.interrupted`（合并）。设备直连不到 `api.telegram.org`，Telegram 必须填代理。
 
+新版本检查（V0.9，软件更新第一阶段）：`internal/update` 定期（默认 12 小时，启动 30 秒后首次）与手动查询 GitHub Releases，按语义化版本比较；
+`GET /api/v1/system/update` 返回当前 / 最新版本、发布说明、本平台安装包链接与检查状态，`POST /api/v1/system/update/check` 立即检查（失败 502 `UPDATE_CHECK_FAILED`）。
+网页顶栏显示「有新版本」徽标，「设置 → 软件更新」可改 `update.check_enabled`、`update.check_interval_hours`、`update.channel`（`stable` / `prerelease`）；
+事件 `update.available`（每个版本一次）可经 `notifications.on.update_available` 推送。
+开发构建（`-dirty`、`-dev`、tag 之后的提交）不做定期检查也不提示更新。发布仓库地址写死在代码里；设备到 GitHub 不通时可在单元里设 `Environment=HTTPS_PROXY=...`。
+本地验证页面效果：`go build -tags faultinject -ldflags "-X action-backup/internal/version.Version=0.7.0" -o dist/action-backup-dev ./cmd/action-backup` 后以 dev 配置启动。
+
+网页一键安装（V0.9，软件更新第二阶段，**尚未实机验证**）：`POST /api/v1/system/update/apply` 让主服务把安装包、`SHA256SUMS`、`SHA256SUMS.sig` 下载到 `/var/lib/action-backup/update/`（支持续传），
+用内嵌的 ed25519 公钥（`internal/update/release-signing.pub.pem`）验签、核对哈希，等备份任务空闲后写 `request` 标记。
+`action-backup-update.timer` 每分钟以 root 执行 `action-backup self-update --apply`：把文件复制进 root 专属目录重新验签 → 只按验过签的清单决定装哪个包（版本必须更高）→ 解包 → 备份旧二进制 / 单元 / 数据库到 `/opt/action-backup/prev/` → 执行包内 `install.sh` →
+重启 `action-backup-mounter` 与 `action-backup` → 90 秒内确认单元 active 且健康接口的数据库正常，否则回滚。结果写 `/opt/action-backup/update-result.json`，排查用 `journalctl -u action-backup-update`。
+只有 Linux 正式构建、且设备上已装过带定时任务的版本（先 `make deploy` 一次）才开放「立即更新」；没有签名的发布只能手动安装。
+发布签名：私钥在 GitHub Secrets `RELEASE_SIGNING_KEY`，Release 工作流对 `SHA256SUMS` 签名并用仓库里的公钥自验，Secret 缺失则发布失败。
+完整设计、失败情形与未验证项见 `docs/Action_Backup_软件架构设计_V1.6.md` 第 19 章。
+
 ## 部署到 OEC-Turbo
 
 设备 `172.20.31.6` 已可 SSH，统一走 `~/MyMac/scripts/cmd_ip.sh`（用法见仓库根 `README.md` 的「远程设备 SSH」）。

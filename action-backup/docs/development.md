@@ -10,4 +10,6 @@
 - 新增任何目标写入路径时，必须经 `storage.Target` 的方法，并在 `internal/storage/target_test.go` 增加 dry-run 拒绝用例。
 - 操作系统相关代码只放 `internal/platform`，其它包不得调用外部命令或使用 `syscall` 常量。
 - 新增 API 路由时必须加入 `internal/app/auth_test.go` 的 `protectedRoutes`，保证未登录 401 全覆盖；需要免认证的路径只能加到 `auth.DefaultPolicy()`。
+- 新增事件类型时前端要同步登记两处：`web/src/sse.js` 的 `TYPES`（EventSource 只能按名字监听，不登记页面收不到）与 `web/src/eventText.js`（中文名与文案）。
+- 自更新的 root 侧流程（`internal/update/installer.go`）只信验过签名的 `SHA256SUMS`；`/var/lib/action-backup/update/` 归无特权用户所有，其中任何文件名、内容都按不可信输入处理。改 `deployments/install.sh` 时记住它也会被自动更新以 root 非交互执行，必须可重复执行。
 - `PATCH /config` 只接受 `internal/config/patch.go` 白名单；新增项要同时实现 `Apply`、运行时应用（`internal/app/configstore.go`）和测试。

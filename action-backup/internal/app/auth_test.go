@@ -66,6 +66,7 @@ backup:
   verify_mode: basic   # basic | sha256
 database: { path: "DIR/t.db" }
 logging: { level: error, format: text }
+update: { check_enabled: false, api_base_url: "http://127.0.0.1:1" }   # 测试不访问 GitHub：手动检查会立刻连接失败
 `)
 	path := filepath.Join(dir, "config.yaml")
 	if err := os.WriteFile(path, []byte(y), 0o600); err != nil {
@@ -145,7 +146,8 @@ func newApp(t *testing.T, cfg *config.Config) *App {
 
 // protectedRoutes 除登录与健康检查外所有 API 路由，未登录必须 401。
 var protectedRoutes = [][2]string{
-	{"GET", "/api/v1/system/status"}, {"GET", "/api/v1/system/mode"}, {"GET", "/api/v1/auth/me"}, {"POST", "/api/v1/auth/logout"},
+	{"GET", "/api/v1/system/status"}, {"GET", "/api/v1/system/mode"},
+	{"GET", "/api/v1/system/update"}, {"POST", "/api/v1/system/update/check"}, {"POST", "/api/v1/system/update/apply"}, {"GET", "/api/v1/auth/me"}, {"POST", "/api/v1/auth/logout"},
 	{"GET", "/api/v1/devices"}, {"GET", "/api/v1/devices/1/volumes"}, {"POST", "/api/v1/devices/rescan"},
 	{"GET", "/api/v1/events"}, {"GET", "/api/v1/events/stream"},
 	{"POST", "/api/v1/backups/plan"}, {"GET", "/api/v1/backups/plan"}, {"POST", "/api/v1/backups/start"},

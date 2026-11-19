@@ -1,0 +1,4 @@
+{"check_enabled": true, "check_interval_hours": 12, "channel": "prerelease", "api_base_url": "https://api.github.com"}
+{"error":{"code":"BAD_PATCH","message":"config key is not patchable: \"update.api_base_url\"","retryable":false}}
+
+HTTP 400

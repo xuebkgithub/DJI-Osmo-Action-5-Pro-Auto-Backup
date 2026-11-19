@@ -106,6 +106,7 @@ func (c *Config) Validate(faultInjectBuild bool) error {
 	}
 
 	errs = append(errs, c.validateNotifications()...)
+	errs = append(errs, c.validateUpdate()...)
 
 	// faults
 	if c.Faults != nil && c.Faults.Enabled && !faultInjectBuild {
@@ -238,6 +239,22 @@ func (c *Config) validateNotifications() []error {
 	}
 	if n.Enabled && !n.MeoW.Enabled && !n.Telegram.Enabled {
 		add("notifications.enabled is true but no channel is enabled (meow or telegram)")
+	}
+	return errs
+}
+
+// validateUpdate 校验新版本检查配置。
+func (c *Config) validateUpdate() []error {
+	var errs []error
+	u := c.Update
+	if u.CheckIntervalHours < 1 || u.CheckIntervalHours > 720 {
+		errs = append(errs, fmt.Errorf("update.check_interval_hours must be between 1 and 720, got %d", u.CheckIntervalHours))
+	}
+	if u.Channel != UpdateChannelStable && u.Channel != UpdateChannelPrerelease {
+		errs = append(errs, fmt.Errorf("update.channel must be %s or %s, got %q", UpdateChannelStable, UpdateChannelPrerelease, u.Channel))
+	}
+	if !isHTTPURL(u.APIBaseURL) {
+		errs = append(errs, fmt.Errorf("update.api_base_url must be an http(s) URL, got %q", u.APIBaseURL))
 	}
 	return errs
 }

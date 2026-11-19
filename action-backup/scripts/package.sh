@@ -1,7 +1,7 @@
 #!/bin/bash
 # 打包：dist/action-backup-<version>-<target>.tar.gz
 # TARGET=linux-arm64（默认） | linux-amd64 | darwin-arm64 | darwin-amd64
-#   linux  包：production 二进制、配置样例、systemd 单元、udev 规则、mount helper 说明、install.sh、SHA256SUMS
+#   linux  包：production 二进制、配置样例、systemd 单元（含更新定时任务）、udev 规则、mount helper 说明、install.sh、SHA256SUMS
 #   darwin 包：production 二进制、配置样例、README-macos.md、SHA256SUMS（mac 上供开发与 dry-run，无 systemd）
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -20,10 +20,13 @@ chmod +x "$STAGE/action-backup"
 case "$OS" in
   linux)
     cp configs/config.example.yaml configs/config.dryrun.yaml "$STAGE/"
-    cp deployments/action-backup.service deployments/action-backup-mounter.service deployments/99-action-backup.rules deployments/install.sh "$STAGE/"
+    cp deployments/action-backup.service deployments/action-backup-mounter.service \
+       deployments/action-backup-update.service deployments/action-backup-update.timer \
+       deployments/99-action-backup.rules deployments/install.sh "$STAGE/"
     cp -R deployments/mount-helper "$STAGE/mount-helper"
     chmod +x "$STAGE/install.sh"
-    FILES=(action-backup config.example.yaml config.dryrun.yaml action-backup.service action-backup-mounter.service 99-action-backup.rules install.sh)
+    FILES=(action-backup config.example.yaml config.dryrun.yaml action-backup.service action-backup-mounter.service
+           action-backup-update.service action-backup-update.timer 99-action-backup.rules install.sh)
     ;;
   darwin)
     cp configs/config.example.yaml configs/config.mac-dryrun.yaml "$STAGE/"

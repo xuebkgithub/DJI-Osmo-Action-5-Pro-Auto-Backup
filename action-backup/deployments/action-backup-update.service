@@ -1,0 +1,21 @@
+[Unit]
+Description=DJI Action Backup self-update installer (root, oneshot)
+# 由 action-backup-update.timer 每分钟拉起。主服务（无特权）把验过哈希的安装包下载到更新目录后写 request 标记；
+# 没有标记时下面的条件不成立，systemd 直接跳过，连进程都不启动。
+# 路径与 database.path 同级（默认 /var/lib/action-backup/update）；改了 database.path 要同步改这里。
+# 两个条件带 | 前缀，任一成立即运行：有新的安装请求，或上次安装被打断（断电等）留下了 installing 标记需要回滚。
+ConditionPathExists=|/var/lib/action-backup/update/request
+ConditionPathExists=|/opt/action-backup/prev/installing
+# 安装过程会 stop / restart 下面两个单元，本单元不能与它们有 Requires / PartOf / BindsTo 之类的绑定关系，
+# 否则重启它们会把自己一起带走，健康检查与回滚就做不了。
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+# 只处理一次请求：用内嵌公钥验 SHA256SUMS 的签名 → 核对包哈希 → 解包 → 执行包内 install.sh →
+# 重启服务 → 健康检查，失败回滚。本命令不联网，装什么完全由验过签名的清单决定。
+ExecStart=/opt/action-backup/action-backup self-update --apply --config /etc/action-backup/config.yaml
+# install.sh + 两次重启 + 90 秒健康检查 + 可能的回滚
+TimeoutStartSec=600
+# 不加 ProtectSystem / PrivateTmp 等沙箱：要写 /opt、/etc/systemd/system、/etc/udev/rules.d 并调用 systemctl。

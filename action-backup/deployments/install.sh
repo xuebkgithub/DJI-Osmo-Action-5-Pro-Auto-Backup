@@ -1,6 +1,7 @@
 #!/bin/bash
 # OEC-Turbo 安装脚本。在解压后的安装包目录内以 root 执行。
-# 只安装 production 二进制；校验 SHA256；创建用户与目录；注册 systemd；不自动启动。
+# 只安装 production 二进制；校验 SHA256；创建用户与目录；注册 systemd；不自动启动主服务（更新定时任务会启用）。
+# 自动更新（action-backup self-update --apply）验签通过后执行的也是这份脚本，所以它必须可重复执行、不依赖交互。
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -21,9 +22,14 @@ install -m 0755 action-backup /opt/action-backup/action-backup
 install -m 0644 config.example.yaml /etc/action-backup/config.example.yaml
 install -m 0644 action-backup.service /etc/systemd/system/action-backup.service
 install -m 0644 action-backup-mounter.service /etc/systemd/system/action-backup-mounter.service
+install -m 0644 action-backup-update.service /etc/systemd/system/action-backup-update.service
+install -m 0644 action-backup-update.timer /etc/systemd/system/action-backup-update.timer
 install -m 0644 99-action-backup.rules /etc/udev/rules.d/99-action-backup.rules
 udevadm control --reload-rules || true
 systemctl daemon-reload
+# 更新定时任务：每分钟看一眼有没有安装请求，没有就什么都不做（单元带 ConditionPathExists）。
+# 它是网页「立即更新」能生效的前提，所以安装时直接启用；主服务本身仍然不自动启动。
+systemctl enable --now action-backup-update.timer
 
 cat <<MSG
 安装完成，尚未启动。

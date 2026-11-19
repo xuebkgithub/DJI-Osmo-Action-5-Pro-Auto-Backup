@@ -8,6 +8,9 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -29,6 +32,7 @@ import (
 	"action-backup/internal/scheduler"
 	"action-backup/internal/storage"
 	"action-backup/internal/syncengine"
+	"action-backup/internal/update"
 	"action-backup/internal/version"
 	"action-backup/web"
 )
@@ -49,11 +53,14 @@ type App struct {
 	service *backup.Service
 	auth    *auth.Manager
 	notify  *notify.Dispatcher
+	update  *update.Checker
 	handler http.Handler
 	started time.Time
 
 	autoBackup atomic.Bool
 	logLevel   *slog.LevelVar
+	// updateInstall 测试用：覆盖按平台推出的安装参数。
+	updateInstall *update.InstallOptions
 
 	cfgMu sync.Mutex // 保护 cfg 的运行时修改
 
@@ -66,6 +73,30 @@ type Option func(*App)
 
 // WithLogLevel 让 PATCH /config 的 logging.level 实时生效。
 func WithLogLevel(v *slog.LevelVar) Option { return func(a *App) { a.logLevel = v } }
+
+// WithUpdateInstall 覆盖更新安装参数（测试用：mac 上也能走通下载、验签与提交请求）。
+func WithUpdateInstall(o update.InstallOptions) Option {
+	return func(a *App) { a.updateInstall = &o }
+}
+
+// updateInstallOptions 推出本进程的更新安装参数。网页一键安装只在这些条件同时满足时开放：
+// Linux、非 simulation、正式构建（非 faultinject、非开发版本）、设备上装了更新定时任务。
+func updateInstallOptions(cfg *config.Config, mode runmode.Mode, sched *scheduler.Scheduler) update.InstallOptions {
+	o := update.InstallOptions{
+		Dir:  update.DirFor(cfg.Database.Path),
+		Busy: func() bool { return sched.State().Current != nil },
+	}
+	if exe, err := os.Executable(); err == nil {
+		o.ResultPath = update.ResultPath(filepath.Dir(exe))
+	}
+	if runtime.GOOS != "linux" || mode == runmode.Simulation || faultinject.Enabled || update.IsDevBuild(version.Version) {
+		return o
+	}
+	if _, err := os.Stat(update.TimerUnitPath); err == nil {
+		o.Supported = true
+	}
+	return o
+}
 
 // New 装配应用。配置必须已通过 Validate。
 func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Option) (*App, error) {
@@ -160,6 +191,15 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Opti
 	for _, o := range opts {
 		o(a)
 	}
+	install := updateInstallOptions(cfg, mode, sched)
+	if a.updateInstall != nil {
+		install = *a.updateInstall
+		if install.Busy == nil {
+			install.Busy = func() bool { return sched.State().Current != nil }
+		}
+	}
+	updater := update.New(cfg.Update, bus, log, update.Options{Current: version.Version, Install: install})
+	a.update = updater
 	a.autoBackup.Store(cfg.Device.AutoBackup)
 	devices.OnAttached = a.onDeviceAttached
 	devices.OnDetached = a.onDeviceDetached
@@ -170,7 +210,7 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Opti
 		Guard:   guard, PlatformName: backend.Name, Version: version.Version, StartedAt: a.started,
 		DB: db, Target: target, Storage: (*storageControl)(a), Devices: devices,
 		Events: repository.Events{DB: db.DB}, Tasks: repository.Tasks{DB: db.DB},
-		Static: web.Dist(), AuthEnabled: cfg.Server.Auth.Enabled, Auth: authMgr, Bus: bus, Config: (*configStore)(a), Notify: notifier, Log: log,
+		Static: web.Dist(), AuthEnabled: cfg.Server.Auth.Enabled, Auth: authMgr, Bus: bus, Config: (*configStore)(a), Notify: notifier, Update: updater, Log: log,
 	}
 	if simBackend != nil {
 		deps.Sim = simBackend
@@ -319,6 +359,9 @@ func (a *App) Auth() *auth.Manager { return a.auth }
 // Notifier 返回通知分发器（测试用）。
 func (a *App) Notifier() *notify.Dispatcher { return a.notify }
 
+// Updater 返回更新检查器（测试用）。
+func (a *App) Updater() *update.Checker { return a.update }
+
 // Scheduler 返回调度器。
 func (a *App) Scheduler() *scheduler.Scheduler { return a.sched }
 
@@ -367,6 +410,7 @@ func (a *App) Run(ctx context.Context) error {
 		a.log.Info("storage target ready", "kind", h.Kind, "root", h.Root, "fs", h.FSType, "free_bytes", h.FreeBytes)
 	}
 	go a.superviseTarget(ctx)
+	go a.update.Run(ctx)
 
 	if n, err := (repository.Tasks{DB: a.db.DB}).MarkInterruptedOnStartup(ctx); err != nil {
 		return fmt.Errorf("recover tasks: %w", err)

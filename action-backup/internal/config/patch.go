@@ -29,7 +29,7 @@ type PatchField struct {
 	Key     string    `json:"key"`
 	Kind    PatchKind `json:"kind"`
 	Choices []string  `json:"choices,omitempty"`
-	// Group 前端分卡片显示：general | notify。
+	// Group 前端分卡片显示：general | notify | update。
 	Group string `json:"group"`
 	// Secret 为 true 时 GET /config 输出 Masked，PATCH 收到 Masked 视为未修改，前端用密码框。
 	Secret   bool   `json:"secret,omitempty"`
@@ -43,6 +43,7 @@ type PatchField struct {
 const (
 	GroupGeneral = "general"
 	GroupNotify  = "notify"
+	GroupUpdate  = "update"
 )
 
 // patchWhitelist 白名单；顺序即 API 输出顺序。
@@ -59,6 +60,7 @@ var patchWhitelist = []PatchField{
 	{Key: "notifications.on.backup_started", Kind: KindBool, Group: GroupNotify, Label: "开始备份", Doc: "计划完成、任务入队后通知（含文件数与大小）"},
 	{Key: "notifications.on.backup_finished", Kind: KindBool, Group: GroupNotify, Label: "备份完成", Doc: "一批任务全部结束后发一条汇总"},
 	{Key: "notifications.on.backup_failed", Kind: KindBool, Group: GroupNotify, Label: "备份失败", Doc: "任务失败或中断时通知，30 秒内多条合并"},
+	{Key: "notifications.on.update_available", Kind: KindBool, Group: GroupNotify, Label: "有新版本", Doc: "检查到新版本时通知，每个版本只发一次"},
 	{Key: "notifications.site_url", Kind: KindString, Group: GroupNotify, Label: "网页链接", Doc: "通知里附带的本服务地址，如 http://172.20.31.6:8080；留空不附"},
 	{Key: "notifications.meow.enabled", Kind: KindBool, Group: GroupNotify, Label: "MeoW 启用", Doc: "通过 MeoW（api.chuckfang.com）推送到手机"},
 	{Key: "notifications.meow.nickname", Kind: KindString, Group: GroupNotify, Label: "MeoW 昵称", Doc: "MeoW App 里注册的昵称；昵称即密钥"},
@@ -66,6 +68,10 @@ var patchWhitelist = []PatchField{
 	{Key: "notifications.telegram.bot_token", Kind: KindString, Group: GroupNotify, Secret: true, Label: "Telegram Bot Token", Doc: "BotFather 给的 token；保存后只显示 ***"},
 	{Key: "notifications.telegram.chat_id", Kind: KindString, Group: GroupNotify, Label: "Telegram Chat ID", Doc: "接收消息的 chat_id（用户、群或频道）"},
 	{Key: "notifications.telegram.proxy_url", Kind: KindString, Group: GroupNotify, Label: "Telegram 代理", Doc: "设备直连不到 api.telegram.org 时填 http:// 或 socks5://host:port；留空直连"},
+
+	{Key: "update.check_enabled", Kind: KindBool, Group: GroupUpdate, Label: "定期检查", Doc: "按间隔自动检查 GitHub Releases；关闭后仍可手动检查"},
+	{Key: "update.check_interval_hours", Kind: KindInt, Group: GroupUpdate, Min: 1, Max: 720, Label: "检查间隔（小时）", Doc: "1–720，默认 12"},
+	{Key: "update.channel", Kind: KindString, Group: GroupUpdate, Choices: []string{UpdateChannelStable, UpdateChannelPrerelease}, Label: "更新通道", Doc: "stable 只看正式版；prerelease 含 rc / beta 等预发布"},
 }
 
 // PatchableFields 返回白名单副本。
@@ -209,6 +215,14 @@ func (c *Config) Apply(p Patch) (*Config, error) {
 			out.Notifications.On.BackupFinished = boolPtr(v.(bool))
 		case "notifications.on.backup_failed":
 			out.Notifications.On.BackupFailed = boolPtr(v.(bool))
+		case "notifications.on.update_available":
+			out.Notifications.On.UpdateAvailable = boolPtr(v.(bool))
+		case "update.check_enabled":
+			out.Update.CheckEnabled = boolPtr(v.(bool))
+		case "update.check_interval_hours":
+			out.Update.CheckIntervalHours = v.(int)
+		case "update.channel":
+			out.Update.Channel = v.(string)
 		case "notifications.site_url":
 			out.Notifications.SiteURL = v.(string)
 		case "notifications.meow.enabled":

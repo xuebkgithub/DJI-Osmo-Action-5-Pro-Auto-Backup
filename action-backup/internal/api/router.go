@@ -18,6 +18,7 @@ import (
 	"action-backup/internal/runmode"
 	"action-backup/internal/scheduler"
 	"action-backup/internal/storage"
+	"action-backup/internal/update"
 )
 
 // DeviceSource 当前已插入设备。
@@ -68,6 +69,14 @@ type Notifier interface {
 	Test(ctx context.Context, channel string) notify.TestResult
 }
 
+// Updater 新版本检查。Check 失败时仍返回当前状态（含上一次成功的结果与错误信息）。
+type Updater interface {
+	Status() update.Status
+	Check(ctx context.Context) (update.Status, error)
+	// Apply 开始下载、验签并提交安装请求，立即返回；真正的安装由 root 定时任务完成。
+	Apply() (update.Status, error)
+}
+
 // Deps 处理器依赖。
 type Deps struct {
 	Planner      Planner
@@ -91,6 +100,7 @@ type Deps struct {
 	Bus          *events.Broadcaster
 	Config       ConfigStore
 	Notify       Notifier
+	Update       Updater
 	Log          *slog.Logger
 }
 
@@ -108,6 +118,9 @@ func NewRouter(d Deps) http.Handler {
 	mux.HandleFunc("GET /api/v1/system/health", h.health)
 	mux.HandleFunc("GET /api/v1/system/status", h.status)
 	mux.HandleFunc("GET /api/v1/system/mode", h.mode)
+	mux.HandleFunc("GET /api/v1/system/update", h.updateStatus)
+	mux.HandleFunc("POST /api/v1/system/update/check", h.updateCheck)
+	mux.HandleFunc("POST /api/v1/system/update/apply", h.updateApply)
 	mux.HandleFunc("POST /api/v1/auth/login", h.authLogin)
 	mux.HandleFunc("POST /api/v1/auth/logout", h.authLogout)
 	mux.HandleFunc("GET /api/v1/auth/me", h.authMe)

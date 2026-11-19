@@ -52,11 +52,13 @@ make tag V=0.6.0       # 打 tag 触发 GitHub Release
 - 新增 API 路由必须加进 `internal/app/auth_test.go` 的 `protectedRoutes`（保证未登录 401 全覆盖）；免认证路径只能加到 `auth.DefaultPolicy()`。
 - `PATCH /config` 只接受 `internal/config/patch.go` 白名单；新增项要同时实现 `Apply`、运行时应用（`internal/app/configstore.go`）与测试。
 - `-tags faultinject` 只能出现在 `make dev`、`make test-integration`、`make build-arm64-test`；`make build-arm64` 与 `make package` 永远不带。
+- 新增事件类型必须同时登记 `web/src/sse.js` 的 `TYPES` 与 `web/src/eventText.js`，否则页面收不到 / 显示英文原文。
+- 发布签名私钥只在用户本机（`~/.action-backup-release/`，不要读取）与 GitHub Secrets `RELEASE_SIGNING_KEY`；仓库里只有公钥 `internal/update/release-signing.pub.pem`。
 - 改前端后必须 `make web-build` 并把 `web/dist` 一起提交，CI 会校验产物与 `web/src` 一致，否则失败。
 
 ## 文档约定
 
-- 架构文档按版本号另存（`docs/Action_Backup_软件架构设计_V1.x.md`），**不覆盖旧版**；当前基线 V1.5。
+- 架构文档按版本号另存（`docs/Action_Backup_软件架构设计_V1.x.md`），**不覆盖旧版**；当前基线 V1.6。
 - 每次实机 / mac 验证，把命令原始输出放进 `docs/evidence/<UTC时间>-<主题>/`，结论写进 `docs/03-decisions.md`，架构文档里只引用不复制。
 - 待确认问题记在 `docs/02-verification-checklist.md`，答案确认后搬进 `03-decisions.md`。
 - 阶段进展更新仓库根 `README.md` 的「当前阶段」。

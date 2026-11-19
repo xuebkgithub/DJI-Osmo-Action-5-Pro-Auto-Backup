@@ -255,3 +255,14 @@ func TestFormatDeviceAttachedUSBLimited(t *testing.T) {
 		t.Fatalf("humanLinkSpeed %q", got)
 	}
 }
+
+func TestFormatUpdateAvailable(t *testing.T) {
+	m := formatUpdateAvailable(events.Event{Data: map[string]any{"version": "0.9.0", "current": "0.8.0", "url": "https://example.invalid/r/v0.9.0", "prerelease": false}}, "http://site")
+	if m.Title != "Action Backup · 有新版本" || m.Body != "发现新版本 0.9.0，当前 0.8.0\nhttps://example.invalid/r/v0.9.0" || m.URL != "http://site" {
+		t.Fatalf("message %+v", m)
+	}
+	m = formatUpdateAvailable(events.Event{Data: map[string]any{"version": "0.9.0-rc.1", "prerelease": true}}, "")
+	if m.Body != "发现新版本 0.9.0-rc.1（预发布）" {
+		t.Fatalf("prerelease body %q", m.Body)
+	}
+}
