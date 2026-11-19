@@ -1,0 +1,67 @@
+=== 版本与服务
+action-backup 0.9.1-rc.2 (commit 1b5430d, built 2026-11-19T06:35:10Z, faultinject=false)
+active
+active
+active
+ActiveEnterTimestamp=Thu 2026-11-19 14:47:22 CST
+
+ActiveEnterTimestamp=Thu 2026-11-19 14:47:22 CST
+=== 结果文件
+{
+  "ok": true,
+  "from": "0.9.1-rc.1",
+  "to": "0.9.1-rc.2",
+  "started_at": "2026-11-19T06:47:06Z",
+  "finished_at": "2026-11-19T06:47:25Z",
+  "log": "action-backup: 成功\nconfig.example.yaml: 成功\nconfig.dryrun.yaml: 成功\naction-backup.service: 成功\naction-backup-mounter.service: 成功\naction-backup-update.service: 成功\naction-backup-update.timer: 成功\n99-action-backup.rules: 成功\ninstall.sh: 成功\n安装完成，尚未启动。\n1. 编辑 /etc/action-backup/config.yaml（当前为 dry-run 模板），填写 SMB 共享与认证。\n2. 创建 /etc/action-backup/smb.credentials（username=/password=），chmod 0600。\n3. 校验：/opt/action-backup/action-backup --config /etc/action-backup/config.yaml --check\n4. 首轮以 dry-run 启动：systemctl enable --now action-backup && journalctl -fu action-backup\n   （action-backup.service Requires= 挂载守护 action-backup-mounter.service，会一并拉起）\n"
+}
+=== 目录
+/opt/action-backup/prev:
+总计 12020
+drwx------ 2 root root     4096 11月19日 14:47 .
+drwxr-xr-x 4 root root     4096 11月19日 14:47 ..
+-rw------- 1 root root 11927736 11月19日 14:47 f00
+-rw------- 1 root root     1366 11月19日 14:47 f01
+-rw------- 1 root root     1318 11月19日 14:47 f02
+-rw------- 1 root root     1553 11月19日 14:47 f03
+-rw------- 1 root root      430 11月19日 14:47 f04
+-rw------- 1 root root      448 11月19日 14:47 f05
+-rw------- 1 root root   344064 11月19日 14:47 f06
+-rw------- 1 root root     1035 11月19日 14:47 manifest.json
+
+/var/lib/action-backup/update:
+总计 12
+drwxr-x--- 2 actionbackup actionbackup 4096 11月19日 14:47 .
+drwxr-x--- 4 actionbackup actionbackup 4096 11月19日 14:47 ..
+-rw-r----- 1 actionbackup actionbackup   20 11月19日 14:47 reported
+ls: 无法访问 '/opt/action-backup/update-work': 没有那个文件或目录
+=== 更新单元日志
+11月 19 14:44:06 armbian systemd[1]: Starting action-backup-update.service - DJI Action Backup self-update installer (root, oneshot)...
+11月 19 14:44:06 armbian action-backup[3866]: {"time":"2026-11-19T14:44:06.323662773+08:00","level":"INFO","msg":"self-update finished","ok":false,"from":"0.9.1-rc.1","to":"0.9.1-rc.2","step":"verify","error":"sha256 mismatch: /opt/action-backup/update-work/action-backup-0.9.1-rc.2-linux-arm64.tar.gz","rolled_back":false,"rollback_error":""}
+11月 19 14:44:06 armbian action-backup[3866]: error: verify: sha256 mismatch: /opt/action-backup/update-work/action-backup-0.9.1-rc.2-linux-arm64.tar.gz
+11月 19 14:44:06 armbian systemd[1]: action-backup-update.service: Main process exited, code=exited, status=1/FAILURE
+11月 19 14:44:06 armbian systemd[1]: action-backup-update.service: Failed with result 'exit-code'.
+11月 19 14:44:06 armbian systemd[1]: Failed to start action-backup-update.service - DJI Action Backup self-update installer (root, oneshot).
+11月 19 14:47:06 armbian systemd[1]: Starting action-backup-update.service - DJI Action Backup self-update installer (root, oneshot)...
+11月 19 14:47:25 armbian action-backup[4004]: {"time":"2026-11-19T14:47:25.527195321+08:00","level":"INFO","msg":"self-update finished","ok":true,"from":"0.9.1-rc.1","to":"0.9.1-rc.2","step":"","error":"","rolled_back":false,"rollback_error":""}
+11月 19 14:47:25 armbian systemd[1]: action-backup-update.service: Deactivated successfully.
+11月 19 14:47:25 armbian systemd[1]: Finished action-backup-update.service - DJI Action Backup self-update installer (root, oneshot).
+11月 19 14:47:25 armbian systemd[1]: action-backup-update.service: Consumed 1.506s CPU time.
+=== 主服务日志
+11月 19 14:46:19 armbian action-backup[3570]: {"time":"2026-11-19T14:46:19.258641958+08:00","level":"INFO","msg":"new version 0.9.1-rc.2 available (running 0.9.1-rc.1)","event":"update.available"}
+11月 19 14:47:01 armbian action-backup[3570]: {"time":"2026-11-19T14:47:01.65261758+08:00","level":"INFO","msg":"update to 0.9.1-rc.2 downloaded and verified, waiting for installer","event":"update.requested"}
+11月 19 14:47:06 armbian action-backup[3570]: {"time":"2026-11-19T14:47:06.800465602+08:00","level":"INFO","msg":"service stopping","event":"system.stopping"}
+11月 19 14:47:16 armbian action-backup[3570]: error: context deadline exceeded
+11月 19 14:47:16 armbian systemd[1]: action-backup.service: Failed with result 'exit-code'.
+11月 19 14:47:16 armbian systemd[1]: Stopped action-backup.service - DJI Action Backup Service.
+11月 19 14:47:22 armbian systemd[1]: Started action-backup.service - DJI Action Backup Service.
+11月 19 14:47:22 armbian action-backup[4118]: {"time":"2026-11-19T14:47:22.394239872+08:00","level":"INFO","msg":"action-backup starting","version":"0.9.1-rc.2","config":"/etc/action-backup/config.yaml","mode":"production","faultinject":false}
+11月 19 14:47:22 armbian action-backup[4118]: {"time":"2026-11-19T14:47:22.423282739+08:00","level":"INFO","msg":"storage target ready","kind":"cifs","root":"/mnt/action-backup-nas/DJI-Action5Pro","fs":"cifs","free_bytes":11128099385344}
+11月 19 14:47:22 armbian action-backup[4118]: {"time":"2026-11-19T14:47:22.429774756+08:00","level":"ERROR","msg":"update to 0.9.1-rc.2 failed at verify: sha256 mismatch: /opt/action-backup/update-work/action-backup-0.9.1-rc.2-linux-arm64.tar.gz","event":"update.failed"}
+11月 19 14:47:22 armbian action-backup[4118]: {"time":"2026-11-19T14:47:22.448289168+08:00","level":"INFO","msg":"http listening","addr":"[::]:8080","mode":"production","platform":"linux"}
+11月 19 14:47:27 armbian action-backup[4118]: {"time":"2026-11-19T14:47:27.448266022+08:00","level":"INFO","msg":"updated from 0.9.1-rc.1 to 0.9.1-rc.2","event":"update.installed"}
+=== 挂载
+1
+mode: "production" # 实机首轮验证：只扫描、规划，不写 NAS
+  auto_backup: true
+  channel: prerelease

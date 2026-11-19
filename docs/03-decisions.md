@@ -142,3 +142,7 @@
 | 2026-11-19 | T1 设备侧核对全部通过：结果文件 `ok: true`、root 侧 19 秒、备份与清理符合设计、健康检查约 3 秒 | 证据 `docs/evidence/20261119T0600Z-v09-update-device-t1/02-device-result-and-update-journal.txt` |
 | 2026-11-19 | 更正：v0.9.0 的定时器（`OnUnitActiveSec=1min`）实测每 60–70 秒持续触发，此前「可能只触发一次」的怀疑不成立；`OnCalendar` 写法同样正常，保留 | 同上证据里更新前后的 journal。当时的判断是读文档推断的，没有实测就写进了提交说明与文档，现按实测更正 |
 | 2026-11-19 | 无请求时更新单元每分钟在 journal 留一行 `skipped because no trigger condition checks were met`（约 1440 行 / 天），暂不处理 | 实测。可用 `LogLevelMax=notice` + `SyslogLevel=notice` 压制，但未在真实 systemd 上验证过效果，且会连带隐藏 Starting / Finished 行；体量小，先留着 |
+| 2026-11-19 | 实机 N1 通过：签名有效的清单 + 被改写的安装包，root 侧在 `verify` 拒绝，服务未被停、系统未被动 | 证据 `docs/evidence/20261119T0647Z-v09-update-device-n1-rc2/01-n1-corrupt-package.txt` |
+| 2026-11-19 | 实机 0.9.1-rc.1 → rc.2 更新成功；`awaitResult` 修复有效（结果写入 2 秒后报告「更新完成」）；沙箱内可读结果文件；挂载守护随主服务一起重启 | 同目录 `03-after-update-rc1-to-rc2.txt`。停机超时的修复要到 rc.2 被替换时才能验证 |
+| 2026-11-19 | 实机 N3 / N2 / N4 通过：重放同版本在 `verify` 被拒（not newer），坏签名在 `verify` 被拒，符号链接在 `stage` 被 `O_NOFOLLOW` 拒绝（ELOOP）；三次服务都未被停 | 证据 `docs/evidence/20261119T0647Z-v09-update-device-n1-rc2/04-n3-n2-n4.txt`。测试方案 N 组至此全部通过 |
+| 2026-11-19 | 回滚演练（测试方案 T3）不做；发布 `v0.9.1` 正式版结束本轮测试 | 用户决定。回滚只有单元测试覆盖（假系统操作），未在真实设备上演练；T2（备份进行中不打断）同样只有单元测试覆盖 |

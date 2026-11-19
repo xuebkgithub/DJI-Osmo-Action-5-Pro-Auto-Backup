@@ -1,0 +1,12 @@
+armbian:update:# /opt/action-backup/action-backup --version; systemctl show action-backup action-backup-mounter -p ActiveEnterTimestamp; ls -la /var/lib/action-backup/update; date
+action-backup 0.9.1-rc.1 (commit 8950ecf, built 2026-11-19T05:57:24Z, faultinject=false)
+ActiveEnterTimestamp=Thu 2026-11-19 14:01:12 CST
+
+ActiveEnterTimestamp=Thu 2026-11-19 14:01:12 CST
+总计 4900
+drwxr-x--- 2 actionbackup actionbackup    4096 11月19日 14:44 .
+drwxr-x--- 4 actionbackup actionbackup    4096 11月19日 14:01 ..
+-rw-r--r-- 1 root         root         4997228 11月19日 14:43 action-backup-0.9.1-rc.2-linux-arm64.tar.gz
+-rw-r--r-- 1 root         root             442 11月19日 14:36 SHA256SUMS
+-rw-r--r-- 1 root         root              64 11月19日 14:36 SHA256SUMS.sig
+2026年 11月 19日 星期四 14:45:48 CST

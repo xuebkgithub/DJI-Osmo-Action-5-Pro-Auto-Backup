@@ -1,0 +1,33 @@
+# N1：rc.2 的 SHA256SUMS / SHA256SUMS.sig 原样，安装包在偏移 4096 处被改写 4 个字节，然后 touch request。设备当时为 0.9.1-rc.1。
+armbian:update:# chk
+--- result
+{
+  "ok": false,
+  "from": "0.9.1-rc.1",
+  "to": "0.9.1-rc.2",
+  "step": "verify",
+  "error": "sha256 mismatch: /opt/action-backup/update-work/action-backup-0.9.1-rc.2-linux-arm64.tar.gz",
+  "started_at": "2026-11-19T06:44:06Z",
+  "finished_at": "2026-11-19T06:44:06Z"
+}
+--- version / units
+action-backup 0.9.1-rc.1 (commit 8950ecf, built 2026-11-19T05:57:24Z, faultinject=false)
+active
+active
+ActiveEnterTimestamp=Thu 2026-11-19 14:01:12 CST
+--- leftovers
+总计 4900
+drwxr-x--- 2 actionbackup actionbackup    4096 11月19日 14:44 .
+drwxr-x--- 4 actionbackup actionbackup    4096 11月19日 14:01 ..
+-rw-r--r-- 1 root         root         4997228 11月19日 14:43 action-backup-0.9.1-rc.2-linux-arm64.tar.gz
+-rw-r--r-- 1 root         root             442 11月19日 14:36 SHA256SUMS
+-rw-r--r-- 1 root         root              64 11月19日 14:36 SHA256SUMS.sig
+0
+ls: 无法访问 '/opt/action-backup/update-work': 没有那个文件或目录
+--- journal
+11月 19 14:44:06 armbian systemd[1]: Starting action-backup-update.service - DJI Action Backup self-update installer (root, oneshot)...
+11月 19 14:44:06 armbian action-backup[3866]: {"time":"2026-11-19T14:44:06.323662773+08:00","level":"INFO","msg":"self-update finished","ok":false,"from":"0.9.1-rc.1","to":"0.9.1-rc.2","step":"verify","error":"sha256 mismatch: /opt/action-backup/update-work/action-backup-0.9.1-rc.2-linux-arm64.tar.gz","rolled_back":false,"rollback_error":""}
+11月 19 14:44:06 armbian action-backup[3866]: error: verify: sha256 mismatch: /opt/action-backup/update-work/action-backup-0.9.1-rc.2-linux-arm64.tar.gz
+11月 19 14:44:06 armbian systemd[1]: action-backup-update.service: Main process exited, code=exited, status=1/FAILURE
+11月 19 14:44:06 armbian systemd[1]: action-backup-update.service: Failed with result 'exit-code'.
+11月 19 14:44:06 armbian systemd[1]: Failed to start action-backup-update.service - DJI Action Backup self-update installer (root, oneshot).

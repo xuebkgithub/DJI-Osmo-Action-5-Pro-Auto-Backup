@@ -1651,11 +1651,13 @@ root 侧的检查顺序（每一步失败都不会动系统文件）：
 - 主服务沙箱下读得到定时器单元文件（`install_supported` 为 true，按钮可用）。
 - 暴露并修复两个问题：停机时 SSE 长连接让 `Shutdown` 等满 10 秒并以失败退出；新进程启动时结果文件尚未写入，「更新完成」没有被报告（`awaitResult`）。
 
+- 同日 rc.1 → rc.2（证据 `docs/evidence/20261119T0647Z-v09-update-device-n1-rc2/`）：`awaitResult` 修复有效，结果写入 2 秒后报告「更新完成」；主服务沙箱下可读 `/opt/action-backup/update-result.json`；挂载守护随主服务一起重启。
+- 测试方案 N 组全部通过：被改写的安装包（`verify` / sha256 mismatch）、坏签名（`verify`）、重放同版本（`verify` / not newer）、符号链接（`stage`，`O_NOFOLLOW` 返回 ELOOP）。四次服务都未被停、系统文件未被改动。
+
 仍未验证：
 
-- 坏输入拒绝（测试方案 N 组）与回滚在真实设备上的表现；`O_NOFOLLOW` 拒绝符号链接的路径没有实机执行过。
-- 上述两处修复本身（待下一个测试版）。
-- 主服务沙箱下读取 `/opt/action-backup/update-result.json`（rc.1 没有在启动后读到它，原因是时序而非权限，但权限本身尚无直接证据）。
+- 停机超时的修复（要等 rc.2 被下一个版本替换）。
+- 回滚在真实设备上的表现（测试方案 T3，可选）。
 
 ### 19.7 第三阶段：自动安装与镜像（设计，未实现）
 

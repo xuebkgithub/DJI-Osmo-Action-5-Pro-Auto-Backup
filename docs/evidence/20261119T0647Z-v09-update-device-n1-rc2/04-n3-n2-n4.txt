@@ -1,0 +1,105 @@
+# N3 / N2 / N4，设备为 0.9.1-rc.2，素材为 rc.2 的发布文件。用户在 root shell 里执行并贴回。
+armbian:update:# curl -fsSLO $R/SHA256SUMS && curl -fsSLO $R/SHA256SUMS.sig && curl -fsSLO $R/action-backup-0.9.1-rc.2-linux-arm64.tar.gz && touch request && chk
+--- result
+{
+  "ok": false,
+  "from": "0.9.1-rc.2",
+  "to": "0.9.1-rc.2",
+  "step": "verify",
+  "error": "package version 0.9.1-rc.2 is not newer than installed 0.9.1-rc.2",
+  "started_at": "2026-11-19T06:53:06Z",
+  "finished_at": "2026-11-19T06:53:06Z"
+}
+--- version / units
+action-backup 0.9.1-rc.2 (commit 1b5430d, built 2026-11-19T06:35:10Z, faultinject=false)
+active
+active
+ActiveEnterTimestamp=Thu 2026-11-19 14:47:22 CST
+--- leftovers
+总计 4904
+drwxr-x--- 2 actionbackup actionbackup    4096 11月19日 14:53 .
+drwxr-x--- 4 actionbackup actionbackup    4096 11月19日 14:47 ..
+-rw-r--r-- 1 root         root         4997228 11月19日 14:52 action-backup-0.9.1-rc.2-linux-arm64.tar.gz
+-rw-r----- 1 actionbackup actionbackup      20 11月19日 14:47 reported
+-rw-r--r-- 1 root         root             442 11月19日 14:52 SHA256SUMS
+-rw-r--r-- 1 root         root              64 11月19日 14:52 SHA256SUMS.sig
+0
+ls: 无法访问 '/opt/action-backup/update-work': 没有那个文件或目录
+--- journal
+11月 19 14:53:06 armbian systemd[1]: Starting action-backup-update.service - DJI Action Backup self-update installer (root, oneshot)...
+11月 19 14:53:06 armbian action-backup[4223]: {"time":"2026-11-19T14:53:06.270033666+08:00","level":"INFO","msg":"self-update finished","ok":false,"from":"0.9.1-rc.2","to":"0.9.1-rc.2","step":"verify","error":"package version 0.9.1-rc.2 is not newer than installed 0.9.1-rc.2","rolled_back":false,"rollback_error":""}
+11月 19 14:53:06 armbian action-backup[4223]: error: verify: package version 0.9.1-rc.2 is not newer than installed 0.9.1-rc.2
+11月 19 14:53:06 armbian systemd[1]: action-backup-update.service: Main process exited, code=exited, status=1/FAILURE
+11月 19 14:53:06 armbian systemd[1]: action-backup-update.service: Failed with result 'exit-code'.
+11月 19 14:53:06 armbian systemd[1]: Failed to start action-backup-update.service - DJI Action Backup self-update installer (root, oneshot).
+armbian:update:# cd $D && printf '\0\0\0\0' | dd of=SHA256SUMS.sig bs=1 seek=10 conv=notrunc status=none && touch request && chk
+--- result
+{
+  "ok": false,
+  "from": "0.9.1-rc.2",
+  "step": "verify",
+  "error": "SHA256SUMS signature verification failed",
+  "started_at": "2026-11-19T06:54:06Z",
+  "finished_at": "2026-11-19T06:54:06Z"
+}
+--- version / units
+action-backup 0.9.1-rc.2 (commit 1b5430d, built 2026-11-19T06:35:10Z, faultinject=false)
+active
+active
+ActiveEnterTimestamp=Thu 2026-11-19 14:47:22 CST
+--- leftovers
+总计 4904
+drwxr-x--- 2 actionbackup actionbackup    4096 11月19日 14:54 .
+drwxr-x--- 4 actionbackup actionbackup    4096 11月19日 14:47 ..
+-rw-r--r-- 1 root         root         4997228 11月19日 14:52 action-backup-0.9.1-rc.2-linux-arm64.tar.gz
+-rw-r----- 1 actionbackup actionbackup      20 11月19日 14:47 reported
+-rw-r--r-- 1 root         root             442 11月19日 14:52 SHA256SUMS
+-rw-r--r-- 1 root         root              64 11月19日 14:54 SHA256SUMS.sig
+0
+ls: 无法访问 '/opt/action-backup/update-work': 没有那个文件或目录
+--- journal
+11月 19 14:53:06 armbian systemd[1]: action-backup-update.service: Failed with result 'exit-code'.
+11月 19 14:53:06 armbian systemd[1]: Failed to start action-backup-update.service - DJI Action Backup self-update installer (root, oneshot).
+11月 19 14:54:06 armbian systemd[1]: Starting action-backup-update.service - DJI Action Backup self-update installer (root, oneshot)...
+11月 19 14:54:06 armbian action-backup[4257]: {"time":"2026-11-19T14:54:06.160464099+08:00","level":"INFO","msg":"self-update finished","ok":false,"from":"0.9.1-rc.2","to":"","step":"verify","error":"SHA256SUMS signature verification failed","rolled_back":false,"rollback_error":""}
+11月 19 14:54:06 armbian action-backup[4257]: error: verify: SHA256SUMS signature verification failed
+11月 19 14:54:06 armbian systemd[1]: action-backup-update.service: Main process exited, code=exited, status=1/FAILURE
+11月 19 14:54:06 armbian systemd[1]: action-backup-update.service: Failed with result 'exit-code'.
+11月 19 14:54:06 armbian systemd[1]: Failed to start action-backup-update.service - DJI Action Backup self-update installer (root, oneshot).
+armbian:update:# cd $D && rm -f SHA256SUMS.sig && ln -s /etc/hostname SHA256SUMS.sig && touch request && chk
+--- result
+{
+  "ok": false,
+  "from": "0.9.1-rc.2",
+  "step": "stage",
+  "error": "open /var/lib/action-backup/update/SHA256SUMS.sig: too many levels of symbolic links",
+  "started_at": "2026-11-19T06:56:06Z",
+  "finished_at": "2026-11-19T06:56:06Z"
+}
+--- version / units
+action-backup 0.9.1-rc.2 (commit 1b5430d, built 2026-11-19T06:35:10Z, faultinject=false)
+active
+active
+ActiveEnterTimestamp=Thu 2026-11-19 14:47:22 CST
+--- leftovers
+总计 4900
+drwxr-x--- 2 actionbackup actionbackup    4096 11月19日 14:56 .
+drwxr-x--- 4 actionbackup actionbackup    4096 11月19日 14:47 ..
+-rw-r--r-- 1 root         root         4997228 11月19日 14:52 action-backup-0.9.1-rc.2-linux-arm64.tar.gz
+-rw-r----- 1 actionbackup actionbackup      20 11月19日 14:47 reported
+-rw-r--r-- 1 root         root             442 11月19日 14:52 SHA256SUMS
+lrwxrwxrwx 1 root         root              13 11月19日 14:55 SHA256SUMS.sig -> /etc/hostname
+0
+ls: 无法访问 '/opt/action-backup/update-work': 没有那个文件或目录
+--- journal
+11月 19 14:56:06 armbian systemd[1]: Starting action-backup-update.service - DJI Action Backup self-update installer (root, oneshot)...
+11月 19 14:56:06 armbian action-backup[4295]: {"time":"2026-11-19T14:56:06.273364612+08:00","level":"INFO","msg":"self-update finished","ok":false,"from":"0.9.1-rc.2","to":"","step":"stage","error":"open /var/lib/action-backup/update/SHA256SUMS.sig: too many levels of symbolic links","rolled_back":false,"rollback_error":""}
+11月 19 14:56:06 armbian action-backup[4295]: error: stage: open /var/lib/action-backup/update/SHA256SUMS.sig: too many levels of symbolic links
+11月 19 14:56:06 armbian systemd[1]: action-backup-update.service: Main process exited, code=exited, status=1/FAILURE
+11月 19 14:56:06 armbian systemd[1]: action-backup-update.service: Failed with result 'exit-code'.
+11月 19 14:56:06 armbian systemd[1]: Failed to start action-backup-update.service - DJI Action Backup self-update installer (root, oneshot).
+armbian:update:# rm -f $D/SHA256SUMS* $D/*.tar.gz; ls -la $D
+总计 12
+drwxr-x--- 2 actionbackup actionbackup 4096 11月19日 14:58 .
+drwxr-x--- 4 actionbackup actionbackup 4096 11月19日 14:47 ..
+-rw-r----- 1 actionbackup actionbackup   20 11月19日 14:47 reported
