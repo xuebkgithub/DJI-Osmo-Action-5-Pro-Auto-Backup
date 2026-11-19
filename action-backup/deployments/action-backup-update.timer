@@ -2,8 +2,9 @@
 Description=DJI Action Backup self-update poll (every minute)
 
 [Timer]
-OnBootSec=2min
-OnUnitActiveSec=1min
+# 按墙上时钟每分钟触发，不用 OnUnitActiveSec：后者相对「服务上次激活的时间」计时，
+# 而没有请求时服务被 ConditionPathExists 跳过、从未激活，定时器可能只在开机后触发一次就不再触发。
+OnCalendar=*:*:00
 AccuracySec=10s
 Unit=action-backup-update.service
 

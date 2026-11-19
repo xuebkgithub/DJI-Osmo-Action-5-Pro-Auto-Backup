@@ -1512,8 +1512,7 @@ make deploy RESTART=1     # 已 enable 时安装后重启守护与主服务
 ```ini
 # action-backup-update.timer
 [Timer]
-OnBootSec=2min
-OnUnitActiveSec=1min
+OnCalendar=*:*:00
 AccuracySec=10s
 
 # action-backup-update.service
@@ -1528,6 +1527,8 @@ TimeoutStartSec=600
 ```
 
 - 用 systemd timer 而不是 crontab：日志统一进 journal（`journalctl -u action-backup-update`），不依赖设备上是否装了 cron。
+- 用 `OnCalendar` 按墙上时钟触发。v0.9.0 发布时写的是 `OnBootSec=2min` + `OnUnitActiveSec=1min`，后者相对服务上次激活的时间计时，而服务被条件跳过时从未激活，定时器可能只触发一次；2026-11-19 审查时发现并改掉，**v0.9.0 设备上的定时器是否真的不重复触发尚未实测**（测试方案 T0.2）。
+- 没有请求时 systemd 每分钟会在 journal 里记一行「skipped because of an unmet condition」，一天约 1440 行；是否需要压制待实机观察后决定。
 - 两个条件带 `|` 前缀，任一成立才运行：有新的安装请求，或上次安装被打断留下了 `installing` 标记需要回滚。都不成立时 systemd 直接跳过，不启动进程。
 - 条件里的路径是按默认 `database.path` 写死的；改了数据库路径要同步改单元。
 - 代价：点击「立即更新」后最多等一分钟才开始安装。

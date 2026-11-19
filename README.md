@@ -19,6 +19,7 @@ dji_backup/
 │   ├── Action_Backup_软件架构设计_V1.6.md   # 当前基线：软件更新（第 19 章），回写 V0.9 第一阶段
 │   ├── 02-verification-checklist.md         # 待确认问题 → 对应命令 → 核对方法
 │   ├── 03-decisions.md                      # 已确认的决策与依据（随问题回答更新）
+│   ├── 04-update-test-plan.md               # 软件更新实机测试方案（前置检查、坏包拒绝、正常更新、回滚演练）
 │   └── evidence/                            # 命令原始输出，按 <UTC时间>-<主题>/ 分目录
 ├── scripts/
 │   └── probe-mac-env.sh           # 只读探测 mac 环境、相机卷、NAS；结果写入 docs/evidence/
@@ -73,7 +74,9 @@ dji_backup/
   `action-backup-update.timer` 每分钟以 root 执行 `action-backup self-update --apply`，验签、解包、执行包内 `install.sh`、重启两个服务、健康检查，失败回滚（含数据库）。
   发布流水线对 `SHA256SUMS` 签名（`SHA256SUMS.sig`）。证据 `docs/evidence/20261119T0530Z-v09-update-install/`。
   **root 侧安装没有在真实设备上跑过**，设备上线后按核对清单问题 13 验证，通过前不要依赖网页一键安装。
-- 待办：设备上线后核对到 GitHub 的可达性（核对清单问题 11）；确认私钥已存入 GitHub Secrets `RELEASE_SIGNING_KEY`（问题 12）；第二阶段实机验证（问题 13）。
+- v0.9.0 已于 2026-11-19 发布并由用户部署到设备；Release 的 `SHA256SUMS.sig` 用仓库公钥验签通过。
+- v0.9.0 之后的两处修正（尚未发布）：更新定时器改为 `OnCalendar` 每分钟触发（原写法可能只触发一次）；主服务在提交请求后轮询结果文件，root 侧提前拒绝时页面不再卡住。
+- 待办：按 `docs/04-update-test-plan.md` 做实机测试（核对清单问题 11、13）。从开发机 SSH 设备 2026-11-19 仍超时，设备侧尚无任何验证结果。
 
 ## 环境探测
 

@@ -132,3 +132,7 @@
 | 2026-11-19 | `install_supported` 条件：Linux、非 simulation、非 faultinject、非开发构建、存在 `/etc/systemd/system/action-backup-update.timer` | 没装过定时任务的设备提交请求也没人处理；第一个带更新功能的版本需手动 `make deploy` 一次 |
 | 2026-11-19 | `web/src/sse.js` 的 `TYPES` 补登记 `update.*`、`backup.finished`、`storage.*`、`notify.failed` | EventSource 只能按名字监听。第一阶段漏登记，徽标不会实时出现；后四类是此前就漏的，`store.js` 里对 `storage.*` 的处理一直没生效 |
 | 2026-11-19 | 第二阶段在 mac 上验证通过（单元测试、假系统操作、真实安装包解包、浏览器流程）；root 侧安装未实机验证 | 证据 `docs/evidence/20261119T0530Z-v09-update-install/`。设备不在线，上线后按核对清单问题 13 执行 |
+| 2026-11-19 | v0.9.0 的 Release 已带 `SHA256SUMS.sig`，在 mac 上用仓库公钥验签通过 | `openssl pkeyutl -verify -pubin -inkey internal/update/release-signing.pub.pem -rawin`：真实私钥的签名链路可用；核对清单问题 12 的私钥入 Secrets 由此确认 |
+| 2026-11-19 | 更新定时器从 `OnBootSec` + `OnUnitActiveSec=1min` 改为 `OnCalendar=*:*:00` | `OnUnitActiveSec` 相对服务上次激活时间计时，服务被 `ConditionPathExists` 跳过时从未激活，定时器可能只触发一次。写测试方案时审查发现，未在真实 systemd 上复现；v0.9.0 设备受影响与否由测试方案 T0.2 确认 |
+| 2026-11-19 | 请求提交后主服务每 5 秒查看结果文件（`watchResult`）；root 侧未重启服务就拒绝时，阶段转为 failed 并发 `update.failed` | v0.9.0 只在启动时读结果：root 侧在停服务前拒绝（如版本不更高）时页面永远停在「已提交安装请求」且无法重试 |
+| 2026-11-19 | 实机测试方案定稿：`docs/04-update-test-plan.md`，用预发布版 `v0.9.1-rc.N` + `prerelease` 通道测试，不影响正式通道 | 用户要求。含前置检查、4 个坏输入拒绝用例、正常更新、等待空闲、回滚演练（可选，会停机） |

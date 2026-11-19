@@ -96,6 +96,8 @@ type InstallOptions struct {
 	Backoff  time.Duration
 	// IdlePoll 等待空闲时的轮询间隔，默认 5 秒。
 	IdlePoll time.Duration
+	// ResultPoll 提交请求后查看结果文件的间隔，默认 5 秒。
+	ResultPoll time.Duration
 }
 
 func (o InstallOptions) withDefaults() InstallOptions {
@@ -113,6 +115,9 @@ func (o InstallOptions) withDefaults() InstallOptions {
 	}
 	if o.IdlePoll <= 0 {
 		o.IdlePoll = 5 * time.Second
+	}
+	if o.ResultPoll <= 0 {
+		o.ResultPoll = 5 * time.Second
 	}
 	return o
 }
@@ -166,6 +171,53 @@ func (c *Checker) startInstall(ctx context.Context) {
 		c.mu.Lock()
 		c.inst.stage, c.inst.requestedAt = StageRequested, info.ModTime()
 		c.mu.Unlock()
+		go c.watchResult(ctx, o, c.resultStamp(o))
+	}
+}
+
+// resultStamp 结果文件当前记录的 finished_at；没有结果时为空。
+func (c *Checker) resultStamp(o InstallOptions) string {
+	var r Result
+	if data, err := os.ReadFile(o.ResultPath); err == nil && json.Unmarshal(data, &r) == nil {
+		return r.FinishedAt
+	}
+	return ""
+}
+
+// watchResult 请求提交后盯着结果文件。安装成功或回滚时本服务会被重启，新进程在启动时报告结果；
+// 但 root 侧若在停服务之前就拒绝了（验签不过、版本不更高等），本服务不会重启，
+// 不盯的话阶段会永远停在 requested：页面一直显示遮罩，也无法再次发起更新。
+func (c *Checker) watchResult(ctx context.Context, o InstallOptions, baseline string) {
+	if o.ResultPath == "" {
+		return
+	}
+	t := time.NewTicker(o.ResultPoll)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+		}
+		c.mu.Lock()
+		requested := c.inst.stage == StageRequested
+		c.mu.Unlock()
+		if !requested {
+			return
+		}
+		if c.resultStamp(o) == baseline {
+			continue
+		}
+		c.reportResult(context.WithoutCancel(ctx), o)
+		c.mu.Lock()
+		if r := c.inst.lastResult; r != nil && !r.OK {
+			c.inst.stage, c.inst.err = StageFailed, fmt.Sprintf("installer failed at %s: %s", r.Step, r.Error)
+		} else {
+			c.inst.stage, c.inst.err = StageIdle, ""
+		}
+		c.mu.Unlock()
+		c.emitProgress(true)
+		return
 	}
 }
 
@@ -376,6 +428,7 @@ func (c *Checker) prepareInstall(ctx context.Context, o InstallOptions, rel Rele
 	}
 
 	now := c.opts.Now()
+	baseline := c.resultStamp(o)
 	body, _ := json.Marshal(map[string]string{"version": rel.Version, "requested_at": rfc3339(now)})
 	tmp := filepath.Join(o.Dir, "."+RequestName+".tmp")
 	if err := os.WriteFile(tmp, body, 0o640); err != nil {
@@ -393,5 +446,6 @@ func (c *Checker) prepareInstall(ctx context.Context, o InstallOptions, rel Rele
 			Message: fmt.Sprintf("update to %s downloaded and verified, waiting for installer", rel.Version),
 			Data:    map[string]any{"from": displayVersion(c.opts.Current), "to": rel.Version}})
 	}
+	go c.watchResult(ctx, o, baseline)
 	return "", nil
 }

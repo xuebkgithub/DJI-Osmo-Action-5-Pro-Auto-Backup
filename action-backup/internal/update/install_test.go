@@ -200,7 +200,7 @@ func newInstallChecker(t *testing.T, srv *releaseServer, current string, bus *ev
 	t.Helper()
 	dir := filepath.Join(t.TempDir(), "update")
 	enabled := false
-	inst := InstallOptions{Supported: true, Dir: dir, PublicKey: srv.rel.pub, Attempts: 4, Backoff: time.Millisecond, IdlePoll: 5 * time.Millisecond,
+	inst := InstallOptions{Supported: true, Dir: dir, PublicKey: srv.rel.pub, Attempts: 4, Backoff: time.Millisecond, IdlePoll: 5 * time.Millisecond, ResultPoll: 5 * time.Millisecond,
 		ResultPath: filepath.Join(t.TempDir(), "update-result.json")}
 	if mod != nil {
 		mod(&inst)
@@ -448,4 +448,55 @@ func TestReportResultOnce(t *testing.T) {
 	if e := <-ch; e.Type != "update.failed" || e.Level != "error" || e.Data["step"] != "health" || e.Data["rolled_back"] != true {
 		t.Fatalf("failure event: %+v", e)
 	}
+}
+
+// root 侧在停服务之前就拒绝（主服务没有被重启）：阶段不能卡在 requested，要转成 failed 并可重试。
+func TestRequestedStageFollowsInstallerResult(t *testing.T) {
+	rel, _ := newTestRelease(t, "0.9.0")
+	srv := newReleaseServer(t, rel)
+	bus := events.New(nil, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	ch, cancel := bus.Subscribe(64)
+	defer cancel()
+	var resultPath string
+	c, dir := newInstallChecker(t, srv, "0.8.0", bus, func(o *InstallOptions) { resultPath = o.ResultPath })
+	// 之前一次安装留下的旧结果不应被当成这次的
+	old, _ := json.Marshal(Result{OK: true, From: "0.7.0", To: "0.8.0", FinishedAt: "2026-11-01T00:00:00Z"})
+	if err := os.WriteFile(resultPath, old, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Check(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Apply(); err != nil {
+		t.Fatal(err)
+	}
+	waitStage(t, c, StageRequested)
+	time.Sleep(40 * time.Millisecond)
+	if st := c.Status().Install; st.Stage != StageRequested {
+		t.Fatalf("stale result must not end the wait: %+v", st)
+	}
+	// 模拟 root 侧：删标记、写失败结果，但不重启主服务
+	_ = os.Remove(filepath.Join(dir, RequestName))
+	res, _ := json.Marshal(Result{From: "0.8.0", To: "0.9.0", Step: "verify", Error: "package version 0.9.0 is not newer than installed 0.9.0", FinishedAt: "2026-11-20T03:00:00Z"})
+	if err := os.WriteFile(resultPath, res, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	st := waitStage(t, c, StageFailed)
+	if !strings.Contains(st.Error, "installer failed at verify") || st.LastResult == nil || st.LastResult.Step != "verify" {
+		t.Fatalf("status: %+v", st)
+	}
+	var failed bool
+	for len(ch) > 0 {
+		if e := <-ch; e.Type == "update.failed" && e.Data["step"] == "verify" {
+			failed = true
+		}
+	}
+	if !failed {
+		t.Fatal("expected update.failed event from installer result")
+	}
+	// 可以再次发起
+	if _, err := c.Apply(); err != nil {
+		t.Fatalf("apply after installer failure: %v", err)
+	}
+	waitStage(t, c, StageRequested)
 }
