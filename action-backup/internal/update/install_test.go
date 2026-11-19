@@ -500,3 +500,44 @@ func TestRequestedStageFollowsInstallerResult(t *testing.T) {
 	}
 	waitStage(t, c, StageRequested)
 }
+
+// 被更新重启起来的新进程：启动时结果文件还是旧的（或没有），root 侧健康检查通过后才写入这次的结果。
+func TestResultWrittenAfterStartupIsReported(t *testing.T) {
+	rel, _ := newTestRelease(t, "0.9.0")
+	srv := newReleaseServer(t, rel)
+	bus := events.New(nil, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	ch, cancel := bus.Subscribe(16)
+	defer cancel()
+	var resultPath string
+	c, _ := newInstallChecker(t, srv, "0.9.0", bus, func(o *InstallOptions) { resultPath = o.ResultPath })
+	ctx, stop := context.WithCancel(context.Background())
+	defer stop()
+	go c.Run(ctx)
+	time.Sleep(30 * time.Millisecond)
+	if c.Status().Install.LastResult != nil || len(ch) != 0 {
+		t.Fatal("nothing to report yet")
+	}
+	res, _ := json.Marshal(Result{OK: true, From: "0.8.0", To: "0.9.0", FinishedAt: "2026-11-19T06:01:20Z"})
+	if err := os.WriteFile(resultPath, res, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// 状态先更新、事件随后发出：等事件本身，而不是看到状态就去数事件
+	timeout := time.After(3 * time.Second)
+	for {
+		select {
+		case e := <-ch:
+			if e.Type == "update.progress" {
+				continue
+			}
+			if e.Type != "update.installed" || e.Data["to"] != "0.9.0" {
+				t.Fatalf("event: %+v", e)
+			}
+			if r := c.Status().Install.LastResult; r == nil || !r.OK {
+				t.Fatalf("last result: %+v", r)
+			}
+			return
+		case <-timeout:
+			t.Fatal("result written after startup was never reported")
+		}
+	}
+}

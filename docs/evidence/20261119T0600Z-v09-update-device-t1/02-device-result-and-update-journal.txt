@@ -1,0 +1,64 @@
+# 用户 2026-11-19 14:11（+08:00）在设备上执行并贴回：
+# cat /opt/action-backup/update-result.json; echo; systemctl list-timers action-backup-update.timer --no-pager; ls -la /opt/action-backup/ /opt/action-backup/prev /var/lib/action-backup/update; journalctl -u action-backup-update --since "2026-11-19 13:55" --no-pager | grep -v "unmet condition" | tail -30; journalctl -u action-backup-update --since -10min --no-pager | grep -c "unmet condition"
+{
+  "ok": true,
+  "from": "0.9.0",
+  "to": "0.9.1-rc.1",
+  "started_at": "2026-11-19T06:00:56Z",
+  "finished_at": "2026-11-19T06:01:15Z",
+  "log": "action-backup: 成功\nconfig.example.yaml: 成功\nconfig.dryrun.yaml: 成功\naction-backup.service: 成功\naction-backup-mounter.service: 成功\naction-backup-update.service: 成功\naction-backup-update.timer: 成功\n99-action-backup.rules: 成功\ninstall.sh: 成功\n安装完成，尚未启动。\n1. 编辑 /etc/action-backup/config.yaml（当前为 dry-run 模板），填写 SMB 共享与认证。\n2. 创建 /etc/action-backup/smb.credentials（username=/password=），chmod 0600。\n3. 校验：/opt/action-backup/action-backup --config /etc/action-backup/config.yaml --check\n4. 首轮以 dry-run 启动：systemctl enable --now action-backup && journalctl -fu action-backup\n   （action-backup.service Requires= 挂载守护 action-backup-mounter.service，会一并拉起）\n"
+}
+NEXT                     LEFT     LAST                     PASSED  UNIT                      ACTIVATES                
+Thu 2026-11-19 14:12:00… 34s left Thu 2026-11-19 14:11:04… 21s ago action-backup-update.tim… action-backup-update.ser…
+
+1 timers listed.
+Pass --all to see loaded but inactive timers, too.
+/opt/action-backup/:
+总计 16552
+drwxr-xr-x 4 root root     4096 11月19日 14:01 .
+drwxr-xr-x 3 root root     4096 10月27日 11:09 ..
+-rwxr-xr-x 1 root root 11927736 11月19日 14:01 action-backup
+drwxr-xr-x 3 1001 1001     4096 11月19日 13:37 action-backup-0.9.0-linux-arm64
+-rw-r--r-- 1 root root  4995417 11月19日 13:38 action-backup-0.9.0-linux-arm64.tar.gz
+drwx------ 2 root root     4096 11月19日 14:01 prev
+-rw-r--r-- 1 root root      957 11月19日 14:01 update-result.json
+
+/opt/action-backup/prev:
+总计 12020
+drwx------ 2 root root     4096 11月19日 14:01 .
+drwxr-xr-x 4 root root     4096 11月19日 14:01 ..
+-rw------- 1 root root 11927736 11月19日 14:01 f00
+-rw------- 1 root root     1366 11月19日 14:01 f01
+-rw------- 1 root root     1318 11月19日 14:01 f02
+-rw------- 1 root root     1553 11月19日 14:01 f03
+-rw------- 1 root root      198 11月19日 14:01 f04
+-rw------- 1 root root      448 11月19日 14:01 f05
+-rw------- 1 root root   344064 11月19日 14:01 f06
+-rw------- 1 root root     1035 11月19日 14:01 manifest.json
+
+/var/lib/action-backup/update:
+总计 8
+drwxr-x--- 2 actionbackup actionbackup 4096 11月19日 14:01 .
+drwxr-x--- 4 actionbackup actionbackup 4096 11月19日 14:01 ..
+11月 19 13:55:16 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 13:56:26 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 13:57:33 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 13:58:36 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 13:59:46 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:00:56 armbian systemd[1]: Starting action-backup-update.service - DJI Action Backup self-update installer (root, oneshot)...
+11月 19 14:01:15 armbian action-backup[3459]: {"time":"2026-11-19T14:01:15.359706958+08:00","level":"INFO","msg":"self-update finished","ok":true,"from":"0.9.0","to":"0.9.1-rc.1","step":"","error":"","rolled_back":false,"rollback_error":""}
+11月 19 14:01:15 armbian systemd[1]: action-backup-update.service: Deactivated successfully.
+11月 19 14:01:15 armbian systemd[1]: Finished action-backup-update.service - DJI Action Backup self-update installer (root, oneshot).
+11月 19 14:01:15 armbian systemd[1]: action-backup-update.service: Consumed 1.454s CPU time.
+11月 19 14:01:15 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:02:03 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:03:06 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:04:06 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:05:03 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:06:06 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:07:03 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:08:04 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:09:06 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:10:06 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+11月 19 14:11:04 armbian systemd[1]: action-backup-update.service - DJI Action Backup self-update installer (root, oneshot) was skipped because no trigger condition checks were met.
+0

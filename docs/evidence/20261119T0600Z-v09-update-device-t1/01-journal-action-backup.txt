@@ -1,0 +1,18 @@
+11月 19 13:59:31 armbian action-backup[3420]: {"time":"2026-11-19T13:59:31.075077944+08:00","level":"INFO","msg":"new version 0.9.1-rc.1 available (running 0.9.0)","event":"update.available"}
+11月 19 13:59:46 armbian action-backup[3420]: {"time":"2026-11-19T13:59:46.495254048+08:00","level":"INFO","msg":"update to 0.9.1-rc.1 downloaded and verified, waiting for installer","event":"update.requested"}
+11月 19 14:00:56 armbian systemd[1]: Stopping action-backup.service - DJI Action Backup Service...
+11月 19 14:00:56 armbian action-backup[3420]: {"time":"2026-11-19T14:00:56.693335323+08:00","level":"INFO","msg":"service stopping","event":"system.stopping"}
+11月 19 14:01:06 armbian action-backup[3420]: error: context deadline exceeded
+11月 19 14:01:06 armbian systemd[1]: action-backup.service: Main process exited, code=exited, status=1/FAILURE
+11月 19 14:01:06 armbian systemd[1]: action-backup.service: Failed with result 'exit-code'.
+11月 19 14:01:06 armbian systemd[1]: Stopped action-backup.service - DJI Action Backup Service.
+11月 19 14:01:06 armbian systemd[1]: action-backup.service: Consumed 7.778s CPU time.
+11月 19 14:01:12 armbian systemd[1]: Started action-backup.service - DJI Action Backup Service.
+11月 19 14:01:12 armbian action-backup[3570]: {"time":"2026-11-19T14:01:12.243268936+08:00","level":"INFO","msg":"action-backup starting","version":"0.9.1-rc.1","config":"/etc/action-backup/config.yaml","mode":"production","faultinject":false}
+11月 19 14:01:12 armbian action-backup[3570]: {"time":"2026-11-19T14:01:12.250976055+08:00","level":"INFO","msg":"database ready","path":"/var/lib/action-backup/backup.db","migrations_applied":0}
+11月 19 14:01:12 armbian action-backup[3570]: {"time":"2026-11-19T14:01:12.251318477+08:00","level":"INFO","msg":"notifications configured","enabled":true,"channels":["meow"]}
+11月 19 14:01:12 armbian action-backup[3570]: {"time":"2026-11-19T14:01:12.252722291+08:00","level":"INFO","msg":"authentication enabled","username":"admin","session_ttl_hours":24}
+11月 19 14:01:12 armbian action-backup[3570]: {"time":"2026-11-19T14:01:12.264108842+08:00","level":"INFO","msg":"service started","event":"system.started"}
+11月 19 14:01:12 armbian action-backup[3570]: {"time":"2026-11-19T14:01:12.275033386+08:00","level":"INFO","msg":"storage target ready","kind":"cifs","root":"/mnt/action-backup-nas/DJI-Action5Pro","fs":"cifs","free_bytes":11128099393536}
+11月 19 14:01:12 armbian action-backup[3570]: {"time":"2026-11-19T14:01:12.299434889+08:00","level":"INFO","msg":"http listening","addr":"[::]:8080","mode":"production","platform":"linux"}
+11月 19 14:02:59 armbian action-backup[3570]: {"time":"2026-11-19T14:02:59.419618787+08:00","level":"INFO","msg":"login succeeded","event":"auth.login"}

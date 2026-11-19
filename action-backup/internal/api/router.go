@@ -101,7 +101,9 @@ type Deps struct {
 	Config       ConfigStore
 	Notify       Notifier
 	Update       Updater
-	Log          *slog.Logger
+	// Stopping 服务开始停机时关闭；SSE 等长连接据此主动结束，否则 http.Server.Shutdown 会一直等到超时。
+	Stopping <-chan struct{}
+	Log      *slog.Logger
 }
 
 // StreamPath SSE 路由；不经过请求超时包装。

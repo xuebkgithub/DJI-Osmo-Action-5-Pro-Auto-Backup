@@ -59,6 +59,8 @@ type App struct {
 
 	autoBackup atomic.Bool
 	logLevel   *slog.LevelVar
+	// stopping 开始停机时关闭，通知 SSE 长连接结束。
+	stopping chan struct{}
 	// updateInstall 测试用：覆盖按平台推出的安装参数。
 	updateInstall *update.InstallOptions
 
@@ -186,7 +188,7 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Opti
 
 	a := &App{
 		cfg: cfg, log: log, guard: guard, backend: backend, sim: simBackend,
-		db: db, bus: bus, target: target, devices: devices, engine: engine, sched: sched, service: service, auth: authMgr, notify: notifier, started: time.Now(),
+		db: db, bus: bus, target: target, devices: devices, engine: engine, sched: sched, service: service, auth: authMgr, notify: notifier, started: time.Now(), stopping: make(chan struct{}),
 	}
 	for _, o := range opts {
 		o(a)
@@ -210,7 +212,7 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger, opts ...Opti
 		Guard:   guard, PlatformName: backend.Name, Version: version.Version, StartedAt: a.started,
 		DB: db, Target: target, Storage: (*storageControl)(a), Devices: devices,
 		Events: repository.Events{DB: db.DB}, Tasks: repository.Tasks{DB: db.DB},
-		Static: web.Dist(), AuthEnabled: cfg.Server.Auth.Enabled, Auth: authMgr, Bus: bus, Config: (*configStore)(a), Notify: notifier, Update: updater, Log: log,
+		Static: web.Dist(), AuthEnabled: cfg.Server.Auth.Enabled, Auth: authMgr, Bus: bus, Config: (*configStore)(a), Notify: notifier, Update: updater, Stopping: a.stopping, Log: log,
 	}
 	if simBackend != nil {
 		deps.Sim = simBackend
@@ -447,8 +449,13 @@ func (a *App) Run(ctx context.Context) error {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		a.bus.Publish(shutdownCtx, events.Event{Type: "system.stopping", Message: "service stopping"})
+		// 先让 SSE 长连接自己结束：浏览器开着页面时它永不空闲，Shutdown 会等满超时并以错误退出
+		// （2026-11-19 实机更新时多停了 10 秒，单元记为 failed）。
+		close(a.stopping)
 		if err := srv.Shutdown(shutdownCtx); err != nil {
-			return err
+			// 仍有连接没走完：强制关闭。停机是被要求的，不算失败。
+			a.log.Warn("graceful shutdown timed out, closing connections", "err", err)
+			_ = srv.Close()
 		}
 		return nil
 	case err := <-errCh:

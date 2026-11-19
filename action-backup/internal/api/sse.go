@@ -49,6 +49,8 @@ func (h *handlers) eventsStream(w http.ResponseWriter, r *http.Request) {
 		select {
 		case <-ctx.Done():
 			return
+		case <-h.d.Stopping:
+			return
 		case <-hb.C:
 			if _, err := fmt.Fprint(w, ": ping\n\n"); err != nil {
 				return

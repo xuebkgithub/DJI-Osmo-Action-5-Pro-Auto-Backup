@@ -98,6 +98,8 @@ type InstallOptions struct {
 	IdlePoll time.Duration
 	// ResultPoll 提交请求后查看结果文件的间隔，默认 5 秒。
 	ResultPoll time.Duration
+	// ResultWait 启动后继续等结果文件出现新结果的时长，默认 10 分钟（与更新单元的 TimeoutStartSec 一致）。
+	ResultWait time.Duration
 }
 
 func (o InstallOptions) withDefaults() InstallOptions {
@@ -118,6 +120,9 @@ func (o InstallOptions) withDefaults() InstallOptions {
 	}
 	if o.ResultPoll <= 0 {
 		o.ResultPoll = 5 * time.Second
+	}
+	if o.ResultWait <= 0 {
+		o.ResultWait = 10 * time.Minute
 	}
 	return o
 }
@@ -164,14 +169,40 @@ func (c *Checker) startInstall(ctx context.Context) {
 	if o.ResultPath != "" {
 		c.reportResult(ctx, o)
 	}
-	if !o.Supported || o.Dir == "" {
-		return
+	if o.Supported && o.Dir != "" {
+		if info, err := os.Stat(filepath.Join(o.Dir, RequestName)); err == nil {
+			c.mu.Lock()
+			c.inst.stage, c.inst.requestedAt = StageRequested, info.ModTime()
+			c.mu.Unlock()
+			go c.watchResult(ctx, o, c.resultStamp(o))
+			return
+		}
 	}
-	if info, err := os.Stat(filepath.Join(o.Dir, RequestName)); err == nil {
-		c.mu.Lock()
-		c.inst.stage, c.inst.requestedAt = StageRequested, info.ModTime()
-		c.mu.Unlock()
-		go c.watchResult(ctx, o, c.resultStamp(o))
+	if o.ResultPath != "" {
+		go c.awaitResult(ctx, o, c.resultStamp(o))
+	}
+}
+
+// awaitResult 启动后的一段时间内继续等结果文件。root 侧是先重启本服务、健康检查通过之后才写结果的，
+// 所以刚被更新重启起来的进程在启动那一刻读不到这次的结果（2026-11-19 实机更新后没有出现「更新完成」事件）。
+func (c *Checker) awaitResult(ctx context.Context, o InstallOptions, baseline string) {
+	t := time.NewTicker(o.ResultPoll)
+	defer t.Stop()
+	deadline := time.NewTimer(o.ResultWait)
+	defer deadline.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-deadline.C:
+			return
+		case <-t.C:
+		}
+		if c.resultStamp(o) != baseline {
+			c.reportResult(context.WithoutCancel(ctx), o)
+			c.emitProgress(true)
+			return
+		}
 	}
 }
 

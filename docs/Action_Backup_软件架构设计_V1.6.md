@@ -1527,8 +1527,9 @@ TimeoutStartSec=600
 ```
 
 - 用 systemd timer 而不是 crontab：日志统一进 journal（`journalctl -u action-backup-update`），不依赖设备上是否装了 cron。
-- 用 `OnCalendar` 按墙上时钟触发。v0.9.0 发布时写的是 `OnBootSec=2min` + `OnUnitActiveSec=1min`，后者相对服务上次激活的时间计时，而服务被条件跳过时从未激活，定时器可能只触发一次；2026-11-19 审查时发现并改掉，**v0.9.0 设备上的定时器是否真的不重复触发尚未实测**（测试方案 T0.2）。
-- 没有请求时 systemd 每分钟会在 journal 里记一行「skipped because of an unmet condition」，一天约 1440 行；是否需要压制待实机观察后决定。
+- 用 `OnCalendar` 按墙上时钟触发。v0.9.0 发布时写的是 `OnBootSec=2min` + `OnUnitActiveSec=1min`，2026-11-19 审查时担心服务被条件跳过后定时器不再触发而改掉；**同日实机证实这个担心不成立**（v0.9.0 的定时器每 60–70 秒持续触发）。两种写法都可用，`OnCalendar` 间隔更准，保留。
+- 没有请求时 systemd 每分钟在 journal 里记一行 `was skipped because no trigger condition checks were met`，实测一天约 1440 行，暂不处理。
+- 请求写入与某次触发恰好同时发生时会被那次触发漏掉，多等一个周期（实测 70 秒）。
 - 两个条件带 `|` 前缀，任一成立才运行：有新的安装请求，或上次安装被打断留下了 `installing` 标记需要回滚。都不成立时 systemd 直接跳过，不启动进程。
 - 条件里的路径是按默认 `database.path` 写死的；改了数据库路径要同步改单元。
 - 代价：点击「立即更新」后最多等一分钟才开始安装。
@@ -1643,12 +1644,18 @@ root 侧的检查顺序（每一步失败都不会动系统文件）：
 - 浏览器：假 GitHub + 测试密钥，「立即更新」→ 实时下载进度 → 遮罩 → 服务重启后页面自动刷新 → 「更新完成」事件与「上次安装」一行。
 - Linux 目标交叉编译与 lint 通过。
 
-没有验证：
+实机已验证（2026-11-19，生产设备 0.9.0 → 0.9.1-rc.1，证据 `docs/evidence/20261119T0600Z-v09-update-device-t1/`）：
 
-- 真实 systemd 下 timer 触发、`ConditionPathExists`、以 root 执行 `install.sh`、重启两个单元、健康检查与回滚。
-- `update_ops_linux.go`（`O_NOFOLLOW` 复制等）只做了交叉编译与 lint，没有在 Linux 上执行过。
-- 用真实私钥签名的发布：需要先打一个 tag 让流水线跑一次。
-- 主服务沙箱（`ProtectSystem=strict`）下读取 `/opt/action-backup/update-result.json` 与 `/etc/systemd/system/action-backup-update.timer`。
+- 真实私钥签名的发布被设备验签通过；设备到 GitHub 的检查与下载可用。
+- timer 每分钟触发，无请求时被条件跳过；以 root 执行 `install.sh`、重启、健康检查、备份与清理都符合设计。root 侧 19 秒，主服务不可用 16 秒。
+- 主服务沙箱下读得到定时器单元文件（`install_supported` 为 true，按钮可用）。
+- 暴露并修复两个问题：停机时 SSE 长连接让 `Shutdown` 等满 10 秒并以失败退出；新进程启动时结果文件尚未写入，「更新完成」没有被报告（`awaitResult`）。
+
+仍未验证：
+
+- 坏输入拒绝（测试方案 N 组）与回滚在真实设备上的表现；`O_NOFOLLOW` 拒绝符号链接的路径没有实机执行过。
+- 上述两处修复本身（待下一个测试版）。
+- 主服务沙箱下读取 `/opt/action-backup/update-result.json`（rc.1 没有在启动后读到它，原因是时序而非权限，但权限本身尚无直接证据）。
 
 ### 19.7 第三阶段：自动安装与镜像（设计，未实现）
 

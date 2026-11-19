@@ -136,3 +136,9 @@
 | 2026-11-19 | 更新定时器从 `OnBootSec` + `OnUnitActiveSec=1min` 改为 `OnCalendar=*:*:00` | `OnUnitActiveSec` 相对服务上次激活时间计时，服务被 `ConditionPathExists` 跳过时从未激活，定时器可能只触发一次。写测试方案时审查发现，未在真实 systemd 上复现；v0.9.0 设备受影响与否由测试方案 T0.2 确认 |
 | 2026-11-19 | 请求提交后主服务每 5 秒查看结果文件（`watchResult`）；root 侧未重启服务就拒绝时，阶段转为 failed 并发 `update.failed` | v0.9.0 只在启动时读结果：root 侧在停服务前拒绝（如版本不更高）时页面永远停在「已提交安装请求」且无法重试 |
 | 2026-11-19 | 实机测试方案定稿：`docs/04-update-test-plan.md`，用预发布版 `v0.9.1-rc.N` + `prerelease` 通道测试，不影响正式通道 | 用户要求。含前置检查、4 个坏输入拒绝用例、正常更新、等待空闲、回滚演练（可选，会停机） |
+| 2026-11-19 | 实机更新 0.9.0 → 0.9.1-rc.1 成功（用户手工执行测试方案 T1）；设备到 GitHub API 与 Release 资产可达 | 证据 `docs/evidence/20261119T0600Z-v09-update-device-t1/`（主服务 journal）。请求后 70 秒被定时任务接手，主服务不可用 16 秒，配置、通知、认证、CIFS 挂载均正常。更新单元的 journal 与结果文件未取回 |
+| 2026-11-19 | 停机时先关闭 `stopping` 通道让 SSE 长连接结束；`Shutdown` 仍超时则 `Close` 并正常退出 | 实机日志：浏览器开着页面时 `Shutdown` 等满 10 秒并以 exit 1 结束，单元记为 failed。更新时页面必然开着，每次都会多停 10 秒 |
+| 2026-11-19 | 主服务启动后 10 分钟内继续轮询结果文件（`awaitResult`） | 实机日志里没有「更新完成」事件：root 侧在重启主服务并通过健康检查之后才写结果，新进程启动时读不到。mac 演示是先写结果再启动，没暴露 |
+| 2026-11-19 | T1 设备侧核对全部通过：结果文件 `ok: true`、root 侧 19 秒、备份与清理符合设计、健康检查约 3 秒 | 证据 `docs/evidence/20261119T0600Z-v09-update-device-t1/02-device-result-and-update-journal.txt` |
+| 2026-11-19 | 更正：v0.9.0 的定时器（`OnUnitActiveSec=1min`）实测每 60–70 秒持续触发，此前「可能只触发一次」的怀疑不成立；`OnCalendar` 写法同样正常，保留 | 同上证据里更新前后的 journal。当时的判断是读文档推断的，没有实测就写进了提交说明与文档，现按实测更正 |
+| 2026-11-19 | 无请求时更新单元每分钟在 journal 留一行 `skipped because no trigger condition checks were met`（约 1440 行 / 天），暂不处理 | 实测。可用 `LogLevelMax=notice` + `SyslogLevel=notice` 压制，但未在真实 systemd 上验证过效果，且会连带隐藏 Starting / Finished 行；体量小，先留着 |
