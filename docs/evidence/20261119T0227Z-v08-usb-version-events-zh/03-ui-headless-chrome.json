@@ -1,0 +1,110 @@
+{
+ "tabs": [
+  "刷新",
+  "总览",
+  "设备与卷",
+  "计划",
+  "任务",
+  "事件",
+  "设置",
+  "测试面板",
+  "重新检查",
+  "生成计划",
+  "开始备份",
+  "暂停",
+  "恢复",
+  "重新检测设备",
+  "重试失败任务"
+ ],
+ "overview": [
+  "相机插入 | Simulated Osmo Action 5 Pro 已插入（SN SIM0001），2 个卷，USB 3.2 · 480 Mb/s；当前为 USB 2.0 连接，备份速度受限，请检查线材或接口",
+  "服务启动 | 服务已启动，版本 0.1.0-dev，模拟模式",
+  "备份完成 | 本批备份结束：成功 4 个文件 / 256 MB",
+  "文件备份完成 | 已完成 DCIM/DJI_003/DJI_20261023080300_0003_D.MP4（64.0 MB）",
+  "开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080300_0003_D.MP4（64.0 MB）",
+  "文件备份完成 | 已完成 DCIM/DJI_003/DJI_20261023080200_0002_D.MP4（64.0 MB）",
+  "开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080200_0002_D.MP4（64.0 MB）",
+  "文件备份完成 | 已完成 DCIM/DJI_003/DJI_20261023080100_0001_D.MP4（64.0 MB）"
+ ],
+ "device": "序列号\nSIM0001\nUSB\n0506:8002\nUSB 协议\nUSB 3.2 · 当前 480 Mb/s降速连接，请检查线材 / 接口\n设备键\n0506:8002:SIM0001\n最近看到\n9 分钟前",
+ "eventsZh": [
+  "警告 | 相机插入 | Simulated Osmo Action 5 Pro 已插入（SN SIM0001），2 个卷，USB 3.2 · 480 Mb/s；当前为 USB 2.0 连接，备份速度受限，请检查线材或接口",
+  "信息 | 服务启动 | 服务已启动，版本 0.1.0-dev，模拟模式",
+  "信息 | 备份完成 | 本批备份结束：成功 4 个文件 / 256 MB",
+  "信息 | 文件备份完成 | 已完成 DCIM/DJI_003/DJI_20261023080300_0003_D.MP4（64.0 MB）",
+  "信息 | 开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080300_0003_D.MP4（64.0 MB）",
+  "信息 | 文件备份完成 | 已完成 DCIM/DJI_003/DJI_20261023080200_0002_D.MP4（64.0 MB）",
+  "信息 | 开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080200_0002_D.MP4（64.0 MB）",
+  "信息 | 文件备份完成 | 已完成 DCIM/DJI_003/DJI_20261023080100_0001_D.MP4（64.0 MB）",
+  "信息 | 开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080100_0001_D.MP4（64.0 MB）",
+  "信息 | 文件备份完成 | 已完成 DCIM/DJI_003/DJI_20261023080100_0001_D.MP4（64.0 MB）",
+  "信息 | 开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080100_0001_D.MP4（64.0 MB）",
+  "信息 | 开始备份 | 开始备份：新建 4 个任务，待上传 256 MB",
+  "信息 | 生成备份计划 | 计划：待上传 4 个文件（256 MB），跳过 0 个，冲突 0 个",
+  "信息 | 生成备份计划 | 计划：待上传 4 个文件（256 MB），跳过 0 个，冲突 0 个",
+  "警告 | 相机插入 | Simulated Osmo Action 5 Pro 已插入（SN SIM0001），2 个卷，USB 3.2 · 480 Mb/s；当前为 USB 2.0 连接，备份速度受限，请检查线材或接口",
+  "信息 | 服务启动 | 服务已启动，版本 0.1.0-dev，模拟模式"
+ ],
+ "selects": [
+  [
+   "全部级别",
+   "信息",
+   "警告",
+   "错误"
+  ],
+  [
+   "全部类型",
+   "相机插入",
+   "相机拔出",
+   "生成备份计划",
+   "开始备份",
+   "备份完成",
+   "文件备份完成",
+   "开始传输",
+   "任务暂停",
+   "任务取消",
+   "任务中断",
+   "任务失败",
+   "任务重试",
+   "存储已挂载",
+   "存储已卸载",
+   "存储挂载失败",
+   "启动恢复",
+   "配置修改",
+   "通知发送失败",
+   "登录",
+   "退出登录",
+   "登录失败",
+   "登录限速",
+   "服务启动",
+   "服务停止",
+   "故障注入命中"
+  ],
+  [
+   "100",
+   "300",
+   "1000"
+  ],
+  [
+   "中文",
+   "原文"
+  ]
+ ],
+ "filteredByType": [
+  "信息 | 开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080300_0003_D.MP4（64.0 MB）",
+  "信息 | 开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080200_0002_D.MP4（64.0 MB）",
+  "信息 | 开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080100_0001_D.MP4（64.0 MB）",
+  "信息 | 开始传输 | 开始传输 DCIM/DJI_003/DJI_20261023080100_0001_D.MP4（64.0 MB）"
+ ],
+ "eventsRaw": [
+  "warn | device.attached | device Simulated Osmo Action 5 Pro attached with 2 volume(s), USB link 480 Mb/s (USB 2.0 or slower: transfer speed limited, check cable/port)",
+  "info | system.started | service started",
+  "info | backup.finished | backup finished: 4 completed, 0 failed, 0 interrupted, 0 cancelled, 268435456 bytes in 1s",
+  "info | backup.completed | completed DCIM/DJI_003/DJI_20261023080300_0003_D.MP4"
+ ],
+ "persisted": "raw",
+ "overviewAfterReloadRaw": [
+  "device.attached | device Simulated Osmo Action 5 Pro attached with 2 volume(s), USB link 480 Mb/s (USB 2.0 or slower: transfer speed limited, check cable/port)",
+  "system.started | service started"
+ ]
+}

@@ -23,7 +23,11 @@ type Device struct {
 	SerialNumber string
 	Name         string
 	WeakIdentity bool
-	Volumes      []Volume
+	// USBVersion 设备描述符声明的 USB 协议版本（bcdUSB），如 "3.2"；未知为空。
+	USBVersion string
+	// LinkSpeedMbps 当前实际协商的链路速率（480 / 5000 / 10000）；未知为 0。
+	LinkSpeedMbps int64
+	Volumes       []Volume
 }
 
 // EventKind 设备事件类型。

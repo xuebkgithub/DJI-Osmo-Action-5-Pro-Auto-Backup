@@ -104,3 +104,8 @@
 | 2026-10-27 | Linux 探测补查 `statfs` 的 `ST_RDONLY`：挂载来源正确但只读时报 `is mounted read-only`，健康 degraded | 方案 B 失败时探测仍报 ready，任务到 mkdir 才失败；只读应在探测阶段就暴露 |
 | 2026-10-27 | `deploy.sh` 不指定 `PKG` 时始终重新 `make package` | `git describe` 的 `-dirty` 版本号不随工作区内容变化，复用旧包把过时二进制和单元装上了设备，排错一轮 |
 | 2026-10-27 | 网页手工恢复：`POST /storage/{mount,remount,unmount}`、`POST /backups/retry-failed`，总览页健康卡片与控制卡片加按钮；无挂载器的平台 501 且按钮隐藏（`mode.storage_mount_control`）；卸载在有任务传输时 409 | 用户 2026-10-27 要求出问题后在界面上操作而不是上命令行。挂载逻辑与启动 / 周期重挂共用 `App.mountTarget`，事件 `storage.mounted / unmounted / mount_failed` 进总线，前端收到 `storage.*` 即刷新健康 |
+| 2026-11-19 | 设备信息增加 USB 协议版本（描述符 bcdUSB，如 3.2）与当前协商速率（Mb/s）；只放内存、API 与事件 `data`，不入库 | 用户 2026-11-19 要求。它是本次连接的状态而非设备身份，不加迁移。Linux 读 sysfs `version` / `speed`，mac 读 ioreg `bcdUSB` / `UsbLinkSpeed`（缺失时按 `Device Speed` 折算），sim 可配 `usb_version` / `link_speed_mbps` |
+| 2026-11-19 | 协商速率 ≤ 480 Mb/s 判为降速连接：`device.attached` 升 warn，事件、推送通知、设备页都提示检查线材 / 接口 | 描述符写 3.2 不代表实际跑在 3.x；USB 2.0 下读速约为 3.x 的三分之一，备份时长明显变长。速率未知（0）不告警 |
+| 2026-11-19 | 事件中文显示在前端做：`web/src/eventText.js` 按 `type + data` 生成中文，未登记类型或 data 不足时回退后端原文；事件页可切「中文 / 原文」（默认中文，记 localStorage），总览页跟随；新增按类型筛选 | 用户 2026-11-19 要求。库里存的是英文 message + 结构化 data，前端渲染对历史事件同样生效、不用改表；日志（journalctl）保持英文便于检索。新增事件类型时要同步在 `eventText.js` 登记 |
+| 2026-11-19 | `task.retry` 事件补 `data.path`，排队中取消的 `task.cancelled` 补 `data.queued` | 原先这两条没有 data，中文消息拼不出文件名 |
+| 2026-11-19 | V0.8 mac simulation 验证通过；Linux 实机待设备上线后核对 | 证据 `docs/evidence/20261119T0227Z-v08-usb-version-events-zh/`；基于 GitHub Releases 的自动更新已调研，用户决定暂不做 |

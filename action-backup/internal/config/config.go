@@ -71,10 +71,13 @@ type SimFixturesConfig struct {
 
 // SimDevice 一台模拟相机。
 type SimDevice struct {
-	Key     string      `yaml:"key" json:"key"`
-	Serial  string      `yaml:"serial" json:"serial"`
-	Name    string      `yaml:"name" json:"name"`
-	Volumes []SimVolume `yaml:"volumes" json:"volumes"`
+	Key    string `yaml:"key" json:"key"`
+	Serial string `yaml:"serial" json:"serial"`
+	Name   string `yaml:"name" json:"name"`
+	// USBVersion / LinkSpeedMbps 模拟的 USB 协议版本与协商速率，默认 3.2 / 5000；设 480 可演练降速告警。
+	USBVersion    string      `yaml:"usb_version" json:"usb_version"`
+	LinkSpeedMbps int64       `yaml:"link_speed_mbps" json:"link_speed_mbps"`
+	Volumes       []SimVolume `yaml:"volumes" json:"volumes"`
 }
 
 // SimVolume 模拟卷。
@@ -322,6 +325,12 @@ func (c *Config) applyDefaults() {
 			d := &c.Simulation.Fixtures.Devices[i]
 			if d.Name == "" {
 				d.Name = "Simulated Osmo Action 5 Pro"
+			}
+			if d.USBVersion == "" {
+				d.USBVersion = "3.2"
+			}
+			if d.LinkSpeedMbps == 0 {
+				d.LinkSpeedMbps = 5000
 			}
 		}
 	}

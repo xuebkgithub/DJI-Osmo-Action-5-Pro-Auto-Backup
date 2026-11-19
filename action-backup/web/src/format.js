@@ -15,6 +15,12 @@ export function speed(bps) {
   return bytes(bps) + '/s'
 }
 
+// USB 协商速率：480 → 480 Mb/s，5000 → 5 Gb/s
+export function linkSpeed(mbps) {
+  if (!mbps) return ''
+  return mbps >= 1000 ? `${+(mbps / 1000).toFixed(1)} Gb/s` : `${mbps} Mb/s`
+}
+
 export function time(s) {
   if (!s) return '-'
   const d = new Date(s)

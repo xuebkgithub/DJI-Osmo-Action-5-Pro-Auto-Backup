@@ -40,6 +40,7 @@ func New(fx config.SimFixturesConfig, dev config.DeviceConfig) (*Backend, error)
 			SerialNumber: serial,
 			Name:         d.Name,
 			WeakIdentity: weak,
+			USBVersion:   d.USBVersion, LinkSpeedMbps: d.LinkSpeedMbps,
 		}
 		for lun, v := range d.Volumes {
 			label := v.Label

@@ -29,8 +29,18 @@ func formatDeviceAttached(e events.Event, siteURL string) Message {
 	if n := num(e.Data, "volumes"); n > 0 {
 		b += fmt.Sprintf("，%d 个卷", n)
 	}
+	if mbps := num(e.Data, "link_speed_mbps"); mbps > 0 {
+		link := humanLinkSpeed(mbps)
+		if v := str(e.Data, "usb_version"); v != "" {
+			link = "USB " + v + " · " + link
+		}
+		b += "，" + link
+	}
 	if boolean(e.Data, "weak_identity") {
 		b += "；序列号无法识别"
+	}
+	if boolean(e.Data, "usb_link_limited") {
+		b += "；当前为 USB 2.0 连接，备份速度受限，请检查线材或接口"
 	}
 	return Message{Title: title("相机已插入"), Body: b, URL: siteURL}
 }
@@ -143,4 +153,12 @@ func humanDuration(d time.Duration) string {
 		return fmt.Sprintf("%d 分 %d 秒", m, s)
 	}
 	return fmt.Sprintf("%d 秒", s)
+}
+
+// humanLinkSpeed 把 Mb/s 写成 480 Mb/s / 5 Gb/s。
+func humanLinkSpeed(mbps int64) string {
+	if mbps >= 1000 {
+		return strings.TrimSuffix(fmt.Sprintf("%.1f", float64(mbps)/1000), ".0") + " Gb/s"
+	}
+	return fmt.Sprintf("%d Mb/s", mbps)
 }

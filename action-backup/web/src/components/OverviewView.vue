@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { store, refreshStatus, refreshHealth, refreshDevices, notify, errorText } from '../store.js'
 import { post } from '../api.js'
 import { bytes, speed, percent, duration, ago } from '../format.js'
+import { typeLabel, eventMessage, eventLang } from '../eventText.js'
 
 const busy = ref('')
 const writable = computed(() => store.mode && store.mode.destination_write_allowed)
@@ -161,8 +162,8 @@ const retryFailed = () => act('retryFailed', '/api/v1/backups/retry-failed', (r)
       <tbody>
         <tr v-for="e in store.events.slice(0, 8)" :key="e.id || e.created_at + e.type">
           <td class="muted" style="white-space:nowrap">{{ ago(e.created_at) }}</td>
-          <td><span class="badge" :class="e.level">{{ e.type }}</span></td>
-          <td>{{ e.message }}</td>
+          <td><span class="badge" :class="e.level" :title="e.type">{{ eventLang === 'zh' ? typeLabel(e.type) : e.type }}</span></td>
+          <td>{{ eventLang === 'zh' ? eventMessage(e) : e.message }}</td>
         </tr>
         <tr v-if="!store.events.length"><td class="empty" colspan="3">暂无事件</td></tr>
       </tbody>

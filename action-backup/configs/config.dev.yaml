@@ -20,6 +20,8 @@ simulation:
       - key: "sim-cam-1"
         serial: "SIM0001"
         name: "Simulated Osmo Action 5 Pro"
+        # usb_version: "3.2"        # 模拟的 USB 协议版本，默认 3.2
+        # link_speed_mbps: 480      # 模拟协商速率，默认 5000；设 480 演练「USB 2.0 降速」告警
         volumes:
           - type: "internal"
             path: "./tests/fixtures/cam1/internal"

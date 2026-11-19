@@ -34,6 +34,8 @@ func newFakeTree(t *testing.T) fakeTree {
 	writeAttr(t, usb, "serial", "123456789ABCDEF")
 	writeAttr(t, usb, "product", "OsmoAction5pro_SN:0A1B2C3D")
 	writeAttr(t, usb, "manufacturer", "DJI")
+	writeAttr(t, usb, "version", " 3.20")
+	writeAttr(t, usb, "speed", "5000")
 	// 一个无关的 USB 设备（根集线器）
 	hub := filepath.Join(devs, "usb6")
 	writeAttr(t, hub, "idVendor", "1d6b")
@@ -118,6 +120,9 @@ func TestFindUSBDevices(t *testing.T) {
 	}
 	if len(devs) != 1 || devs[0].Name != "6-1" || devs[0].Product != "OsmoAction5pro_SN:0A1B2C3D" || devs[0].Manufacturer != "DJI" || devs[0].Serial != "123456789ABCDEF" {
 		t.Fatalf("unexpected %+v", devs)
+	}
+	if devs[0].Version != "3.2" || devs[0].SpeedMbps != 5000 {
+		t.Errorf("usb version/speed %q %d, want 3.2 5000", devs[0].Version, devs[0].SpeedMbps)
 	}
 	if want, _ := filepath.EvalSymlinks(tr.usbDev); devs[0].Path != want {
 		t.Errorf("path %s, want resolved %s", devs[0].Path, want)

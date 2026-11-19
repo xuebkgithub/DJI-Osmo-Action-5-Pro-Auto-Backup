@@ -144,21 +144,25 @@ type volumeDTO struct {
 }
 
 type deviceDTO struct {
-	ID           int64       `json:"id"`
-	Key          string      `json:"key"`
-	Name         string      `json:"name"`
-	VendorID     string      `json:"vendor_id"`
-	ProductID    string      `json:"product_id"`
-	Serial       string      `json:"serial"`
-	WeakIdentity bool        `json:"weak_identity"`
-	LastSeenAt   string      `json:"last_seen_at"`
-	Volumes      []volumeDTO `json:"volumes"`
+	ID             int64       `json:"id"`
+	Key            string      `json:"key"`
+	Name           string      `json:"name"`
+	VendorID       string      `json:"vendor_id"`
+	ProductID      string      `json:"product_id"`
+	Serial         string      `json:"serial"`
+	WeakIdentity   bool        `json:"weak_identity"`
+	USBVersion     string      `json:"usb_version"`
+	LinkSpeedMbps  int64       `json:"link_speed_mbps"`
+	USBLinkLimited bool        `json:"usb_link_limited"`
+	LastSeenAt     string      `json:"last_seen_at"`
+	Volumes        []volumeDTO `json:"volumes"`
 }
 
 func toDeviceDTO(d domain.Device) deviceDTO {
 	out := deviceDTO{
 		ID: d.ID, Key: d.Key, Name: d.Name, VendorID: d.VendorID, ProductID: d.ProductID,
-		Serial: d.SerialNumber, WeakIdentity: d.WeakIdentity, LastSeenAt: d.LastSeenAt.UTC().Format(time.RFC3339),
+		Serial: d.SerialNumber, WeakIdentity: d.WeakIdentity,
+		USBVersion: d.USBVersion, LinkSpeedMbps: d.LinkSpeedMbps, USBLinkLimited: d.USBLinkLimited(), LastSeenAt: d.LastSeenAt.UTC().Format(time.RFC3339),
 		Volumes: []volumeDTO{},
 	}
 	for _, v := range d.Volumes {

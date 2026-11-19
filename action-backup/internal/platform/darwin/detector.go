@@ -187,6 +187,7 @@ func (d *Detector) buildDevice(ctx context.Context, n usbNode) (raw.Device, bool
 	dev := raw.Device{
 		Key: domain.DeviceKey(d.vendorID, d.productID, serial), VendorID: d.vendorID, ProductID: d.productID,
 		SerialNumber: serial, Name: displayName(n), WeakIdentity: weak,
+		USBVersion: domain.USBVersionFromBCD(n.BCDUSB), LinkSpeedMbps: n.linkSpeedMbps(),
 	}
 	if len(luns) == 0 {
 		return dev, false, nil

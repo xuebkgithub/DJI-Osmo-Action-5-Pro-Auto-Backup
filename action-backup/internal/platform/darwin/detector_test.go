@@ -117,6 +117,12 @@ func TestDiscoverRealCameraFixture(t *testing.T) {
 	if dev.Key != "0506:8002:0A1B2C3D" || dev.SerialNumber != "0A1B2C3D" || dev.WeakIdentity || dev.Name != "DJI OsmoAction5pro" {
 		t.Errorf("identity %+v", dev)
 	}
+	if dev.USBVersion != "3.2" || dev.LinkSpeedMbps != 5000 {
+		t.Errorf("usb %q %d", dev.USBVersion, dev.LinkSpeedMbps)
+	}
+	if got := (usbNode{DeviceSpeed: 2}).linkSpeedMbps(); got != 480 {
+		t.Errorf("fallback from Device Speed: %d", got)
+	}
 	if len(dev.Volumes) != 2 {
 		t.Fatalf("volumes %+v", dev.Volumes)
 	}

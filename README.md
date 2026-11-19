@@ -61,6 +61,9 @@ dji_backup/
 - V0.7 已于 2026-10-27 完成：读写流水线、检查点默认 30 s / 512 MB（每个检查点的 fsync 曾把吞吐压到 24.1 MB/s）、归档后保留源 mtime、`scripts/test-performance.sh`；实测 66–70 MB/s（裸 CIFS 写 72），81.1 GB 折算约 20 分钟，证据 `docs/evidence/20261027T0700Z-v07-performance/`。
 - 下一步：相机放回全量素材后跑 81.1 GB 端到端实测；24 小时稳定性与资源占用记录（V1.5 §16）。
 - 2026-10-27 实机重启复现 NAS 误判（沙箱内 `ReadWritePaths` 绑定与传播进来的 CIFS 叠层，旧解析取到底层 ext4）：`mountEntryIn` 改取栈顶、探测补查只读标志；同日新增网页手工恢复（挂载 / 重新挂载 / 卸载 NAS、重新检测设备、重试失败任务），证据 `docs/evidence/20261027T0745Z-reboot-stacked-mount/`。
+- V0.8 已于 2026-11-19 在 mac simulation 验证通过：设备页显示 USB 协议版本与当前协商速率，USB 2.0 降速连接时事件 / 通知 / 页面告警；
+  事件页与总览页的事件支持中文显示（可切回原文）并可按类型筛选。证据 `docs/evidence/20261119T0227Z-v08-usb-version-events-zh/`。
+  Linux 实机核对待设备上线（核对清单问题 10）。基于 GitHub Releases 的自动更新已调研，暂不实现。
 
 ## 环境探测
 
@@ -103,7 +106,6 @@ cmd_ip.sh help              # 帮助
 - 多条命令用 `&&` 或 `;` 串在一个参数里：`cmd_ip.sh 172.20.31.6 'cd /opt && ls -la'`。
 - 密码只存在于 `cmd_ip.conf`，不要写进命令行、文档、提交或 `docs/evidence/` 的输出里。
 - 当前设备：`172.20.31.6`，Armbian OS 25.05 (bookworm)、内核 6.1.99 aarch64、root 登录、systemd 与 udev 可用。
-
 ## 许可证
 
 本项目以 [MIT License](LICENSE) 开源。

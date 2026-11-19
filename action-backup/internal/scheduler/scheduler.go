@@ -313,7 +313,7 @@ func (s *Scheduler) Cancel(ctx context.Context, id int64) error {
 	if _, err := s.tasks.Transition(ctx, id, domain.TaskCancelled, repository.TransitionOptions{}); err != nil {
 		return err
 	}
-	s.bus.Publish(ctx, events.Event{TaskID: &id, Type: "task.cancelled", Message: fmt.Sprintf("task %d cancelled", id)})
+	s.bus.Publish(ctx, events.Event{TaskID: &id, Type: "task.cancelled", Message: fmt.Sprintf("task %d cancelled", id), Data: map[string]any{"queued": true}})
 	return nil
 }
 
@@ -332,7 +332,7 @@ func (s *Scheduler) Retry(ctx context.Context, id int64) error {
 	if _, err := s.tasks.Transition(ctx, id, domain.TaskQueued, repository.TransitionOptions{}); err != nil {
 		return err
 	}
-	s.bus.Publish(ctx, events.Event{TaskID: &id, Type: "task.retry", Message: fmt.Sprintf("task %d re-queued", id)})
+	s.bus.Publish(ctx, events.Event{TaskID: &id, Type: "task.retry", Message: fmt.Sprintf("task %d re-queued", id), Data: map[string]any{"path": t.RelativePath}})
 	s.beginBatch()
 	s.kick()
 	return nil

@@ -1,0 +1,213 @@
+{
+    "data": [
+        {
+            "id": 14,
+            "level": "info",
+            "type": "backup.finished",
+            "message": "backup finished: 4 completed, 0 failed, 0 interrupted, 0 cancelled, 268435456 bytes in 1s",
+            "data": {
+                "bytes": 268435456,
+                "cancelled": 0,
+                "completed": 4,
+                "duration_sec": 0,
+                "failed": 0,
+                "interrupted": 0,
+                "started_at": "2026-11-19T02:25:14Z"
+            },
+            "created_at": "2026-11-19T02:25:15.328078Z"
+        },
+        {
+            "id": 13,
+            "task_id": 4,
+            "level": "info",
+            "type": "backup.completed",
+            "message": "completed DCIM/DJI_003/DJI_20261023080300_0003_D.MP4",
+            "data": {
+                "bytes": 67108864,
+                "path": "DCIM/DJI_003/DJI_20261023080300_0003_D.MP4",
+                "resume_at": 0,
+                "resumed": false,
+                "sha256": "d0514b9b1cb8e157474225bfcd080dd1e466462e125dc4aea8cb9b839b2a6692",
+                "status": "COMPLETED"
+            },
+            "created_at": "2026-11-19T02:25:15.327835Z"
+        },
+        {
+            "id": 12,
+            "task_id": 4,
+            "level": "info",
+            "type": "task.started",
+            "message": "transferring DCIM/DJI_003/DJI_20261023080300_0003_D.MP4 (67108864 bytes)",
+            "data": {
+                "destination": "sdcard/DCIM/DJI_003/DJI_20261023080300_0003_D.MP4",
+                "path": "DCIM/DJI_003/DJI_20261023080300_0003_D.MP4",
+                "size": 67108864
+            },
+            "created_at": "2026-11-19T02:25:15.137363Z"
+        },
+        {
+            "id": 11,
+            "task_id": 3,
+            "level": "info",
+            "type": "backup.completed",
+            "message": "completed DCIM/DJI_003/DJI_20261023080200_0002_D.MP4",
+            "data": {
+                "bytes": 67108864,
+                "path": "DCIM/DJI_003/DJI_20261023080200_0002_D.MP4",
+                "resume_at": 0,
+                "resumed": false,
+                "sha256": "3184f0213823cda0208a0cbfe9cf1af84283de9c020a2be5bef71188a47a443e",
+                "status": "COMPLETED"
+            },
+            "created_at": "2026-11-19T02:25:15.13691Z"
+        },
+        {
+            "id": 10,
+            "task_id": 3,
+            "level": "info",
+            "type": "task.started",
+            "message": "transferring DCIM/DJI_003/DJI_20261023080200_0002_D.MP4 (67108864 bytes)",
+            "data": {
+                "destination": "sdcard/DCIM/DJI_003/DJI_20261023080200_0002_D.MP4",
+                "path": "DCIM/DJI_003/DJI_20261023080200_0002_D.MP4",
+                "size": 67108864
+            },
+            "created_at": "2026-11-19T02:25:14.868169Z"
+        },
+        {
+            "id": 9,
+            "task_id": 2,
+            "level": "info",
+            "type": "backup.completed",
+            "message": "completed DCIM/DJI_003/DJI_20261023080100_0001_D.MP4",
+            "data": {
+                "bytes": 67108864,
+                "path": "DCIM/DJI_003/DJI_20261023080100_0001_D.MP4",
+                "resume_at": 0,
+                "resumed": false,
+                "sha256": "818d9630927ffcb96401842df0d0c0b311d5f0d23541add68d8644e4a80ea873",
+                "status": "COMPLETED"
+            },
+            "created_at": "2026-11-19T02:25:14.867839Z"
+        },
+        {
+            "id": 8,
+            "task_id": 2,
+            "level": "info",
+            "type": "task.started",
+            "message": "transferring DCIM/DJI_003/DJI_20261023080100_0001_D.MP4 (67108864 bytes)",
+            "data": {
+                "destination": "sdcard/DCIM/DJI_003/DJI_20261023080100_0001_D.MP4",
+                "path": "DCIM/DJI_003/DJI_20261023080100_0001_D.MP4",
+                "size": 67108864
+            },
+            "created_at": "2026-11-19T02:25:14.7082Z"
+        },
+        {
+            "id": 7,
+            "task_id": 1,
+            "level": "info",
+            "type": "backup.completed",
+            "message": "completed DCIM/DJI_003/DJI_20261023080100_0001_D.MP4",
+            "data": {
+                "bytes": 67108864,
+                "path": "DCIM/DJI_003/DJI_20261023080100_0001_D.MP4",
+                "resume_at": 0,
+                "resumed": false,
+                "sha256": "35d026278b12d29f3016dcf688656c7211056eb8e213d62a5fb0fdfea924593a",
+                "status": "COMPLETED"
+            },
+            "created_at": "2026-11-19T02:25:14.707847Z"
+        },
+        {
+            "id": 6,
+            "task_id": 1,
+            "level": "info",
+            "type": "task.started",
+            "message": "transferring DCIM/DJI_003/DJI_20261023080100_0001_D.MP4 (67108864 bytes)",
+            "data": {
+                "destination": "internal/DCIM/DJI_003/DJI_20261023080100_0001_D.MP4",
+                "path": "DCIM/DJI_003/DJI_20261023080100_0001_D.MP4",
+                "size": 67108864
+            },
+            "created_at": "2026-11-19T02:25:14.520435Z"
+        },
+        {
+            "id": 5,
+            "level": "info",
+            "type": "backup.started",
+            "message": "backup started: 4 new, 0 re-queued, 0 conflicts (0 overwritten), 0 retry-exhausted",
+            "data": {
+                "conflicts": 0,
+                "created": 4,
+                "enqueued": 4,
+                "exhausted": 0,
+                "overwritten": 0,
+                "requeued": 0,
+                "upload_bytes": 268435456
+            },
+            "created_at": "2026-11-19T02:25:14.51994Z"
+        },
+        {
+            "id": 4,
+            "level": "info",
+            "type": "plan.generated",
+            "message": "plan: 4 upload (268435456 bytes), 0 skip, 0 conflict across 2 volume(s)",
+            "data": {
+                "conflict_files": 0,
+                "duration_ms": 0,
+                "skip_files": 0,
+                "target_checked": true,
+                "upload_bytes": 268435456,
+                "upload_files": 4,
+                "warnings": 0
+            },
+            "created_at": "2026-11-19T02:25:14.517384Z"
+        },
+        {
+            "id": 3,
+            "level": "info",
+            "type": "plan.generated",
+            "message": "plan: 4 upload (268435456 bytes), 0 skip, 0 conflict across 2 volume(s)",
+            "data": {
+                "conflict_files": 0,
+                "duration_ms": 1,
+                "skip_files": 0,
+                "target_checked": true,
+                "upload_bytes": 268435456,
+                "upload_files": 4,
+                "warnings": 0
+            },
+            "created_at": "2026-11-19T02:25:14.504527Z"
+        },
+        {
+            "id": 2,
+            "level": "warn",
+            "type": "device.attached",
+            "message": "device Simulated Osmo Action 5 Pro attached with 2 volume(s), USB link 480 Mb/s (USB 2.0 or slower: transfer speed limited, check cable/port)",
+            "data": {
+                "device_key": "0506:8002:SIM0001",
+                "link_speed_mbps": 480,
+                "name": "Simulated Osmo Action 5 Pro",
+                "serial": "SIM0001",
+                "usb_link_limited": true,
+                "usb_version": "3.2",
+                "volumes": 2,
+                "weak_identity": false
+            },
+            "created_at": "2026-11-19T02:25:06.096226Z"
+        },
+        {
+            "id": 1,
+            "level": "info",
+            "type": "system.started",
+            "message": "service started",
+            "data": {
+                "mode": "simulation",
+                "platform": "sim",
+                "version": "0.1.0-dev"
+            },
+            "created_at": "2026-11-19T02:25:06.095686Z"
+        }
+    ]
+}

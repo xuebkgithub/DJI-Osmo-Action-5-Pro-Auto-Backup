@@ -135,6 +135,9 @@ func TestAppEndpoints(t *testing.T) {
 	if dev["key"] != "0506:8002:SIM0001" || len(vols) != 2 || vols[0].(map[string]any)["type"] != "internal" || vols[1].(map[string]any)["type"] != "sdcard" {
 		t.Fatalf("device: %v", dev)
 	}
+	if dev["usb_version"] != "3.2" || dev["link_speed_mbps"] != float64(5000) || dev["usb_link_limited"] != false {
+		t.Fatalf("device usb fields: %v", dev)
+	}
 
 	code, out = get(t, h, "GET", "/api/v1/events?limit=10")
 	evs := out["data"].([]any)

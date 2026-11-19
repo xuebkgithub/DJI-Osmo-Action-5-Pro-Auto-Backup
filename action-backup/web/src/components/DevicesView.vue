@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { store, refreshDevices, notify, errorText } from '../store.js'
 import { post } from '../api.js'
-import { bytes, ago } from '../format.js'
+import { bytes, ago, linkSpeed } from '../format.js'
 
 const busy = ref(false)
 async function rescan() {
@@ -32,6 +32,16 @@ async function rescan() {
     <dl class="kv">
       <dt>序列号</dt><dd class="mono">{{ d.serial || '-' }}</dd>
       <dt>USB</dt><dd class="mono">{{ d.vendor_id }}:{{ d.product_id }}</dd>
+      <dt>USB 协议</dt>
+      <dd>
+        <template v-if="d.usb_version || d.link_speed_mbps">
+          <span v-if="d.usb_version">USB {{ d.usb_version }}</span>
+          <span v-if="d.usb_version && d.link_speed_mbps"> · </span>
+          <span v-if="d.link_speed_mbps">当前 {{ linkSpeed(d.link_speed_mbps) }}</span>
+          <span class="badge warn" v-if="d.usb_link_limited" style="margin-left:6px" title="相机以 USB 2.0 或更低速率连接，备份速度会明显受限">降速连接，请检查线材 / 接口</span>
+        </template>
+        <template v-else>-</template>
+      </dd>
       <dt>设备键</dt><dd class="mono">{{ d.key }}</dd>
       <dt>最近看到</dt><dd>{{ ago(d.last_seen_at) }}</dd>
     </dl>

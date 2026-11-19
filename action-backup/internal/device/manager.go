@@ -129,6 +129,19 @@ func (m *Manager) onAttached(ctx context.Context, raw platform.RawDevice) {
 		level = "warn"
 		msg += " (weak identity: serial not resolvable)"
 	}
+	if d.USBVersion != "" {
+		data["usb_version"] = d.USBVersion
+	}
+	if d.LinkSpeedMbps > 0 {
+		data["link_speed_mbps"] = d.LinkSpeedMbps
+		msg += fmt.Sprintf(", USB link %d Mb/s", d.LinkSpeedMbps)
+	}
+	if d.USBLinkLimited() {
+		// 协商在 USB 2.0 及以下：备份速度会被链路卡住，提示检查线材 / 接口。
+		level = "warn"
+		data["usb_link_limited"] = true
+		msg += " (USB 2.0 or slower: transfer speed limited, check cable/port)"
+	}
 	m.bus.Publish(ctx, events.Event{Level: level, Type: "device.attached", Message: msg, Data: data})
 	if m.OnAttached != nil {
 		go m.OnAttached(ctx, d)
@@ -165,6 +178,7 @@ func toDomain(raw platform.RawDevice) domain.Device {
 	d := domain.Device{
 		Key: raw.Key, VendorID: raw.VendorID, ProductID: raw.ProductID,
 		SerialNumber: raw.SerialNumber, Name: raw.Name, WeakIdentity: raw.WeakIdentity,
+		USBVersion: raw.USBVersion, LinkSpeedMbps: raw.LinkSpeedMbps,
 		LastSeenAt: time.Now(),
 	}
 	for _, v := range raw.Volumes {

@@ -156,7 +156,7 @@ func enabledCfg() config.NotificationsConfig {
 func TestDispatcherFiltersFormatsAndCoalesces(t *testing.T) {
 	ch := &fakeChannel{name: ChannelMeoW}
 	d, bus, ctx := newTestDispatcher(t, ch, enabledCfg())
-	bus.Publish(ctx, events.Event{Type: "device.attached", Message: "x", Data: map[string]any{"name": "Osmo", "serial": "0A1B", "volumes": 2}})
+	bus.Publish(ctx, events.Event{Type: "device.attached", Message: "x", Data: map[string]any{"name": "Osmo", "serial": "0A1B", "volumes": 2, "usb_version": "3.2", "link_speed_mbps": int64(5000)}})
 	bus.Publish(ctx, events.Event{Type: "backup.started", Message: "x", Data: map[string]any{"created": 3, "requeued": 1, "upload_bytes": int64(5 << 30), "conflicts": 0}})
 	bus.Publish(ctx, events.Event{Type: "backup.progress", Message: "ignored"})
 	bus.Publish(ctx, events.Event{Type: "system.started", Message: "ignored"})
@@ -170,7 +170,7 @@ func TestDispatcherFiltersFormatsAndCoalesces(t *testing.T) {
 	if len(msgs) != 4 {
 		t.Fatalf("want 4 messages, got %d: %+v", len(msgs), msgs)
 	}
-	if !strings.Contains(msgs[0].Body, "Osmo 已插入（SN 0A1B），2 个卷") || msgs[0].URL != "http://site" {
+	if !strings.Contains(msgs[0].Body, "Osmo 已插入（SN 0A1B），2 个卷，USB 3.2 · 5 Gb/s") || msgs[0].URL != "http://site" {
 		t.Fatalf("attached: %+v", msgs[0])
 	}
 	if !strings.Contains(msgs[1].Body, "新建 3 个文件，重新入队 1 个，待上传 5.0 GB") {
@@ -243,5 +243,15 @@ func TestDispatcherTest(t *testing.T) {
 	}
 	if r := d.Test(ctx, ChannelMeoW); r.OK || r.Error == "" {
 		t.Fatalf("unconfigured channel must report error: %+v", r)
+	}
+}
+
+func TestFormatDeviceAttachedUSBLimited(t *testing.T) {
+	m := formatDeviceAttached(events.Event{Data: map[string]any{"name": "Osmo", "volumes": 2, "usb_version": "3.2", "link_speed_mbps": float64(480), "usb_link_limited": true}}, "")
+	if !strings.Contains(m.Body, "USB 3.2 · 480 Mb/s") || !strings.Contains(m.Body, "当前为 USB 2.0 连接") {
+		t.Fatalf("body %q", m.Body)
+	}
+	if got := humanLinkSpeed(10000); got != "10 Gb/s" {
+		t.Fatalf("humanLinkSpeed %q", got)
 	}
 }

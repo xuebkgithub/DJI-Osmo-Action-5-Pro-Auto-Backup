@@ -28,6 +28,7 @@ bash scripts/probe-mac-env.sh
 | 7 | Web 认证方式 | 已确认 | 用户名密码 |
 | 8 | 目标文件是否要保留源 mtime | 实机：目标 mtime 为写入时间（2026-10-27 实测，`docs/evidence/20261027T0530Z-v06-linux-backend/04-copy-verify.txt`） | 若要保留，在 `backup` 包落盘后 `Chtimes`；exFAT 2 秒精度与 NAS 端时区需一并确认 |
 | 9 | NAS 可达后 `mount-target` 实机验证（已确认，2026-10-27：挂载成功、2 文件 SHA-256 一致、24.1 MB/s） | 填好 `storage.share` 与 `smb.credentials` 后 `systemctl restart action-backup`，看 `storage.mounted` 事件与 `journalctl -u action-backup-mounter` | 守护代码已就绪但未实测；SMB 版本结论同问题 2 |
+| 10 | Linux 实机 USB 协议版本与协商速率（待确认：设备 2026-11-19 不在线） | `cmd_ip.sh 172.20.31.6 'cat /sys/bus/usb/devices/6-1/{version,speed}'`，再看网页「设备与卷」的「USB 协议」行与 `device.attached` 事件 | 预期 ` 3.20` / `5000`；换 USB 2.0 线应显示 480 Mb/s 并告警。mac 侧 ioreg 实测为 bcdUSB 0x0320、5 Gb/s |
 
 ## 核对方法
 

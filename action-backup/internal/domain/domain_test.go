@@ -102,3 +102,19 @@ func TestTaskTransitions(t *testing.T) {
 		t.Error("FAILED is retryable, not terminal")
 	}
 }
+
+func TestUSBVersionAndLink(t *testing.T) {
+	for in, want := range map[string]string{" 3.20": "3.2", "2.00": "2.0", "2.10": "2.1", "3.00\n": "3.0", "": "", "weird": "weird"} {
+		if got := NormalizeUSBVersion(in); got != want {
+			t.Errorf("NormalizeUSBVersion(%q) = %q, want %q", in, got, want)
+		}
+	}
+	for in, want := range map[int64]string{0x0320: "3.2", 0x0210: "2.1", 0x0200: "2.0", 0: ""} {
+		if got := USBVersionFromBCD(in); got != want {
+			t.Errorf("USBVersionFromBCD(%#x) = %q, want %q", in, got, want)
+		}
+	}
+	if (Device{}).USBLinkLimited() || (Device{LinkSpeedMbps: 5000}).USBLinkLimited() || !(Device{LinkSpeedMbps: 480}).USBLinkLimited() {
+		t.Error("USBLinkLimited: only a known speed <= 480 Mb/s counts as limited")
+	}
+}

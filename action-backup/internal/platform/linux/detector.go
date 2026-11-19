@@ -149,6 +149,7 @@ func (d *Detector) buildDevice(u usbDevice) (raw.Device, error) {
 	dev := raw.Device{
 		Key: domain.DeviceKey(d.vendorID, d.productID, serial), VendorID: d.vendorID, ProductID: d.productID,
 		SerialNumber: serial, Name: displayName(u), WeakIdentity: weak,
+		USBVersion: u.Version, LinkSpeedMbps: u.SpeedMbps,
 	}
 	for _, v := range vols {
 		key := "uuid:" + strings.ToLower(v.Props["ID_FS_UUID"])

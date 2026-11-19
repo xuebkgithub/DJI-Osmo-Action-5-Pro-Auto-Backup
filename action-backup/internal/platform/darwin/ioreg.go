@@ -19,6 +19,9 @@ type usbNode struct {
 	EntryID     int64
 	LocationID  int64
 	DeviceSpeed int64
+	// BCDUSB 描述符 bcdUSB（0x0320 = USB 3.2）；LinkSpeedBps 为 UsbLinkSpeed（bit/s），老系统可能没有。
+	BCDUSB       int64
+	LinkSpeedBps int64
 }
 
 // lunNode ioreg IOService 子树中的逻辑单元及其块设备。
@@ -63,6 +66,8 @@ func findUSBDevices(data []byte, vendorID, productID int64) ([]usbNode, error) {
 		node.EntryID, _ = plist.Int(n, "IORegistryEntryID")
 		node.LocationID, _ = plist.Int(n, "locationID")
 		node.DeviceSpeed, _ = plist.Int(n, "Device Speed")
+		node.BCDUSB, _ = plist.Int(n, "bcdUSB")
+		node.LinkSpeedBps, _ = plist.Int(n, "UsbLinkSpeed")
 		out = append(out, node)
 		return false // 不再深入该设备的子节点
 	})
@@ -143,4 +148,22 @@ func walk(v any, visit func(map[string]any) bool) {
 			walk(c, visit)
 		}
 	}
+}
+
+// linkSpeedMbps 当前协商速率：优先 UsbLinkSpeed，缺失时按 Device Speed 枚举（2 high / 3 super / 4 super+）折算。
+func (n usbNode) linkSpeedMbps() int64 {
+	if n.LinkSpeedBps > 0 {
+		return n.LinkSpeedBps / 1_000_000
+	}
+	switch n.DeviceSpeed {
+	case 1:
+		return 12
+	case 2:
+		return 480
+	case 3:
+		return 5000
+	case 4:
+		return 10000
+	}
+	return 0
 }

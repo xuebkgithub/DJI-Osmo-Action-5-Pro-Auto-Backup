@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"action-backup/internal/domain"
 )
 
 // DefaultSysfs sysfs 挂载点。
@@ -27,6 +29,8 @@ type usbDevice struct {
 	Serial       string
 	Product      string
 	Manufacturer string
+	Version      string // sysfs version，已规整，如 3.2
+	SpeedMbps    int64  // sysfs speed，当前协商速率；读不到为 0
 }
 
 // blockVolume 挂在某个 USB 设备下的整盘块设备。
@@ -74,9 +78,12 @@ func (s Sysfs) findUSBDevices(vendorID, productID string) ([]usbDevice, error) {
 		if err != nil {
 			real = dir
 		}
+		// speed 为 Mb/s 整数（480 / 5000 / 10000）；低速设备的 "1.5" 解析失败按未知处理。
+		speed, _ := strconv.ParseInt(s.attr(dir, "speed"), 10, 64)
 		out = append(out, usbDevice{
 			Path: real, Name: e.Name(),
 			Serial: s.attr(dir, "serial"), Product: s.attr(dir, "product"), Manufacturer: s.attr(dir, "manufacturer"),
+			Version: domain.NormalizeUSBVersion(s.attr(dir, "version")), SpeedMbps: speed,
 		})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
