@@ -202,7 +202,7 @@ T1 不过时：先「查看结果」保留现场，把 `update-result.json` 与 
 | 2026-11-19 | N1 包被改写 | 通过 | `evidence/20261119T0647Z-v09-update-device-n1-rc2/`：`verify` / `sha256 mismatch`，版本与服务启动时间不变 |
 | 2026-11-19 | rc.1 → rc.2 更新 | 通过 | 同上：`ok: true`，新进程启动 5 秒后报告「更新完成」（修复有效），沙箱内可读结果文件，守护一起重启。停 rc.1 仍慢 10 秒（预期内） |
 | 2026-11-19 | N3 重放、N2 坏签名、N4 符号链接 | 通过 | 同上目录 `04-n3-n2-n4.txt`（设备为 rc.2，素材为 rc.2 的发布文件；N4 的链接目标用 `/etc/hostname` 代替凭据文件）。`not newer` / `signature verification failed` / `too many levels of symbolic links`，服务启动时间三次都不变 |
-| - | 停机超时的修复 | 未验证 | 要等 rc.2 被下一个版本替换 |
+| 2026-11-19 | 停机超时的修复（rc.2 → 0.9.1） | 通过 | `evidence/20261119T0709Z-v091-update-device/`：停主服务不到 1 秒，无 `context deadline exceeded`；主服务不可用 6 秒（此前 16 秒） |
 | - | T2 等待空闲、T3 回滚演练 | 不做 | 用户 2026-11-19 决定不做回滚演练；两项都只有单元测试覆盖 |
 
 下一个测试版（rc.2）除了验证上面两处修复，也是第一次「定时器为 `OnCalendar` 的版本自己更新自己」：设备现在是 rc.1，定时器已是新写法。

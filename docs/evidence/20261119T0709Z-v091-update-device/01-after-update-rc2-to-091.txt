@@ -1,0 +1,17 @@
+armbian:update:# journalctl -u action-backup --since -10min --no-pager | grep -E "stopping|deadline|Failed|Stopped|Started|starting|updated|update to" ; /opt/action-backup/action-backup --version; cat /opt/action-backup/update-result.json
+11月 19 15:08:13 armbian action-backup[4118]: {"time":"2026-11-19T15:08:13.873614861+08:00","level":"INFO","msg":"update to 0.9.1 downloaded and verified, waiting for installer","event":"update.requested"}
+11月 19 15:09:06 armbian action-backup[4118]: {"time":"2026-11-19T15:09:06.801235266+08:00","level":"INFO","msg":"service stopping","event":"system.stopping"}
+11月 19 15:09:06 armbian systemd[1]: Stopped action-backup.service - DJI Action Backup Service.
+11月 19 15:09:12 armbian systemd[1]: Started action-backup.service - DJI Action Backup Service.
+11月 19 15:09:12 armbian action-backup[4491]: {"time":"2026-11-19T15:09:12.344453781+08:00","level":"INFO","msg":"action-backup starting","version":"0.9.1","config":"/etc/action-backup/config.yaml","mode":"production","faultinject":false}
+11月 19 15:09:12 armbian action-backup[4491]: {"time":"2026-11-19T15:09:12.380146459+08:00","level":"ERROR","msg":"update to  failed at stage: open /var/lib/action-backup/update/SHA256SUMS.sig: too many levels of symbolic links","event":"update.failed"}
+11月 19 15:09:17 armbian action-backup[4491]: {"time":"2026-11-19T15:09:17.393057461+08:00","level":"INFO","msg":"updated from 0.9.1-rc.2 to 0.9.1","event":"update.installed"}
+action-backup 0.9.1 (commit 8e33db9, built 2026-11-19T07:03:14Z, faultinject=false)
+{
+  "ok": true,
+  "from": "0.9.1-rc.2",
+  "to": "0.9.1",
+  "started_at": "2026-11-19T07:09:06Z",
+  "finished_at": "2026-11-19T07:09:15Z",
+  "log": "action-backup: 成功\nconfig.example.yaml: 成功\nconfig.dryrun.yaml: 成功\naction-backup.service: 成功\naction-backup-mounter.service: 成功\naction-backup-update.service: 成功\naction-backup-update.timer: 成功\n99-action-backup.rules: 成功\ninstall.sh: 成功\n安装完成，尚未启动。\n1. 编辑 /etc/action-backup/config.yaml（当前为 dry-run 模板），填写 SMB 共享与认证。\n2. 创建 /etc/action-backup/smb.credentials（username=/password=），chmod 0600。\n3. 校验：/opt/action-backup/action-backup --config /etc/action-backup/config.yaml --check\n4. 首轮以 dry-run 启动：systemctl enable --now action-backup && journalctl -fu action-backup\n   （action-backup.service Requires= 挂载守护 action-backup-mounter.service，会一并拉起）\n"
+}
